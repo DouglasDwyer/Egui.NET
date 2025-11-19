@@ -169,8 +169,13 @@ struct FfiVec<T> {
 
 impl<T> FfiVec<T> {
     /// Frees the vector using its original allocator.
+    /// 
+    /// # Safety
+    /// 
+    /// This function should be called a single time on each valid [`FfiVec`].
     unsafe extern "C" fn on_free(&mut self) {
-        Vec::from_raw_parts(self.ptr, self.len, self.capacity);
+        // Safety: this s
+        unsafe { Vec::from_raw_parts(self.ptr, self.len, self.capacity); }
     }
 }
 
@@ -206,3 +211,6 @@ impl<T> Drop for FfiVec<T> {
         }
     }
 }
+
+unsafe impl<T: Send> Send for FfiVec<T> {}
+unsafe impl<T: Send> Sync for FfiVec<T> {}

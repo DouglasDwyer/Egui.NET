@@ -1,8 +1,8 @@
 #![feature(formatting_options)]
-#![feature(let_chains)]
 
 use convert_case::*;
 use egui::*;
+use egui::{Rect, Vec2};
 use egui::color_picker::*;
 use egui::ecolor::*;
 use egui::emath::*;
@@ -491,6 +491,23 @@ const IGNORE_FNS: &[&str] = &[
     // Fonts: pointer-only class
     "epaint_text_fonts_Fonts_new",
 
+    // FontsView: class with pointers; impossible to bind to C#
+    "epaint_text_fonts_FontsView_definitions",
+    "epaint_text_fonts_FontsView_families",
+    "epaint_text_fonts_FontsView_font_atlas_fill_ratio",
+    "epaint_text_fonts_FontsView_font_image_size",
+    "epaint_text_fonts_FontsView_glyph_width",
+    "epaint_text_fonts_FontsView_has_glyph",
+    "epaint_text_fonts_FontsView_has_glyphs",
+    "epaint_text_fonts_FontsView_image",
+    "epaint_text_fonts_FontsView_layout",
+    "epaint_text_fonts_FontsView_layout_delayed_color",
+    "epaint_text_fonts_FontsView_layout_job",
+    "epaint_text_fonts_FontsView_layout_no_wrap",
+    "epaint_text_fonts_FontsView_max_texture_side",
+    "epaint_text_fonts_FontsView_num_galleys_in_cache",
+    "epaint_text_fonts_FontsView_row_height",
+
     // History: not possible to bind to C# due to generics
     "emath_history_History_average",
     "emath_history_History_bandwidth",
@@ -554,6 +571,15 @@ const IGNORE_FNS: &[&str] = &[
     // MenuState: bound manually
     "egui_containers_menu_MenuState_from_ui",
 
+    // Mutex: implementation detail
+    "epaint_mutex_Mutex_default",
+    "epaint_mutex_Mutex_lock",
+    "epaint_mutex_Mutex_new",
+    "epaint_mutex_RwLock_default",
+    "epaint_mutex_RwLock_new",
+    "epaint_mutex_RwLock_read",
+    "epaint_mutex_RwLock_write",
+
     // old_popup: deprecated
     "egui_containers_old_popup_popup_above_or_below_widget",
     "egui_containers_old_popup_popup_below_widget",
@@ -583,6 +609,9 @@ const IGNORE_FNS: &[&str] = &[
     "egui_painter_Painter_ctx",
     "egui_painter_Painter_fonts",
     "egui_painter_Painter_extend",
+
+    // Painter: not possible to bind
+    "egui_painter_Painter_fonts_mut",
 
     // Rect: bound manually
     "emath_rect_Rect_bottom",
@@ -2049,15 +2078,12 @@ impl BindingsGenerator {
 
     /// Performs reflection on `egui` types to determine fields.
     fn trace_serde_types() -> Registry {
-        let mut samples = Samples::new();
+        let samples = Samples::new();
         let mut tracer = Tracer::new(TracerConfig::default()
             .default_u64_value(1)
             .record_samples_for_newtype_structs(true)
             .record_samples_for_tuple_structs(true)
             .record_samples_for_structs(true));
-
-
-        tracer.trace_value(&mut samples, &Options::default()).expect("Failed to trace Options");
         
         tracer.trace_type::<AlphaFromCoverage>(&samples).expect("Failed to trace AlphaFromCoverage");
         tracer.trace_type::<TextureId>(&samples).expect("Failed to trace AlphaFromCoverage");
@@ -2066,8 +2092,11 @@ impl BindingsGenerator {
         tracer.trace_simple_type::<TextWrapMode>().expect("Failed to trace TextWrapMode");
         tracer.trace_simple_type::<PinchType>().expect("Failed to trace PinchType");
         tracer.trace_simple_type::<PointerEvent>().expect("Failed to trace PointerEvent");
+        tracer.trace_simple_type::<PointerButton>().expect("Failed to trace PointerButton");
         tracer.trace_simple_type::<ProgressBarText>().expect("Failed to trace ProgressBarText");
         tracer.trace_simple_type::<SidesKind>().expect("Failed to trace SidesKind");
+        tracer.trace_simple_type::<TextStyle>().expect("Failed to trace SidesKind");
+        tracer.trace_simple_type::<WidgetText>().expect("Failed to trace WidgetText");
         
         trace_auto_egui_types(&mut tracer);
         trace_auto_emath_types(&mut tracer);

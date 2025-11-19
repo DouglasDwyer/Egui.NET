@@ -36,7 +36,7 @@ public ref partial struct Popup
             var anchorRect = maybeAnchorRect.Value;
             return RectAlign.FindBestAlign(new[] { _rectAlign }
                 .Concat(_alternativeAligns ?? _rectAlign.Symmetries.Concat(RectAlign.MenuAligns)),
-                Ctx.ScreenRect,
+                Ctx.ContentRect,
                 anchorRect,
                 _gap,
                 expectedPopupSize).GetValueOrDefault();
@@ -100,7 +100,6 @@ public ref partial struct Popup
     private UiStackInfo? _info;
     private PopupKind _kind;
     private float _gap;
-    private bool _widgetClickedElsewhere;
     private float? _width;
     private Sense _sense;
     private Layout _layout;
@@ -140,7 +139,6 @@ public ref partial struct Popup
     public static Popup FromResponse(Response response)
     {
         var result = new Popup(DefaultResponseId(response), response.Ctx, response, response.LayerId);
-        result._widgetClickedElsewhere = response.ClickedElsewhere;
         return result;
     }
 
@@ -558,7 +556,6 @@ public ref partial struct Popup
         public Egui.UiStackInfo? Info;
         public Egui.Containers.PopupKind Kind;
         public float Gap;
-        public bool WidgetClickedElsewhere;
         public float? Width;
         public Egui.Sense Sense;
         public Egui.Layout Layout;
@@ -579,7 +576,6 @@ public ref partial struct Popup
             Info = popup._info;
             Kind = popup._kind;
             Gap = popup._gap;
-            WidgetClickedElsewhere = popup._widgetClickedElsewhere;
             Width = popup._width;
             Sense = popup._sense;
             Layout = popup._layout;
@@ -604,7 +600,6 @@ public ref partial struct Popup
             serialize_option_UiStackInfo(Info, serializer);
             Kind.Serialize(serializer);
             serializer.serialize_f32(Gap);
-            serializer.serialize_bool(WidgetClickedElsewhere);
             Egui.TraitHelpers.serialize_option_f32(Width, serializer);
             Sense.Serialize(serializer);
             Layout.Serialize(serializer);

@@ -201,7 +201,7 @@ public readonly ref partial struct Ui
     }
 
     /// <summary>
-    /// Add a <see cref="Widget"/>  to this <see cref="Ui"/>  at a location dependent on the current <see cref="Layout"/> .
+    /// Add a <see cref="IWidget"/>  to this <see cref="Ui"/>  at a location dependent on the current <see cref="Layout"/> .
     ///
     /// The returned <see cref="Response"/> can be used to check for interactions,
     /// as well as adding tooltips using <see cref="Response.OnHoverText"/> .
@@ -214,6 +214,23 @@ public readonly ref partial struct Ui
         var tp = &widget;
         var layout = Layout.CenteredAndJustified(Layout.MainDir);
         return AllocateUiWithLayout(maxSize, layout, ui => ui.Add(*tp)).Inner;
+#pragma warning restore CS8500
+    }
+
+    /// <summary>
+    /// Add a <see cref="IWidget"/>  to this <see cref="Ui"/> at a specific location (manual layout) without
+    /// affecting this <see cref="Ui"/>s cursor.
+    ///
+    /// See also <see cref="Add"/>  and <see cref="AddSized"/>  and <see cref="Put"/> .
+    /// </summary>
+    public unsafe readonly Response Place<T>(Rect maxRect, T widget) where T : IWidget, allows ref struct
+    {
+#pragma warning disable CS8500
+        AssertInitialized();
+        var tp = &widget;
+        var ctx = Ctx;
+        using var callback = new EguiCallback(ui => (*tp).Ui(new Ui(ctx, ui)));
+        return EguiMarshal.Call<nuint, Rect, EguiCallback, Response>(EguiFn.egui_ui_Ui_place, Ptr, maxRect, callback);
 #pragma warning restore CS8500
     }
 

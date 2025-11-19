@@ -56,7 +56,7 @@ public ref partial struct Tooltip
     public static Tooltip ForEnabled(Response response)
     {
         var tooltip = ForWidget(response);
-        tooltip.Popup = tooltip.Popup.Open(response.Enabled && ShouldShowTooltip(response));
+        tooltip.Popup = tooltip.Popup.Open(response.Enabled && ShouldShowTooltip(response, true));
         return tooltip;
     }
 
@@ -66,7 +66,7 @@ public ref partial struct Tooltip
     public static Tooltip ForDisabled(Response response)
     {
         var tooltip = ForWidget(response);
-        tooltip.Popup = tooltip.Popup.Open(!response.Enabled && ShouldShowTooltip(response));
+        tooltip.Popup = tooltip.Popup.Open(!response.Enabled && ShouldShowTooltip(response, true));
         return tooltip;
     }
 

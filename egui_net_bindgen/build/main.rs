@@ -14,7 +14,7 @@ const EXCLUDE_TYPES: &[&str] = &[
 fn impls_contains(krate: &Crate, impls: &[Id], path: &str) -> bool {
     for id in impls {
         let ItemEnum::Impl(impl_block) = &krate.index[id].inner else { unreachable!() };
-        if impl_block.trait_.as_ref().map(|x| x.path == path).unwrap_or_default() {
+        if impl_block.trait_.as_ref().is_some_and(|x| x.path == path) {
             return true;
         }
     }
@@ -33,7 +33,7 @@ fn gather_serde_tys(krate: &Crate, exclude_tys: &[&str]) -> Vec<Id> {
             _ => continue
         };
 
-        if item.name.as_deref().map(|x| exclude_tys.contains(&x)).unwrap_or_default() {
+        if item.name.as_deref().is_some_and(|x| exclude_tys.contains(&x)) {
             continue;
         }
 
@@ -56,6 +56,7 @@ fn emit_tracer(name: &str, krate: &Crate, exclude_tys: &[&str]) -> String {
     let mut result = String::new();
     
     result.push_str("/// Registers all serializable `egui` types with the reflection system.\n");
+    result.push_str("#[allow(warnings)]\n");
     result.push_str(&format!("fn trace_auto_{name}_types(tracer: &mut ::serde_reflection::Tracer) {{\n"));
 
     for id in ids {

@@ -9,8 +9,8 @@ default-members = [ "egui_net" ]
 resolver = "2"
 
 [workspace.package]
-edition = "2021"
-version = "0.3.0+0.32.0"
+edition = "2024"
+version = "0.4.0+0.33.0"
 
 [profile.release]
 codegen-units = 1
@@ -31,12 +31,12 @@ serde-generate = { path = "serde-generate", default-features = false, features =
 # External dependencies
 bincode = { version = "1.3.3", default-features = false }
 convert_case = { version = "0.7.1", default-features = false }
-csbindgen = { version = "1.9.3", default-features = false }
-egui = { version = "0.32.0", default-features = false }
-egui_extras = { version = "0.32.0", default-features = false, features = [ "image", "svg", "svg_text" ] }
+csbindgen = { version = "1.9.7", default-features = false }
+egui = { version = "0.33.0", default-features = false }
+egui_extras = { version = "0.33.0", default-features = false, features = [ "image", "svg", "svg_text" ] }
 image = { version = "0.25.6", default-features = false, features = [ "default-formats" ] }
 mimalloc = { version = "0.1.47", default-features = false }
-rustdoc-types = { version = "0.39.0", default-features = false }
+rustdoc-types = { version = "0.56.0", default-features = false }
 serde = { version = "1.0.219", default-features = false, features = [ "derive" ] }
 serde_json = { version = "1.0.138", default-features = false, features = [ "std" ] }
 serde-reflection = { version = "0.5.0", default-features = false }
@@ -48,7 +48,7 @@ x86_64-apple-darwin = { image = "i18nsite/x86_64-apple-darwin-cross@sha256:86049
 aarch64-apple-darwin = { image = "i18nsite/aarch64-apple-darwin-cross@sha256:737bd24b8bc893de2bec133277e4f69c33db725ef02d13c8f1277fe92098ba0d" }
 
 [patch.crates-io]
-#egui = { path = "../egui/crates/egui" }
-egui = { git = "https://github.com/DouglasDwyer/egui", rev = "cecb84fb03dde89e3bfcb95d821adab3f75016c9" }
-#egui_extras = { path = "../egui/crates/egui_extras" }
-egui_extras = { git = "https://github.com/DouglasDwyer/egui", rev = "cecb84fb03dde89e3bfcb95d821adab3f75016c9" }
+egui = { path = "../egui/crates/egui" }
+#egui = { git = "https://github.com/DouglasDwyer/egui", rev = "cecb84fb03dde89e3bfcb95d821adab3f75016c9" }
+egui_extras = { path = "../egui/crates/egui_extras" }
+#egui_extras = { git = "https://github.com/DouglasDwyer/egui", rev = "cecb84fb03dde89e3bfcb95d821adab3f75016c9" }

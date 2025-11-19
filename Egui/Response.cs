@@ -230,5 +230,6 @@ public partial struct Response : IEquatable<Response>
     /// See <see cref="Union"/>.
     ///
     /// To summarize the response from many widgets you can use this pattern
+    /// </summary>
     public static Response operator |(Response lhs, Response rhs) => lhs.Union(rhs);
 }
