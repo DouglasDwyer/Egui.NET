@@ -34,7 +34,7 @@ public static unsafe class EguiControllerExample
         gl = GL.GetApi(window);
 
         // create our imgui controller and pass silk refs
-        eguiController = new EguiController(gl, window, input, 1f);
+        eguiController = new EguiController(gl, window, input);
     }
 
     static void Render(double deltaTime)

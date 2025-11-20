@@ -25,20 +25,18 @@ unsafe public class EguiController
 
     Stopwatch timer = new Stopwatch();
 
-    float displayScaleFactor;
+    float displayScaleFactor => (float)window.FramebufferSize.X / window.Size.X;
 
     bool shift = false;
     bool alt = false;
     bool ctrl = false;
     bool focus = false;
 
-    public EguiController(GL gl, IWindow window, IInputContext input, float displayScaleFactor = 1f)
+    public EguiController(GL gl, IWindow window, IInputContext input)
     {
         this.gl = gl;
         this.window = window;
         
-        this.displayScaleFactor = displayScaleFactor;
-
         eguiContext = new Context();
         eguiRenderer = new EguiRenderer(gl);
         timer.Start();
@@ -64,7 +62,7 @@ unsafe public class EguiController
         eguiInput.ViewportId = ViewportId.Root;
         eguiInput.Focused = focus;
         eguiInput.Time = timer.Elapsed.TotalSeconds;
-        eguiInput.ScreenRect = Rect.FromMinSize(EPos2.Zero, (window.Size.X / displayScaleFactor, window.Size.Y / displayScaleFactor));
+        eguiInput.ScreenRect = Rect.FromMinSize(EPos2.Zero, (window.Size.X, window.Size.Y));
 
         eguiInput.SystemTheme = Theme.Dark;
         eguiInput.Viewports = eguiInput.Viewports.SetItem(eguiInput.ViewportId, new ViewportInfo
@@ -242,7 +240,7 @@ unsafe public class EguiController
     {
         eguiInput.Events = eguiInput.Events.Add(new Event.PointerMoved
         {
-            Value = new(vector.X / displayScaleFactor, vector.Y / displayScaleFactor)
+            Value = new(vector.X, vector.Y)
         });
     }
 
@@ -252,7 +250,7 @@ unsafe public class EguiController
         {
             Button = (PointerButton)button,
             Pressed = true,
-            Pos = (mouse.Position.X / displayScaleFactor, mouse.Position.Y / displayScaleFactor),
+            Pos = (mouse.Position.X, mouse.Position.Y),
             Modifiers = new()
             {
                 Alt = alt,
@@ -268,7 +266,7 @@ unsafe public class EguiController
         {
             Button = (PointerButton)button,
             Pressed = false,
-            Pos = (mouse.Position.X / displayScaleFactor, mouse.Position.Y / displayScaleFactor),
+            Pos = (mouse.Position.X, mouse.Position.Y),
             Modifiers = new()
             {
                 Alt = alt,
