@@ -9,7 +9,7 @@ namespace Egui;
 public readonly ref partial struct Ui
 {
     /// <summary>
-    /// Use this to paint stuff within this <see cref="Ui"/> .
+    /// Use this to paint stuff within this <see cref="Ui"/>.
     /// </summary>
     public Painter Painter
     {
@@ -118,10 +118,10 @@ public readonly ref partial struct Ui
     }
 
     /// <inheritdoc cref="Context.Fonts"/>
-    public void Fonts(Action<Fonts> reader) => Ctx.Fonts(reader);
+    public void Fonts(Action<FontsView> reader) => Ctx.Fonts(reader);
 
     /// <inheritdoc cref="Context.Fonts"/>
-    public R Fonts<R>(Func<Fonts, R> reader) => Ctx.Fonts(reader);
+    public R Fonts<R>(Func<FontsView, R> reader) => Ctx.Fonts(reader);
 
     /// <inheritdoc cref="Context.Input"/>
     public void Input(Action<InputState> reader) => Ctx.Input(reader);

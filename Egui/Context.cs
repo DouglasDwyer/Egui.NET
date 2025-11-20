@@ -214,10 +214,10 @@ public sealed partial class Context : EguiObject
     }
 
     /// <summary>
-    /// Read-only access to Fonts.<br/>
+    /// Read-write access to <see cref="FontsView"/>.<br/>
     /// Not valid until first call to <see cref="Run"/>. That’s because since we don’t know the proper <c>PixelsPerPoint</c> until then.
     /// </summary>
-    public void Fonts(Action<Fonts> reader)
+    public void Fonts(Action<FontsView> reader)
     {
         Fonts(f =>
         {
@@ -286,11 +286,11 @@ public sealed partial class Context : EguiObject
     }
 
     /// <inheritdoc cref="Fonts"/>
-    public R Fonts<R>(Func<Fonts, R> reader)
+    public R Fonts<R>(Func<FontsView, R> reader)
     {
         R result = default!;
-        using var callback = new EguiCallback(f => result = reader(new Fonts(f)));
-        EguiMarshal.Call(EguiFn.egui_context_Context_fonts, Ptr, callback);
+        using var callback = new EguiCallback(f => result = reader(new FontsView(f)));
+        EguiMarshal.Call(EguiFn.egui_context_Context_fonts_mut, Ptr, callback);
         return result;
     }
 

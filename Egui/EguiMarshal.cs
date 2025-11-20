@@ -168,7 +168,7 @@ internal static class EguiMarshal
     {
         if (!result.success)
         {
-            throw new InvalidOperationException(new string((char*)result.return_value.ptr, 0, (int)result.return_value.len / sizeof(char)));
+            throw new EguiException(new string((char*)result.return_value.ptr, 0, (int)result.return_value.len / sizeof(char)));
         }
     }
 
@@ -259,7 +259,7 @@ internal static class EguiMarshal
                     int index = deserializer.deserialize_variant_index();
                     if (!Enum.IsDefined(typeof(T), index))
                     {
-                        throw new InvalidDataException($"Unknown variant index for {typeof(T)}: {index}");
+                        throw new EguiException($"Unknown variant index for {typeof(T)}: {index}");
                     }
 
                     deserializer.decrease_container_depth();
@@ -367,7 +367,7 @@ internal static class EguiMarshal
 
                 if (serializer == null || deserializer == null)
                 {
-                    throw new Exception($"Missing serializers for {typeof(T)}");
+                    throw new EguiException($"Missing serializers for {typeof(T)}");
                 }
                 Serialize = (Action<BincodeSerializer, T>)Delegate.CreateDelegate(typeof(Action<BincodeSerializer, T>), serializer);
                 Deserialize = (Func<BincodeDeserializer, T>)Delegate.CreateDelegate(typeof(Func<BincodeDeserializer, T>), deserializer);

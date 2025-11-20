@@ -80,6 +80,7 @@ const BINDING_EXCLUDE_FNS: &[&str] = &[
 const BINDING_EXCLUDE_TYPES: &[&str] = &[
     "History",
     "",
+    "Fonts",
     // Private types
     "Tessellator"
 ];
@@ -104,7 +105,7 @@ const HANDLE_TYPES: &[&str] = &[
 
 /// Types that should be converted to `ref struct`s in C# backed by pointers.
 const POINTER_TYPES: &[&str] = &[
-    "Fonts",
+    "FontsView",
     "Memory",
     "Ui"
 ];
@@ -337,6 +338,9 @@ const IGNORE_FNS: &[&str] = &[
     "egui_containers_combo_box_ComboBox_icon",
     "egui_containers_combo_box_ComboBox_show_index",
 
+    // ComboBox: not yet implemented:
+    "egui_containers_combo_box_ComboBox_popup_style",
+
     // DragValue: bound manually
     "egui_widgets_drag_value_DragValue_binary",
     "egui_widgets_drag_value_DragValue_clamp_existing_to_range",
@@ -409,6 +413,7 @@ const IGNORE_FNS: &[&str] = &[
     "egui_context_Context_options_mut",
     "egui_context_Context_data",
     "egui_context_Context_data_mut",
+    "egui_context_Context_fonts",
 
     // Context: not yet implemented
     "egui_context_Context_set_immediate_viewport_renderer",
@@ -490,23 +495,17 @@ const IGNORE_FNS: &[&str] = &[
 
     // Fonts: pointer-only class
     "epaint_text_fonts_Fonts_new",
-
-    // FontsView: class with pointers; impossible to bind to C#
-    "epaint_text_fonts_FontsView_definitions",
-    "epaint_text_fonts_FontsView_families",
-    "epaint_text_fonts_FontsView_font_atlas_fill_ratio",
-    "epaint_text_fonts_FontsView_font_image_size",
-    "epaint_text_fonts_FontsView_glyph_width",
-    "epaint_text_fonts_FontsView_has_glyph",
-    "epaint_text_fonts_FontsView_has_glyphs",
-    "epaint_text_fonts_FontsView_image",
-    "epaint_text_fonts_FontsView_layout",
-    "epaint_text_fonts_FontsView_layout_delayed_color",
-    "epaint_text_fonts_FontsView_layout_job",
-    "epaint_text_fonts_FontsView_layout_no_wrap",
-    "epaint_text_fonts_FontsView_max_texture_side",
-    "epaint_text_fonts_FontsView_num_galleys_in_cache",
-    "epaint_text_fonts_FontsView_row_height",
+    "epaint_text_fonts_Fonts_begin_pass",
+    "epaint_text_fonts_Fonts_definitions",
+    "epaint_text_fonts_Fonts_font_atlas_fill_ratio",
+    "epaint_text_fonts_Fonts_font_image_delta",
+    "epaint_text_fonts_Fonts_font_image_size",
+    "epaint_text_fonts_Fonts_has_glyph",
+    "epaint_text_fonts_Fonts_has_glyphs",
+    "epaint_text_fonts_Fonts_image",
+    "epaint_text_fonts_Fonts_max_texture_side",
+    "epaint_text_fonts_Fonts_num_galleys_in_cache",
+    "epaint_text_fonts_Fonts_with_pixels_per_point",
 
     // History: not possible to bind to C# due to generics
     "emath_history_History_average",
@@ -608,10 +607,8 @@ const IGNORE_FNS: &[&str] = &[
     // Painter: bound manually
     "egui_painter_Painter_ctx",
     "egui_painter_Painter_fonts",
-    "egui_painter_Painter_extend",
-
-    // Painter: not possible to bind
     "egui_painter_Painter_fonts_mut",
+    "egui_painter_Painter_extend",
 
     // Rect: bound manually
     "emath_rect_Rect_bottom",
@@ -977,6 +974,7 @@ const IGNORE_FNS: &[&str] = &[
     "egui_ui_Ui_text_edit_multiline",
     "egui_ui_Ui_text_edit_singleline",
     "egui_ui_Ui_fonts",
+    "egui_ui_Ui_fonts_mut",
     "egui_ui_Ui_input",
     "egui_ui_Ui_input_mut",
     "egui_ui_Ui_output",
