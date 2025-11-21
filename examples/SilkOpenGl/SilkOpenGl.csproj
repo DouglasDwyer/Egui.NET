@@ -1,21 +1,14 @@
 ﻿<Project Sdk="Microsoft.NET.Sdk">
+  <PropertyGroup>
+    <OutputType>Exe</OutputType>
+    <TargetFramework>net9.0</TargetFramework>
+    <ImplicitUsings>enable</ImplicitUsings>
+    <Nullable>enable</Nullable>
+  </PropertyGroup>
 
   <ItemGroup>
     <ProjectReference Include="..\..\Egui\Egui.csproj" />
-  </ItemGroup>
-
-  <ItemGroup>
-    <PackageReference Include="Silk.NET.Input" Version="2.22.0" />
-    <PackageReference Include="Silk.NET.OpenGLES" Version="2.22.0" />
-    <PackageReference Include="Silk.NET.Windowing" Version="2.22.0" />
-
-
-  <Content Include="*.glsl">
-    <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
-    <IncludeInPackage>true</IncludeInPackage>
-    <BuildAction>Content</BuildAction>
-    <CopyToOutput>true</CopyToOutput>
-  </Content>
+    <ProjectReference Include="..\..\Egui.Silk.NET.OpenGL\Egui.Silk.NET.OpenGL.csproj" />
   </ItemGroup>
 
   <ItemGroup>
@@ -23,13 +16,4 @@
         <LogicalName>$([System.String]::new('%(RelativeDir)').Replace('\','.').Replace('/','.').Substring(10))%(FileName)%(Extension)</LogicalName>
       </EmbeddedResource>
   </ItemGroup>
-
-  <PropertyGroup>
-  	<AllowUnsafeBlocks>true</AllowUnsafeBlocks>
-    <OutputType>Exe</OutputType>
-    <TargetFramework>net9.0</TargetFramework>
-    <ImplicitUsings>enable</ImplicitUsings>
-    <Nullable>enable</Nullable>
-  </PropertyGroup>
-
 </Project>

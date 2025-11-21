@@ -61,6 +61,8 @@
 			  EnvironmentVariables="$(CargoVariables)"
 			  WorkingDirectory=".." />
 
+		<Message Importance="High" Text="you STINKER" />
+
 		<ItemGroup>
 			<None Include="../target/aarch64-pc-windows-msvc/$(CargoProfileOutput)/egui_net.dll" Condition="'%(RIDList.Identity)' == 'win-arm64'">
 				<Pack>true</Pack>
