@@ -868,6 +868,7 @@ dependencies = [
 [[package]]
 name = "ecolor"
 version = "0.33.2"
+source = "git+https://github.com/DouglasDwyer/egui?rev=405a456d0dd368291275d4e95d9ad5292c15fe5c#405a456d0dd368291275d4e95d9ad5292c15fe5c"
 dependencies = [
  "emath",
  "serde",
@@ -876,6 +877,7 @@ dependencies = [
 [[package]]
 name = "egui"
 version = "0.33.2"
+source = "git+https://github.com/DouglasDwyer/egui?rev=405a456d0dd368291275d4e95d9ad5292c15fe5c#405a456d0dd368291275d4e95d9ad5292c15fe5c"
 dependencies = [
  "accesskit",
  "ahash",
@@ -893,6 +895,7 @@ dependencies = [
 [[package]]
 name = "egui_extras"
 version = "0.33.2"
+source = "git+https://github.com/DouglasDwyer/egui?rev=405a456d0dd368291275d4e95d9ad5292c15fe5c#405a456d0dd368291275d4e95d9ad5292c15fe5c"
 dependencies = [
  "ahash",
  "egui",
@@ -905,7 +908,7 @@ dependencies = [
 
 [[package]]
 name = "egui_net"
-version = "0.4.0+0.33.0"
+version = "0.4.0+0.33.2"
 dependencies = [
  "bincode",
  "csbindgen",
@@ -920,7 +923,7 @@ dependencies = [
 
 [[package]]
 name = "egui_net_bindgen"
-version = "0.4.0+0.33.0"
+version = "0.4.0+0.33.2"
 dependencies = [
  "convert_case",
  "egui",
@@ -933,7 +936,7 @@ dependencies = [
 
 [[package]]
 name = "egui_net_ffi"
-version = "0.4.0+0.33.0"
+version = "0.4.0+0.33.2"
 dependencies = [
  "bincode",
  "egui",
@@ -968,6 +971,7 @@ dependencies = [
 [[package]]
 name = "emath"
 version = "0.33.2"
+source = "git+https://github.com/DouglasDwyer/egui?rev=405a456d0dd368291275d4e95d9ad5292c15fe5c#405a456d0dd368291275d4e95d9ad5292c15fe5c"
 dependencies = [
  "serde",
 ]
@@ -1006,6 +1010,7 @@ dependencies = [
 [[package]]
 name = "epaint"
 version = "0.33.2"
+source = "git+https://github.com/DouglasDwyer/egui?rev=405a456d0dd368291275d4e95d9ad5292c15fe5c#405a456d0dd368291275d4e95d9ad5292c15fe5c"
 dependencies = [
  "ab_glyph",
  "ahash",
@@ -1022,6 +1027,7 @@ dependencies = [
 [[package]]
 name = "epaint_default_fonts"
 version = "0.33.2"
+source = "git+https://github.com/DouglasDwyer/egui?rev=405a456d0dd368291275d4e95d9ad5292c15fe5c#405a456d0dd368291275d4e95d9ad5292c15fe5c"
 
 [[package]]
 name = "equator"

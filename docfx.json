@@ -10,7 +10,10 @@
           ]
         }
       ],
-      "dest": "api"
+      "dest": "api",
+      "properties": {
+        "Configuration": "Debug"
+      }
     }
   ],
   "build": {
