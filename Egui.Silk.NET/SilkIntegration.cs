@@ -124,6 +124,10 @@ public abstract class SilkIntegration : IDisposable
         _rawInput = new RawInput();
     }
 
+    /// <summary>
+    /// Renders the provided output to the screen using a native graphics API.
+    /// </summary>
+    /// <param name="output">The <c>Egui</c> data to draw.</param>
     protected abstract void DrawOutput(in FullOutput output);
 
     /// <summary>

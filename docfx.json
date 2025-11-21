@@ -4,9 +4,10 @@
     {
       "src": [
         {
-          "src": "Egui",
+          "src": ".",
           "files": [
-            "**/*.csproj"
+            "Egui/*.csproj",
+            "Egui.*/*.csproj"
           ]
         }
       ],

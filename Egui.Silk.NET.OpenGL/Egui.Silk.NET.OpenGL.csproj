@@ -21,4 +21,8 @@
     <ProjectReference Include="..\Egui.Silk.NET\Egui.Silk.NET.csproj" />
     <PackageReference Include="Silk.NET.OpenGL" Version="2.22.0" />
   </ItemGroup>
+
+  <ItemGroup>
+    <None Include="../README.md" Pack="true" PackagePath="/"/>
+  </ItemGroup>
 </Project>
