@@ -22,7 +22,33 @@ public abstract class SilkIntegration : IDisposable
     /// <summary>
     /// Gets the state of the special keyboard keys.
     /// </summary>
-    private Modifiers KeyModifiers => _leftModifiers.Plus(_rightModifiers);
+    private Modifiers _keyModifiers => _leftModifiers.Plus(_rightModifiers);
+
+    /// <summary>
+    /// Gets the high-DPI value associated with the provided window.
+    /// Converts from logical points to pixels.
+    /// </summary>
+    private float _nativePixelsPerPoint => _nativeZoomFactor * (float)Window.FramebufferSize.X / Window.Size.X;
+
+    /// <summary>
+    /// Gets an additional zoom factor to apply before rendering. This is similar to <see cref="Options.ZoomFactor"/>,
+    /// but is applied at the <see cref="RawInput"/> level. This setting only affects zoom - not the conversion
+    /// between logical points and pixels.
+    /// </summary>
+    private float _nativeZoomFactor
+    {
+        get
+        {
+            if (Window.Native?.Win32 is (var hWnd, _, _))
+            {
+                return GetDpiForWindow(hWnd) / 96.0f;
+            }
+            else
+            {
+                return 1.0f;
+            }
+        }
+    }
 
     /// <summary>
     /// The context associated with this integration.
@@ -106,14 +132,14 @@ public abstract class SilkIntegration : IDisposable
         _rawInput.ViewportId = ViewportId.Root;
         _rawInput.Focused = _focused;
         _rawInput.Time = _timer.Elapsed.TotalSeconds;
-        _rawInput.ScreenRect = Rect.FromMinSize(EPos2.Zero, (Window.Size.X, Window.Size.Y));
+        _rawInput.ScreenRect = Rect.FromMinSize(EPos2.Zero, new EVec2(Window.Size.X, Window.Size.Y) / _nativeZoomFactor);
 
         _rawInput.Viewports = _rawInput.Viewports.SetItem(_rawInput.ViewportId, new ViewportInfo
         {
             Parent = null,
             Title = Window.Title,
             Events = ImmutableArray<ViewportEvent>.Empty,
-            NativePixelsPerPoint = GetScaleFactor(),
+            NativePixelsPerPoint = _nativePixelsPerPoint,
             MonitorSize = null,
             Focused = _focused,
             InnerRect = _rawInput.ScreenRect
@@ -224,7 +250,7 @@ public abstract class SilkIntegration : IDisposable
     {
         ModifierKeyChange(key, true);
 
-        var modifiers = KeyModifiers;
+        var modifiers = _keyModifiers;
 
         if (modifiers.Ctrl && key == SilkKey.C)
         {
@@ -256,7 +282,7 @@ public abstract class SilkIntegration : IDisposable
                 LogicalKey = mapped.Value,
                 PhysicalKey = mapped.Value,
                 Pressed = true,
-                Modifiers = KeyModifiers
+                Modifiers = _keyModifiers
             });
         }
     }
@@ -290,7 +316,7 @@ public abstract class SilkIntegration : IDisposable
                 LogicalKey = mapped.Value,
                 PhysicalKey = mapped.Value,
                 Pressed = false,
-                Modifiers = KeyModifiers
+                Modifiers = _keyModifiers
             });
         }
     }
@@ -304,7 +330,7 @@ public abstract class SilkIntegration : IDisposable
     {
         _rawInput.Events = _rawInput.Events.Add(new Event.PointerMoved
         {
-            Value = new(vector.X, vector.Y)
+            Value = (vector.X / _nativeZoomFactor, vector.Y / _nativeZoomFactor)
         });
     }
 
@@ -319,8 +345,8 @@ public abstract class SilkIntegration : IDisposable
         {
             Button = (PointerButton)button,
             Pressed = true,
-            Pos = (mouse.Position.X, mouse.Position.Y),
-            Modifiers = KeyModifiers
+            Pos = (mouse.Position.X / _nativeZoomFactor, mouse.Position.Y / _nativeZoomFactor),
+            Modifiers = _keyModifiers
         });
     }
 
@@ -335,8 +361,8 @@ public abstract class SilkIntegration : IDisposable
         {
             Button = (PointerButton)button,
             Pressed = false,
-            Pos = (mouse.Position.X, mouse.Position.Y),
-            Modifiers = KeyModifiers
+            Pos = (mouse.Position.X / _nativeZoomFactor, mouse.Position.Y / _nativeZoomFactor),
+            Modifiers = _keyModifiers
         });
     }
 
@@ -368,22 +394,6 @@ public abstract class SilkIntegration : IDisposable
             case SilkKey.ShiftRight:
                 _rightModifiers.Shift = value;
                 break;
-        }
-    }
-
-    /// <summary>
-    /// Gets the high-DPI value associated with the provided window.
-    /// </summary>
-    /// <returns>The scale factor to use.</returns>
-    private float GetScaleFactor()
-    {
-        if (Window.Native?.Win32 is (var hWnd, _, _))
-        {
-            return GetDpiForWindow(hWnd) / 96.0f;
-        }
-        else
-        {
-            return (float)Window.FramebufferSize.X / Window.Size.X;
         }
     }
 
