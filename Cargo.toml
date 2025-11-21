@@ -48,7 +48,7 @@ x86_64-apple-darwin = { image = "i18nsite/x86_64-apple-darwin-cross@sha256:86049
 aarch64-apple-darwin = { image = "i18nsite/aarch64-apple-darwin-cross@sha256:737bd24b8bc893de2bec133277e4f69c33db725ef02d13c8f1277fe92098ba0d" }
 
 [patch.crates-io]
-egui = { path = "../egui/crates/egui" }
-#egui = { git = "https://github.com/DouglasDwyer/egui", rev = "cecb84fb03dde89e3bfcb95d821adab3f75016c9" }
-egui_extras = { path = "../egui/crates/egui_extras" }
-#egui_extras = { git = "https://github.com/DouglasDwyer/egui", rev = "cecb84fb03dde89e3bfcb95d821adab3f75016c9" }
+#egui = { path = "../egui/crates/egui" }
+egui = { git = "https://github.com/DouglasDwyer/egui", rev = "405a456d0dd368291275d4e95d9ad5292c15fe5c" }
+#egui_extras = { path = "../egui/crates/egui_extras" }
+egui_extras = { git = "https://github.com/DouglasDwyer/egui", rev = "405a456d0dd368291275d4e95d9ad5292c15fe5c" }
