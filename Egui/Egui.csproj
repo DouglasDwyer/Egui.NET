@@ -43,7 +43,7 @@
 		<CargoVariables Condition="'$(Configuration)'=='Release'">CARGO_TARGET_X86_64_PC_WINDOWS_MSVC_LINKER=rust-lld;CARGO_TARGET_AARCH64_PC_WINDOWS_MSVC_LINKER=rust-lld</CargoVariables>
 	</PropertyGroup>
 
-	<Target Name="BuildEgui" BeforeTargets="BeforeBuild">
+	<Target Name="BuildEgui" BeforeTargets="CoreCompile">
 		<ItemGroup>
 			<RIDList Include="$(RuntimeIdentifiers)" />
 		</ItemGroup>
