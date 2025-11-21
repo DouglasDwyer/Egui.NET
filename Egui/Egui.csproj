@@ -1,9 +1,9 @@
 ﻿<Project Sdk="Microsoft.NET.Sdk">
     <PropertyGroup>
-        <PackageId>Egui.NET</PackageId>
-        <Title>Egui.NET</Title>
+        <PackageId>Egui</PackageId>
+        <Title>Egui</Title>
         <Description>An easy-to-use immediate mode GUI</Description>
-        <Version>0.5.0+0.33.2</Version>
+        <Version>0.5.1+0.33.2</Version>
         <Authors>Douglas Dwyer</Authors>
         <RepositoryUrl>https://github.com/DouglasDwyer/Egui.NET</RepositoryUrl>
         <PackageReadmeFile>README.md</PackageReadmeFile>

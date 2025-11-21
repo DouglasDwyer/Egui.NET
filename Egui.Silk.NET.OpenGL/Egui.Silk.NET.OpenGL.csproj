@@ -4,6 +4,16 @@
     <TargetFramework>net9.0</TargetFramework>
     <ImplicitUsings>enable</ImplicitUsings>
     <Nullable>enable</Nullable>
+
+    <PackageId>Egui.Silk.NET.OpenGL</PackageId>
+    <Title>Egui.Silk.NET.OpenGL</Title>
+    <Description>An easy-to-use immediate mode GUI</Description>
+    <Version>0.5.1+0.33.2</Version>
+    <Authors>Douglas Dwyer</Authors>
+    <RepositoryUrl>https://github.com/DouglasDwyer/Egui.NET</RepositoryUrl>
+    <PackageReadmeFile>README.md</PackageReadmeFile>
+    <PackageLicenseExpression>MIT OR Apache-2.0</PackageLicenseExpression>
+    <GenerateDocumentationFile>true</GenerateDocumentationFile>
   </PropertyGroup>
 
   <ItemGroup>

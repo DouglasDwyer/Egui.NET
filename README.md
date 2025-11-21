@@ -39,14 +39,20 @@ ui.Image(EguiHelpers.IncludeImageResource("csharp.png"));
 Egui.NET is available as a Nuget package. Use the following command to add it to your project:
 
 ```bash
-dotnet add package Egui.NET 
+dotnet add package Egui 
 ```
 
 Then, create a `Context` and begin drawing UI as described in [the `egui` README](https://github.com/emilk/egui?tab=readme-ov-file#quick-start).
 
 ## Integrations
 
-The [`SilkOpenGl`](/examples/SilkOpenGl/) example demonstrates how to incorporate Egui.NET with an OpenGL application that uses [`Silk.NET`](https://github.com/dotnet/Silk.NET) for windowing. No off-the-shelf integrations for C# exist at this time, but [adding a new egui integration is easy](https://docs.rs/egui/latest/egui/#integrating-with-egui).
+To use Egui.NET, the consumer is responsible for handling user input and rendering. To make this easy, Egui.NET comes with several _integration_ libraries:
+
+- `egui_net_ffi`: support for passing Egui.NET data to Rust, for use with any Rust `egui` integration (like [`egui-winit`](https://crates.io/crates/egui-winit))
+- `Egui.Silk.NET.OpenGL`: support for rendering to [`Silk.NET`](https://github.com/dotnet/Silk.NET) windows via OpenGL (thanks to [`@sjoerdev`](https://github.com/sjoerdev))
+  - The [`SilkOpenGl`](/examples/SilkOpenGl/) example demonstrates how to incorporate Egui.NET using this backend
+  
+Need to add Egui.NET somewhere else? [Adding a new egui integration is easy](https://docs.rs/egui/latest/egui/#integrating-with-egui).
 
 ## Incomplete features
 

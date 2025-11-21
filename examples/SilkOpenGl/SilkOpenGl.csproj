@@ -7,7 +7,6 @@
   </PropertyGroup>
 
   <ItemGroup>
-    <ProjectReference Include="..\..\Egui\Egui.csproj" />
     <ProjectReference Include="..\..\Egui.Silk.NET.OpenGL\Egui.Silk.NET.OpenGL.csproj" />
   </ItemGroup>
 
