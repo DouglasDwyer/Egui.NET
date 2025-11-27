@@ -61,18 +61,7 @@ public sealed partial class Context : EguiObject
             _contexts.Add(Id, new WeakReference<Context>(this));
         }
     }
-
-    /// <summary>
-    /// Ensures that the object is not garbage-collected until the context has no other references left.
-    /// </summary>
-    ~Context()
-    {
-        if (1 < EguiMarshal.Call<nuint, nuint>(EguiFn.egui_context_Context_ref_count, Ptr))
-        {
-            GC.ReRegisterForFinalize(this);
-        }
-    }
-
+    
     /// <summary>
     /// Retrieves an existing context.
     /// The result of this method is only defined if <see cref="ptr"/>
