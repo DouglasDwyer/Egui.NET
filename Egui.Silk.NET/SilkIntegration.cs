@@ -121,7 +121,7 @@ public abstract class SilkIntegration : IDisposable
     }
 
     /// <inheritdoc/>
-    public virtual void Dispose() { }
+    public virtual void Dispose() {}
 
     /// <summary>
     /// Run the UI code for one frame. Then, renders the screen
@@ -422,3 +422,4 @@ public abstract class SilkIntegration : IDisposable
     [DllImport("User32.dll")]
     private static extern uint GetDpiForWindow(nint hWnd);
 }
+
