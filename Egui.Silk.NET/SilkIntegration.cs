@@ -113,6 +113,7 @@ public abstract class SilkIntegration : IDisposable
             input.Mice[i].MouseMove += MouseMove;
             input.Mice[i].MouseDown += MouseDown;
             input.Mice[i].MouseUp += MouseUp;
+            input.Mice[i].Scroll += MouseScroll;
         }
 
         Window.FocusChanged += x => _focused = x;
@@ -120,7 +121,7 @@ public abstract class SilkIntegration : IDisposable
     }
 
     /// <inheritdoc/>
-    public virtual void Dispose() {}
+    public virtual void Dispose() { }
 
     /// <summary>
     /// Run the UI code for one frame. Then, renders the screen
@@ -365,6 +366,22 @@ public abstract class SilkIntegration : IDisposable
             Modifiers = _keyModifiers
         });
     }
+
+    /// <summary>
+    /// Handles a change in scroll wheel position
+    /// </summary>
+    /// <param name="mouse">The mouse object.</param>
+    /// <param name="wheel">The scroll wheel object.</param>
+    private void MouseScroll(IMouse mouse, ScrollWheel wheel)
+    {
+        _rawInput.Events = _rawInput.Events.Add(new Event.MouseWheel
+        {
+            Unit = MouseWheelUnit.Line,
+            Delta = new(wheel.X, wheel.Y),
+            Modifiers = _keyModifiers
+        });
+    }
+
 
     /// <summary>
     /// Checks to see whether <paramref name="key"/> corresponds to a special key.
