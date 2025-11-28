@@ -113,6 +113,7 @@ public abstract class SilkIntegration : IDisposable
             input.Mice[i].MouseMove += MouseMove;
             input.Mice[i].MouseDown += MouseDown;
             input.Mice[i].MouseUp += MouseUp;
+            input.Mice[i].Scroll += MouseScroll;
         }
 
         Window.FocusChanged += x => _focused = x;
@@ -367,6 +368,22 @@ public abstract class SilkIntegration : IDisposable
     }
 
     /// <summary>
+    /// Handles a change in scroll wheel position
+    /// </summary>
+    /// <param name="mouse">The mouse object.</param>
+    /// <param name="wheel">The scroll wheel object.</param>
+    private void MouseScroll(IMouse mouse, ScrollWheel wheel)
+    {
+        _rawInput.Events = _rawInput.Events.Add(new Event.MouseWheel
+        {
+            Unit = MouseWheelUnit.Line,
+            Delta = new(wheel.X, wheel.Y),
+            Modifiers = _keyModifiers
+        });
+    }
+
+
+    /// <summary>
     /// Checks to see whether <paramref name="key"/> corresponds to a special key.
     /// If so, updates the <see cref="_leftModifiers"/> and <see cref="_rightModifiers"/> accordingly.  
     /// </summary>
@@ -405,3 +422,4 @@ public abstract class SilkIntegration : IDisposable
     [DllImport("User32.dll")]
     private static extern uint GetDpiForWindow(nint hWnd);
 }
+
