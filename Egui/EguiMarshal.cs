@@ -212,11 +212,11 @@ internal static class EguiMarshal
     /// Serializers for generic types.
     /// </summary>
     private static Dictionary<Type, (string, string)> SerializerPrototypes = new Dictionary<Type, (string, string)> {
-        { typeof(ImmutableArray<>), ("ImmutableArraySerializer", "ImmutableArrayDeserializer") },
-        { typeof(ValueTuple<,>), ("Tuple2Serializer", "Tuple2Deserializer") },
-        { typeof(ValueTuple<,,>), ("Tuple3Serializer", "Tuple3Deserializer") },
-        { typeof(ValueTuple<,,,>), ("Tuple4Serializer", "Tuple4Deserializer") },
-        { typeof(Nullable<>), ("NullableSerializer", "NullableDeserializer") },
+        { typeof(ImmutableArray<>), (nameof(ImmutableArraySerializer), nameof(ImmutableArrayDeserializer)) },
+        { typeof(ValueTuple<,>), (nameof(Tuple2Serializer), nameof(Tuple2Deserializer)) },
+        { typeof(ValueTuple<,,>), (nameof(Tuple3Serializer), nameof(Tuple3Deserializer)) },
+        { typeof(ValueTuple<,,,>), (nameof(Tuple4Serializer), nameof(Tuple4Deserializer)) },
+        { typeof(Nullable<>), (nameof(NullableSerializer), nameof(NullableDeserializer)) },
     };
 
     /// <summary>
@@ -454,7 +454,7 @@ internal static class EguiMarshal
     /// <summary>
     /// Deserializes a tuple.
     /// </summary>
-    private static (A0, A1, A2, A3) TupleDeserializer<A0, A1, A2, A3>(BincodeDeserializer deserializer)
+    private static (A0, A1, A2, A3) Tuple4Deserializer<A0, A1, A2, A3>(BincodeDeserializer deserializer)
     {
         return (
             SerializerCache<A0>.Deserialize(deserializer),
