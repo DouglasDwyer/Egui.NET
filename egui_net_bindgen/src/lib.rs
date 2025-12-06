@@ -1397,6 +1397,7 @@ impl BindingsGenerator {
 
         result += "#pragma warning disable\n";
         result += "using System.Collections.Immutable;\n";
+        result += "using System.ComponentModel;\n";
         result += "using System.Runtime.CompilerServices;\n";
 
         for (old, new) in TYPE_RENAMES {
@@ -1440,7 +1441,7 @@ impl BindingsGenerator {
                 && !self.is_primitive_enum(id) {
                 let namespace = self.namespaces.get(&ty_name).cloned().unwrap_or_else(|| "Egui".to_string());
                 let display_name = Self::new_name(&ty_name).unwrap_or(&ty_name);
-                writeln!(f, "namespace {namespace} {{ public partial struct {display_name} {{\n [Obsolete(\"'{display_name}' does not contain a constructor that takes 0 arguments\", error: true)] public {display_name}() {{ throw new InvalidOperationException(); }} \n}} }}")
+                writeln!(f, "namespace {namespace} {{ public partial struct {display_name} {{\n    [EditorBrowsable(EditorBrowsableState.Never)]\n    [Obsolete(\"'{display_name}' does not contain a constructor that takes 0 arguments\", error: true)]\n    public {display_name}() {{ throw new InvalidOperationException(); }} \n}} }}")
                     .expect("Failed to format deleted constructor");
             }
         }
