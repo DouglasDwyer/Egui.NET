@@ -202,6 +202,9 @@ public unsafe class SilkGlIntegration : SilkIntegration
         CheckGlErrors();
     }
 
+    /// <summary>
+    /// Disposes the integration object.
+    /// </summary>
     ~SilkGlIntegration()
     {
         Dispose();

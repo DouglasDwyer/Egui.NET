@@ -1108,7 +1108,9 @@ pub struct BindingsGenerator {
     /// Maps a type name to its ID.
     name_to_id: HashMap<String, RdId>,
     /// A list of public fields on every struct type.
-    public_fields: HashSet<(String, String)>
+    public_fields: HashSet<(String, String)>,
+    /// A set containing all types for which a parameterless constructor was generated.
+    parameterless_constructor_types: HashSet<RdId>
 }
 
 impl BindingsGenerator {
@@ -1146,7 +1148,8 @@ impl BindingsGenerator {
             registry: Self::trace_serde_types(),
             namespaces,
             name_to_id,
-            public_fields
+            public_fields,
+            parameterless_constructor_types: HashSet::new()
         }.run()
     }
 
@@ -1392,7 +1395,7 @@ impl BindingsGenerator {
     }
 
     /// Emits a C# file containing bindings for `egui` functions.
-    fn emit_cs_fn_bindings(&self) {
+    fn emit_cs_fn_bindings(&mut self) {
         let mut result = String::new();
 
         result += "#pragma warning disable\n";
@@ -1417,30 +1420,53 @@ impl BindingsGenerator {
                 bound_ids.push(id);
             }
         }
+
+        for ty in self.registry.keys() {
+            if let Some(id) = self.get_type_id(ty) {
+                if !self.parameterless_constructor_types.contains(&id) {
+                    self.emit_cs_deleted_constructor(&mut std::fmt::Formatter::new(&mut result, Default::default()), id);
+                }
+            }
+        }
         
         self.emit_fn_enum(&bound_ids);
         
         std::fs::write(self.output_path.join("EguiFn.g.cs"), result).expect("Failed to write C# function bindings");
     }
 
+    fn emit_cs_deleted_constructor(&self, f: &mut std::fmt::Formatter, id: RdId) {
+        let impl_ty = &self.krate.index[&id];
+        if let Some(ty_name) = impl_ty.name.clone() {
+            if !BINDING_EXCLUDE_TYPE_DEFINITIONS.contains(&ty_name.as_str())
+                &&!HANDLE_TYPES.contains(&ty_name.as_str())
+                && !POINTER_TYPES.contains(&ty_name.as_str())
+                && !self.is_primitive_enum(id) {
+                let namespace = self.namespaces.get(&ty_name).cloned().unwrap_or_else(|| "Egui".to_string());
+                let display_name = Self::new_name(&ty_name).unwrap_or(&ty_name);
+                writeln!(f, "namespace {namespace} {{ public partial struct {display_name} {{\n [Obsolete(\"'{display_name}' does not contain a constructor that takes 0 arguments\", error: true)] public {display_name}() {{ throw new InvalidOperationException(); }} \n}} }}")
+                    .expect("Failed to format deleted constructor");
+            }
+        }
+    }
+
     /// Writes a single C# method definition (with appropriate type qualifiers) to `f`.
-    fn emit_cs_fn_binding(&self, f: &mut std::fmt::Formatter, id: RdId) -> std::fmt::Result {
+    fn emit_cs_fn_binding(&mut self, f: &mut std::fmt::Formatter, id: RdId) -> std::fmt::Result {
         if let Some(impl_ty) = self.declaring_type(id).and_then(|x| self.krate.index.get(&x)) {
             if matches!(impl_ty.inner, ItemEnum::Struct(_)) || matches!(impl_ty.inner, ItemEnum::Enum(_)) {
-                if let Some(ty_name) = impl_ty.name.as_deref() {
-                    let namespace = self.namespaces.get(ty_name).cloned().unwrap_or_else(|| "Egui".to_string());
+                if let Some(ty_name) = impl_ty.name.clone() {
+                    let namespace = self.namespaces.get(&ty_name).cloned().unwrap_or_else(|| "Egui".to_string());
                     
-                    let display_name = Self::new_name(ty_name).unwrap_or(ty_name);
+                    let display_name = Self::new_name(&ty_name).unwrap_or(&ty_name);
                     
-                    if HANDLE_TYPES.contains(&ty_name) {
+                    if HANDLE_TYPES.contains(&ty_name.as_str()) {
                         let mut fn_def = String::new();
-                        self.emit_cs_fn(&mut std::fmt::Formatter::new(&mut fn_def, Default::default()), Some(ty_name), id, DeclaringType::Handle)?;
+                        self.emit_cs_fn(&mut std::fmt::Formatter::new(&mut fn_def, Default::default()), Some(&ty_name), id, DeclaringType::Handle)?;
                         
                         writeln!(f, "namespace {namespace} {{ public sealed partial class {display_name} {{\n{fn_def}\n}} }}")?;
                     }
-                    else if POINTER_TYPES.contains(&ty_name) {
+                    else if POINTER_TYPES.contains(&ty_name.as_str()) {
                         let mut fn_def = String::new();
-                        self.emit_cs_fn(&mut std::fmt::Formatter::new(&mut fn_def, Default::default()), Some(ty_name), id, DeclaringType::Pointer)?;
+                        self.emit_cs_fn(&mut std::fmt::Formatter::new(&mut fn_def, Default::default()), Some(&ty_name), id, DeclaringType::Pointer)?;
                         
                         writeln!(f, "namespace {namespace} {{ public ref partial struct {display_name} {{\n{fn_def}\n}} }}")?;
                     }
@@ -1448,7 +1474,7 @@ impl BindingsGenerator {
                         let mut fn_def = String::new();
                         let primitive_enum = self.is_primitive_enum(impl_ty.id);
                         let decl_ty = if primitive_enum { DeclaringType::PrimitiveEnum } else { DeclaringType::Struct };
-                        self.emit_cs_fn(&mut std::fmt::Formatter::new(&mut fn_def, Default::default()), Some(ty_name), id, decl_ty)?;
+                        self.emit_cs_fn(&mut std::fmt::Formatter::new(&mut fn_def, Default::default()), Some(&ty_name), id, decl_ty)?;
                         
                         if primitive_enum {
                             writeln!(f, "namespace {namespace} {{ public static partial class {display_name}Extensions {{\n{fn_def}\n}} }}")?;
@@ -1485,7 +1511,7 @@ impl BindingsGenerator {
     }
 
     /// Writes a single C# method definition to `f`.
-    fn emit_cs_fn(&self, f: &mut std::fmt::Formatter, ty_name: Option<&str>, id: RdId, decl_ty: DeclaringType) -> std::fmt::Result {
+    fn emit_cs_fn(&mut self, f: &mut std::fmt::Formatter, ty_name: Option<&str>, id: RdId, decl_ty: DeclaringType) -> std::fmt::Result {
         let item = &self.krate.index[&id];
         let ItemEnum::Function(func) = &item.inner else { panic!("Expected id to refer to a function") };
 
@@ -1540,6 +1566,10 @@ impl BindingsGenerator {
             let ty_name_inner = ty_name.expect("Expected type to be provided");
             write!(f, "public {}", Self::new_name(ty_name_inner).unwrap_or(ty_name_inner))?;
             self.emit_cs_fn_def(f, ty_name, id, FnType::Constructor, &func, returns_this)?;
+            
+            if func.sig.inputs.is_empty() {
+                self.parameterless_constructor_types.insert(self.declaring_type(id).expect("Function did not have declaring type"));
+            }
         }
         else {
             let return_name = if let Some(bound_ty) = func.sig.output.as_ref().and_then(|x| self.bound_ty(ty_name, x)) {
