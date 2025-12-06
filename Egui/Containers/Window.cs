@@ -31,11 +31,11 @@ public ref struct Window
     private bool _withTitleBar;
     private bool _fadeOut;
 
-    //// <summary>
-    //// The window title is used as a unique Id and must be unique, and should not change.
-    //// This is true even if you disable the title bar with <c>TitleBar(false)</c>.
-    //// If you need a changing title, you must call <see cref="Id"/> with a fixed id.
-    //// </summary>
+    /// <summary>
+    /// The window title is used as a unique Id and must be unique, and should not change.
+    /// This is true even if you disable the title bar with <c>TitleBar(false)</c>.
+    /// If you need a changing title, you must call <see cref="Id"/> with a fixed id.
+    /// </summary>
     public Window(WidgetText title)
     {
         title = title.FallbackTextStyle(new TextStyle.Heading());
@@ -131,7 +131,7 @@ public ref struct Window
 
     /// <summary>
     /// Call this to add a close-button to the window title bar.
-    //
+    ///
     /// * If open == false, the window will not be visible.
     /// * If open == true, the window will have a close button.
     /// * If the close button is pressed, open will be set to false.
@@ -153,9 +153,9 @@ public ref struct Window
 
     /// <summary>
     /// If false, clicks go straight through to what is behind us.
-    //
+    ///
     /// Can be used for semi-invisible areas that the user should be able to click through.
-    //
+    ///
     /// Default: true.
     /// </summary>
     public readonly Window Interactable(bool interactable)
@@ -187,7 +187,7 @@ public ref struct Window
 
     /// <summary>
     /// If true, quickly fade in the Window when it first appears.
-    //
+    ///
     /// Default: true.
     /// </summary>
     public readonly Window FadeIn(bool fadeIn)
@@ -199,9 +199,9 @@ public ref struct Window
 
     /// <summary>
     /// If true, quickly fade out the Window when it closes.
-    //
+    ///
     /// This only works if you use Self::open to close the window.
-    //
+    ///
     /// Default: true.
     /// </summary>
     public readonly Window FadeOut(bool fadeOut)
@@ -324,9 +324,9 @@ public ref struct Window
 
     /// <summary>
     /// Constrains this window to Context.screen_rect.
-    //
+    ///
     /// To change the area to constrain to, use Self::constrain_to.
-    //
+    ///
     /// Default: true.
     /// </summary>
     public readonly Window Constrain(bool constrain)
@@ -338,7 +338,7 @@ public ref struct Window
 
     /// <summary>
     /// Constrain the movement of the window to the given rectangle.
-    //
+    ///
     /// For instance: .ConstrainTo(ctx.ScreenRect()).
     /// </summary>
     public readonly Window ConstrainTo(Rect constrainRect)
@@ -350,11 +350,11 @@ public ref struct Window
 
     /// <summary>
     /// Where the "root" of the window is.
-    //
+    ///
     /// For instance, if you set this to Align2.RIGHT_TOP
     /// then Self::FixedPos will set the position of the right-top
     /// corner of the window.
-    //
+    ///
     /// Default: Align2.LEFT_TOP.
     /// </summary>
     public readonly Window Pivot(Align2 pivot)
@@ -366,15 +366,15 @@ public ref struct Window
 
     /// <summary>
     /// Set anchor and distance.
-    //
+    ///
     /// An anchor of Align2.RIGHT_TOP means "put the right-top corner of the window
     /// in the right-top corner of the screen".
-    //
+    ///
     /// The offset is added to the position, so e.g. an offset of [-5.0, 5.0]
     /// would move the window left and down from the given anchor.
-    //
+    ///
     /// Anchoring also makes the window immovable.
-    //
+    ///
     /// It is an error to set both an anchor and a position.
     /// </summary>
     public readonly Window Anchor(Align2 align, EVec2 offset)
