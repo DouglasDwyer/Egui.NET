@@ -1178,9 +1178,6 @@ impl BindingsGenerator {
     /// Renames types in the [`TYPE_RENAMES`] list.
     fn rename_types(&mut self) {
         for (name, mut value) in std::mem::take(&mut self.registry) {
-            if name == "ViewportBuilder" {
-                //panic!("HERE {value:?}");
-            }
             let new_name = Self::new_name(&name).map(ToString::to_string).unwrap_or(name);
 
             match &mut value {
