@@ -449,8 +449,7 @@ public ref partial struct Popup
     {
         var ctx = Ctx;
         using var callback = new EguiCallback(ui => addContents(new Ui(ctx, ui)));
-        var (response, setOpen) = EguiMarshal.Call<nuint, SerializablePopup, bool, EguiCallback, (Response?, bool)>
-            (EguiFn.egui_containers_popup_Popup_show, Ctx.Ptr, new SerializablePopup(this), IsOpen, callback);
+        var (response, setOpen) = EguiMarshal.Call<nuint, SerializablePopup, bool, EguiCallback, (Response?, bool)>(EguiFn.egui_containers_popup_Popup_show, Ctx.Ptr, new SerializablePopup(this), IsOpen, callback);
 
         if (_openKind == OpenKind.Bool)
         {
@@ -476,8 +475,7 @@ public ref partial struct Popup
         var ctx = Ctx;
         R result = default!;
         using var callback = new EguiCallback(ui => result = addContents(new Ui(ctx, ui)));
-        var (response, setOpen) = EguiMarshal.Call<nuint, SerializablePopup, bool, EguiCallback, (Response?, bool)>
-            (EguiFn.egui_containers_popup_Popup_show, Ctx.Ptr, new SerializablePopup(this), IsOpen, callback);
+        var (response, setOpen) = EguiMarshal.Call<nuint, SerializablePopup, bool, EguiCallback, (Response?, bool)>(EguiFn.egui_containers_popup_Popup_show, Ctx.Ptr, new SerializablePopup(this), IsOpen, callback);
 
         if (_openKind == OpenKind.Bool)
         {
