@@ -69,7 +69,7 @@ public ref partial struct Popup
     /// <summary>
     /// Is the popup open?
     /// </summary>
-    public bool IsOpen
+    public readonly bool IsOpen
     {
         get
         {
@@ -449,7 +449,8 @@ public ref partial struct Popup
     {
         var ctx = Ctx;
         using var callback = new EguiCallback(ui => addContents(new Ui(ctx, ui)));
-        var (response, setOpen) = EguiMarshal.Call<nuint, SerializablePopup, EguiCallback, (Response?, bool)>(EguiFn.egui_containers_popup_Popup_show, Ctx.Ptr, new SerializablePopup(this), callback);
+        var (response, setOpen) = EguiMarshal.Call<nuint, SerializablePopup, bool, EguiCallback, (Response?, bool)>
+            (EguiFn.egui_containers_popup_Popup_show, Ctx.Ptr, new SerializablePopup(this), IsOpen, callback);
 
         if (_openKind == OpenKind.Bool)
         {
@@ -475,7 +476,8 @@ public ref partial struct Popup
         var ctx = Ctx;
         R result = default!;
         using var callback = new EguiCallback(ui => result = addContents(new Ui(ctx, ui)));
-        var (response, setOpen) = EguiMarshal.Call<nuint, SerializablePopup, EguiCallback, (Response?, bool)>(EguiFn.egui_containers_popup_Popup_show, Ctx.Ptr, new SerializablePopup(this), callback);
+        var (response, setOpen) = EguiMarshal.Call<nuint, SerializablePopup, bool, EguiCallback, (Response?, bool)>
+            (EguiFn.egui_containers_popup_Popup_show, Ctx.Ptr, new SerializablePopup(this), IsOpen, callback);
 
         if (_openKind == OpenKind.Bool)
         {
@@ -639,7 +641,7 @@ public ref partial struct Popup
                 serializer.serialize_option_tag(false);
             }
         }
-        
+
         private static void serialize_option_SetOpenCommmand(SetOpenCommand? value, BincodeSerializer serializer)
         {
             if (value is not null)
@@ -653,9 +655,11 @@ public ref partial struct Popup
             }
         }
 
-        private static void serialize_vector_RectAlign(ImmutableArray<Egui.RectAlign> value, BincodeSerializer serializer) {
+        private static void serialize_vector_RectAlign(ImmutableArray<Egui.RectAlign> value, BincodeSerializer serializer)
+        {
             serializer.serialize_len(value.Length);
-            foreach (var item in value) {
+            foreach (var item in value)
+            {
                 item.Serialize(serializer);
             }
         }
