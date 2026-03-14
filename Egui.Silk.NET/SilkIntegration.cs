@@ -85,12 +85,16 @@ public abstract class SilkIntegration : IDisposable
     /// </summary>
     private readonly Stopwatch _timer;
 
+    /// <inheritdoc cref="SilkIntegration.SilkIntegration(Context, IWindow, IInputContext)"/>
+    public SilkIntegration(Context context, IWindow window) : this(context, window, window.CreateInput()) { }
+
     /// <summary>
     /// Creates a new integration object.
     /// </summary>
     /// <param name="context">The context to be displayed.</param>
     /// <param name="window">The window on which to draw.</param>
-    public SilkIntegration(Context context, IWindow window)
+    /// <param name="input">The input context associated with the window.</param>
+    public SilkIntegration(Context context, IWindow window, IInputContext input)
     {
         EguiContext = context;
         _focused = false;
@@ -99,8 +103,6 @@ public abstract class SilkIntegration : IDisposable
         _rightModifiers = new Modifiers();
         _timer = new Stopwatch();
         Window = window;
-
-        var input = window.CreateInput();
 
         for (int i = 0; i < input.Keyboards.Count; i++)
         {

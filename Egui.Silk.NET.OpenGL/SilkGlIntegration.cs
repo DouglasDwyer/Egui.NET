@@ -1,4 +1,5 @@
 using Egui.Epaint;
+using Silk.NET.Input;
 using Silk.NET.OpenGL;
 using Silk.NET.Windowing;
 using System.Collections.Immutable;
@@ -152,7 +153,10 @@ public unsafe class SilkGlIntegration : SilkIntegration
     private readonly uint _vbo;
 
     /// <inheritdoc cref="SilkIntegration(Context, IWindow)"/>
-    public SilkGlIntegration(Context context, IWindow window) : base(context, window)
+    public SilkGlIntegration(Context context, IWindow window) : this(context, window, window.CreateInput()) { }
+
+    /// <inheritdoc cref="SilkIntegration(Context, IWindow, IInputContext)"/>
+    public SilkGlIntegration(Context context, IWindow window, IInputContext input) : base(context, window, input)
     {
         _disposed = false;
         _gl = window.CreateOpenGL();

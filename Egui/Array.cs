@@ -2,6 +2,8 @@ using System.Collections;
 using System.Diagnostics.CodeAnalysis;
 using System.Runtime.CompilerServices;
 
+namespace Egui;
+
 /// <summary>
 /// A stack-allocated array type with two elements.
 /// </summary>
