@@ -56,9 +56,20 @@ public abstract class SilkIntegration : IDisposable
     public readonly Context EguiContext;
 
     /// <summary>
+    /// The input context associated with <see cref="Window"/>. 
+    /// </summary>
+    public readonly IInputContext InputContext;
+
+    /// <summary>
     /// The window to which rendering will occur.
     /// </summary>
     public readonly IWindow Window;
+
+    /// <summary>
+    /// Whether to dispose the <see cref="InputContext"/> member when
+    /// destroying this integration. 
+    /// </summary>
+    private readonly bool _disposeInputContext;
 
     /// <summary>
     /// Whether the window currently has OS focus.
@@ -86,7 +97,10 @@ public abstract class SilkIntegration : IDisposable
     private readonly Stopwatch _timer;
 
     /// <inheritdoc cref="SilkIntegration.SilkIntegration(Context, IWindow, IInputContext)"/>
-    public SilkIntegration(Context context, IWindow window) : this(context, window, window.CreateInput()) { }
+    public SilkIntegration(Context context, IWindow window) : this(context, window, window.CreateInput())
+    {
+        _disposeInputContext = true;
+    }
 
     /// <summary>
     /// Creates a new integration object.
@@ -97,33 +111,58 @@ public abstract class SilkIntegration : IDisposable
     public SilkIntegration(Context context, IWindow window, IInputContext input)
     {
         EguiContext = context;
+        _disposeInputContext = false;
         _focused = false;
+        InputContext = input;
         _leftModifiers = new Modifiers();
         _rawInput = new RawInput();
         _rightModifiers = new Modifiers();
         _timer = new Stopwatch();
         Window = window;
 
-        for (int i = 0; i < input.Keyboards.Count; i++)
+        for (int i = 0; i < InputContext.Keyboards.Count; i++)
         {
-            input.Keyboards[i].KeyDown += KeyDown;
-            input.Keyboards[i].KeyChar += KeyChar;
-            input.Keyboards[i].KeyUp += KeyUp;
+            InputContext.Keyboards[i].KeyDown += KeyDown;
+            InputContext.Keyboards[i].KeyChar += KeyChar;
+            InputContext.Keyboards[i].KeyUp += KeyUp;
         }
-        for (int i = 0; i < input.Mice.Count; i++)
+        for (int i = 0; i < InputContext.Mice.Count; i++)
         {
-            input.Mice[i].MouseMove += MouseMove;
-            input.Mice[i].MouseDown += MouseDown;
-            input.Mice[i].MouseUp += MouseUp;
-            input.Mice[i].Scroll += MouseScroll;
+            InputContext.Mice[i].MouseMove += MouseMove;
+            InputContext.Mice[i].MouseDown += MouseDown;
+            InputContext.Mice[i].MouseUp += MouseUp;
+            InputContext.Mice[i].Scroll += MouseScroll;
         }
 
-        Window.FocusChanged += x => _focused = x;
+        Window.FocusChanged += FocusChanged;
+
         _timer.Start();
     }
 
     /// <inheritdoc/>
-    public virtual void Dispose() {}
+    public virtual void Dispose()
+    {
+        for (int i = 0; i < InputContext.Keyboards.Count; i++)
+        {
+            InputContext.Keyboards[i].KeyDown -= KeyDown;
+            InputContext.Keyboards[i].KeyChar -= KeyChar;
+            InputContext.Keyboards[i].KeyUp -= KeyUp;
+        }
+        for (int i = 0; i <  InputContext.Mice.Count; i++)
+        {
+            InputContext.Mice[i].MouseMove -= MouseMove;
+            InputContext.Mice[i].MouseDown -= MouseDown;
+            InputContext.Mice[i].MouseUp -= MouseUp;
+            InputContext.Mice[i].Scroll -= MouseScroll;
+        }
+        
+        Window.FocusChanged -= FocusChanged;
+
+        if (_disposeInputContext)
+        {
+            InputContext.Dispose();
+        }
+    }
 
     /// <summary>
     /// Run the UI code for one frame. Then, renders the screen
@@ -241,6 +280,15 @@ public abstract class SilkIntegration : IDisposable
         }
 
         return null;
+    }
+
+    /// <summary>
+    /// Handles the window changing focus.
+    /// </summary>
+    /// <param name="focused">Whether the window is currently focused.</param>
+    private void FocusChanged(bool focused)
+    {
+        _focused = focused;
     }
 
     /// <summary>
