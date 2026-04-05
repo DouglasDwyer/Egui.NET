@@ -27,7 +27,7 @@ namespace Egui;
 /// Then there are widgets that need no identifiers at all, like labels,
 /// because they have no state nor are interacted with.<br/>
 ///
-/// This is niche-optimized to that <c>Option<id></c> is the same size as <c>Id</c>.
+/// This is niche-optimized to that <c>Option</c> is the same size as <c>Id</c>.
 /// </summary>
 public partial struct Id : IEquatable<Id>
 {

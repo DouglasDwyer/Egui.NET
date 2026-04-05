@@ -3,7 +3,7 @@
         <PackageId>Egui</PackageId>
         <Title>Egui</Title>
         <Description>An easy-to-use immediate mode GUI</Description>
-        <Version>0.7.0+0.33.2</Version>
+        <Version>0.7.1+0.33.2</Version>
         <Authors>Douglas Dwyer</Authors>
         <RepositoryUrl>https://github.com/DouglasDwyer/Egui.NET</RepositoryUrl>
         <PackageReadmeFile>README.md</PackageReadmeFile>
@@ -13,7 +13,9 @@
         <AllowUnsafeBlocks>true</AllowUnsafeBlocks>
         <TargetFramework>net9.0</TargetFramework>
         <ImplicitUsings>enable</ImplicitUsings>
+        <NoWarn>1591</NoWarn>
         <Nullable>enable</Nullable>
+
         <RuntimeIdentifiers Condition="$([MSBuild]::IsOSPlatform('Windows')) AND $([System.Runtime.InteropServices.RuntimeInformation]::ProcessArchitecture) == 'Arm64'">win-arm64</RuntimeIdentifiers>
         <RuntimeIdentifiers Condition="$([MSBuild]::IsOSPlatform('Windows')) AND $([System.Runtime.InteropServices.RuntimeInformation]::ProcessArchitecture) == 'x64'">win-x64</RuntimeIdentifiers>
         <RuntimeIdentifiers Condition="$([MSBuild]::IsOSPlatform('OSX')) AND $([System.Runtime.InteropServices.RuntimeInformation]::ProcessArchitecture) == 'Arm64'">osx-arm64</RuntimeIdentifiers>
@@ -43,27 +45,43 @@
         <CargoVariables Condition="'$(Configuration)'=='Release'">CARGO_TARGET_X86_64_PC_WINDOWS_MSVC_LINKER=rust-lld;CARGO_TARGET_AARCH64_PC_WINDOWS_MSVC_LINKER=rust-lld</CargoVariables>
     </PropertyGroup>
 
-    <Target Name="BuildEgui" BeforeTargets="CoreCompile">
+    <Target Name="BuildNativeLibrary" BeforeTargets="CoreCompile">
         <ItemGroup>
             <RIDList Include="$(RuntimeIdentifiers)" />
         </ItemGroup>
 
         <ItemGroup>
-            <CargoTarget Include="aarch64-pc-windows-msvc" Condition="'%(RIDList.Identity)' == 'win-arm64'" />
-            <CargoTarget Include="x86_64-pc-windows-msvc" Condition="'%(RIDList.Identity)' == 'win-x64'" />
-            <CargoTarget Include="aarch64-apple-darwin" Condition="'%(RIDList.Identity)' == 'osx-arm64'" />
-            <CargoTarget Include="x86_64-apple-darwin" Condition="'%(RIDList.Identity)' == 'osx-x64'" />
-            <CargoTarget Include="aarch64-unknown-linux-gnu" Condition="'%(RIDList.Identity)' == 'linux-arm64'" />
-            <CargoTarget Include="x86_64-unknown-linux-gnu" Condition="'%(RIDList.Identity)' == 'linux-x64'" />
+            <CargoBuild Include="$(MSBuildProjectFile)" Condition="'%(RIDList.Identity)' == 'win-arm64'">
+                <Properties>CargoTarget=aarch64-pc-windows-msvc</Properties>
+            </CargoBuild>
+            <CargoBuild Include="$(MSBuildProjectFile)" Condition="'%(RIDList.Identity)' == 'win-x64'">
+                <Properties>CargoTarget=x86_64-pc-windows-msvc</Properties>
+            </CargoBuild>
+            <CargoBuild Include="$(MSBuildProjectFile)" Condition="'%(RIDList.Identity)' == 'osx-arm64'">
+                <Properties>CargoTarget=aarch64-apple-darwin</Properties>
+            </CargoBuild>
+            <CargoBuild Include="$(MSBuildProjectFile)" Condition="'%(RIDList.Identity)' == 'osx-x64'">
+                <Properties>CargoTarget=x86_64-apple-darwin</Properties>
+            </CargoBuild>
+            <CargoBuild Include="$(MSBuildProjectFile)" Condition="'%(RIDList.Identity)' == 'linux-arm64'">
+                <Properties>CargoTarget=aarch64-unknown-linux-gnu</Properties>
+            </CargoBuild>
+            <CargoBuild Include="$(MSBuildProjectFile)" Condition="'%(RIDList.Identity)' == 'linux-x64'">
+                <Properties>CargoTarget=x86_64-unknown-linux-gnu</Properties>
+            </CargoBuild>
         </ItemGroup>
 
-        <Exec Command="$(CargoExecutable) build --profile $(CargoProfile) --target %(CargoTarget.Identity) $(CargoUnstableOptions) $(CargoFeatures)"
-              EnvironmentVariables="$(CargoVariables)"
-              WorkingDirectory=".." />
+        <MSBuild Projects="@(CargoBuild)" BuildInParallel="true" StopOnFirstFailure="true" Targets="CargoBuild"/>
 
         <ItemGroup>
             <Compile Include="../target/bindings/**/*.cs" />
         </ItemGroup>
+    </Target>
+
+    <Target Name="CargoBuild">
+        <Exec Command="$(CargoExecutable) build --profile $(CargoProfile) --target $(CargoTarget) $(CargoUnstableOptions) $(CargoFeatures)"
+            EnvironmentVariables="$(CargoVariables)"
+            WorkingDirectory=".." />
     </Target>
     
     <ItemGroup>

@@ -5,8 +5,8 @@ namespace Egui;
 
 /// <summary>
 /// Helper to paint shapes and text to a specific region on a specific layer.
-// All coordinates are screen coordinates in the unit points (one point can consist of many physical pixels).
-/// A <see cref="Painter"/>  never outlive a single frame/pass.
+/// All coordinates are screen coordinates in the unit points (one point can consist of many physical pixels).
+/// A <see cref="Painter"/> must never outlive a single frame/pass.
 /// </summary>
 public sealed partial class Painter : EguiObject
 {
