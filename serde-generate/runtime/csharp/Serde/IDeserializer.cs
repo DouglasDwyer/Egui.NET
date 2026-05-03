@@ -3,6 +3,7 @@
 
 using System.Collections.Immutable;
 using System.Numerics;
+using System.Text;
 
 namespace Serde
 {
@@ -16,7 +17,7 @@ namespace Serde
 
         Unit deserialize_unit();
 
-        char deserialize_char();
+        Rune deserialize_rune();
 
         float deserialize_f32();
 

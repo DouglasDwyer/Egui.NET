@@ -32,28 +32,27 @@ namespace Serde
         public abstract int deserialize_variant_index();
         public abstract void check_that_key_slices_are_increasing(Range key1, Range key2);
 
-        public char deserialize_char()
+        public Rune deserialize_rune()
         {
             Span<byte> charBytes = stackalloc byte[4];
-            Span<char> result = stackalloc char[4];
             for (var i = 0; i < 4; i++)
             {
                 int r = reader.BaseStream.ReadByte();
+                if (r < 0) throw new DeserializationException("Unexpected end of stream reading rune");
                 charBytes[i] = (byte)r;
 
-                utf8.GetDecoder().Convert(charBytes[..(i + 1)], result, false, out _, out var charsRead, out _);
-
-                if (charsRead == 1)
+                var status = Rune.DecodeFromUtf8(charBytes[..(i + 1)], out var rune, out _);
+                if (status == System.Buffers.OperationStatus.Done)
                 {
-                    return result[0];
+                    return rune;
                 }
-                else if (charsRead > 1)
+                else if (status == System.Buffers.OperationStatus.InvalidData)
                 {
-                    return '�';
+                    throw new DeserializationException("Invalid UTF-8 sequence reading rune");
                 }
             }
 
-            throw new DeserializationException("Invalid encoded char");
+            throw new DeserializationException("Invalid encoded rune");
         }
 
         public float deserialize_f32() => reader.ReadSingle();

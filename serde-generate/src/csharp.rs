@@ -313,7 +313,7 @@ using System.Numerics;"
             U128 => "BigInteger".into(),
             F32 => "float".into(),
             F64 => "double".into(),
-            Char => "char".into(),
+            Char => "Rune".into(),
             Str => "string".into(),
             Bytes => "ImmutableArray<byte>".into(),
 
@@ -419,7 +419,7 @@ using System.Numerics;"
             U128 => format!("serializer.serialize_u128({});", value),
             F32 => format!("serializer.serialize_f32({});", value),
             F64 => format!("serializer.serialize_f64({});", value),
-            Char => format!("serializer.serialize_char({});", value),
+            Char => format!("serializer.serialize_rune({});", value),
             Str => format!("serializer.serialize_str({});", value),
             Bytes => format!("serializer.serialize_bytes({});", value),
             _ => format!(
@@ -468,7 +468,7 @@ using System.Numerics;"
             U128 => "deserializer.deserialize_u128()".to_string(),
             F32 => "deserializer.deserialize_f32()".to_string(),
             F64 => "deserializer.deserialize_f64()".to_string(),
-            Char => "deserializer.deserialize_char()".to_string(),
+            Char => "deserializer.deserialize_rune()".to_string(),
             Str => "deserializer.deserialize_str()".to_string(),
             Bytes => "deserializer.deserialize_bytes()".to_string(),
             _ => format!(

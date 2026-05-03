@@ -3,6 +3,7 @@
 
 using System.Collections.Immutable;
 using System.Numerics;
+using System.Text;
 
 namespace Serde
 {
@@ -16,7 +17,7 @@ namespace Serde
 
         void serialize_unit(Unit value);
 
-        void serialize_char(char value);
+        void serialize_rune(Rune value);
 
         void serialize_f32(float value);
 

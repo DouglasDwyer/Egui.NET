@@ -1399,6 +1399,7 @@ impl BindingsGenerator {
         result += "using System.Collections.Immutable;\n";
         result += "using System.ComponentModel;\n";
         result += "using System.Runtime.CompilerServices;\n";
+        result += "using System.Text;\n";
 
         for (old, new) in TYPE_RENAMES {
             result += &format!("using {old} = {}.{new};\n", self.namespaces[*old]);
@@ -2232,7 +2233,7 @@ impl BindingsGenerator {
     fn cs_primitive_name(x: &str) -> Option<&'static str> {
         Some(match x {
             "bool" => "bool",
-            "char" => "char",
+            "char" => "Rune",
             "str" => "string",
             "u8" => "byte",
             "u16" => "ushort",

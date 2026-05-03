@@ -1,6 +1,7 @@
 using System.Collections.Immutable;
 using System.Reflection;
 using System.Runtime.CompilerServices;
+using System.Text;
 using Bincode;
 using Serde;
 
@@ -276,10 +277,10 @@ internal static class EguiMarshal
                 Serialize = (serializer, value) => serializer.serialize_bool((bool)(object)value!);
                 Deserialize = deserializer => (T)(object)deserializer.deserialize_bool();
             }
-            else if (typeof(T) == typeof(char))
+            else if (typeof(T) == typeof(Rune))
             {
-                Serialize = (serializer, value) => serializer.serialize_char((char)(object)value!);
-                Deserialize = deserializer => (T)(object)deserializer.deserialize_char();
+                Serialize = (serializer, value) => serializer.serialize_rune((Rune)(object)value!);
+                Deserialize = deserializer => (T)(object)deserializer.deserialize_rune();
             }
             else if (typeof(T) == typeof(byte))
             {

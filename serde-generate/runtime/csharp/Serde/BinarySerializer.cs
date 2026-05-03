@@ -53,10 +53,10 @@ namespace Serde
 
         public abstract void sort_map_entries(int[] offsets);
 
-        public void serialize_char(char value)
+        public void serialize_rune(Rune value)
         {
             Span<byte> charBytes = stackalloc byte[4];
-            var len = utf8.GetBytes(new ReadOnlySpan<char>(ref value), charBytes);
+            var len = value.EncodeToUtf8(charBytes);
             output.Write(charBytes[..len]);
         }
 
