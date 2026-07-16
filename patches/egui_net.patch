@@ -1,0 +1,5057 @@
+diff --git a/egui-rs/.vscode/settings.json b/egui-rs/.vscode/settings.json
+index 21d4bb4b..1211d7eb 100644
+--- a/egui-rs/.vscode/settings.json
++++ b/egui-rs/.vscode/settings.json
+@@ -10,7 +10,6 @@
+     "files.exclude": {
+         "target_ra/**": true,
+         "target_wasm/**": true,
+-        "target/**": true,
+     },
+     "rust-analyzer.check.command": "clippy",
+     // Whether `--workspace` should be passed to `cargo clippy`. If false, `-p <package>` will be passed instead.
+diff --git a/egui-rs/Cargo.lock b/egui-rs/Cargo.lock
+index 61bf459b..85823049 100644
+--- a/egui-rs/Cargo.lock
++++ b/egui-rs/Cargo.lock
+@@ -30,12 +30,12 @@ dependencies = [
+ 
+ [[package]]
+ name = "accesskit_atspi_common"
+-version = "0.14.1"
++version = "0.14.2"
+ source = "registry+https://github.com/rust-lang/crates.io-index"
+-checksum = "29f73a9b855b6f4af4962a94553ef0c092b80cf5e17038724d5e30945d036f69"
++checksum = "890d241cf51fc784f0ac5ac34dfc847421f8d39da6c7c91a0fcc987db62a8267"
+ dependencies = [
+  "accesskit",
+- "accesskit_consumer",
++ "accesskit_consumer 0.31.0",
+  "atspi-common",
+  "serde",
+  "thiserror 1.0.66",
+@@ -52,14 +52,24 @@ dependencies = [
+  "hashbrown 0.15.2",
+ ]
+ 
++[[package]]
++name = "accesskit_consumer"
++version = "0.31.0"
++source = "registry+https://github.com/rust-lang/crates.io-index"
++checksum = "db81010a6895d8707f9072e6ce98070579b43b717193d2614014abd5cb17dd43"
++dependencies = [
++ "accesskit",
++ "hashbrown 0.15.2",
++]
++
+ [[package]]
+ name = "accesskit_macos"
+-version = "0.22.1"
++version = "0.22.2"
+ source = "registry+https://github.com/rust-lang/crates.io-index"
+-checksum = "93fbaf15815f39084e0cb24950c232f0e3634702c2dfbf182ae3b4919a4a1d45"
++checksum = "a0089e5c0ac0ca281e13ea374773898d9354cc28d15af9f0f7394d44a495b575"
+ dependencies = [
+  "accesskit",
+- "accesskit_consumer",
++ "accesskit_consumer 0.31.0",
+  "hashbrown 0.15.2",
+  "objc2 0.5.2",
+  "objc2-app-kit 0.2.2",
+@@ -68,9 +78,9 @@ dependencies = [
+ 
+ [[package]]
+ name = "accesskit_unix"
+-version = "0.17.1"
++version = "0.17.2"
+ source = "registry+https://github.com/rust-lang/crates.io-index"
+-checksum = "64926a930368d52d95422b822ede15014c04536cabaa2394f99567a1f4788dc6"
++checksum = "301e55b39cfc15d9c48943ce5f572204a551646700d0e8efa424585f94fec528"
+ dependencies = [
+  "accesskit",
+  "accesskit_atspi_common",
+@@ -86,12 +96,12 @@ dependencies = [
+ 
+ [[package]]
+ name = "accesskit_windows"
+-version = "0.29.1"
++version = "0.29.2"
+ source = "registry+https://github.com/rust-lang/crates.io-index"
+-checksum = "792991159fa9ba57459de59e12e918bb90c5346fea7d40ac1a11f8632b41e63a"
++checksum = "d2d63dd5041e49c363d83f5419a896ecb074d309c414036f616dc0b04faca971"
+ dependencies = [
+  "accesskit",
+- "accesskit_consumer",
++ "accesskit_consumer 0.31.0",
+  "hashbrown 0.15.2",
+  "static_assertions",
+  "windows 0.61.1",
+@@ -100,9 +110,9 @@ dependencies = [
+ 
+ [[package]]
+ name = "accesskit_winit"
+-version = "0.29.1"
++version = "0.29.2"
+ source = "registry+https://github.com/rust-lang/crates.io-index"
+-checksum = "cd9db0ea66997e3f4eae4a5f2c6b6486cf206642639ee629dbbb860ace1dec87"
++checksum = "c8cfabe59d0eaca7412bfb1f70198dd31e3b0496fee7e15b066f9c36a1a140a0"
+ dependencies = [
+  "accesskit",
+  "accesskit_macos",
+@@ -157,7 +167,7 @@ source = "registry+https://github.com/rust-lang/crates.io-index"
+ checksum = "ef6978589202a00cd7e118380c448a08b6ed394c3a8df3a430d0898e3a42d046"
+ dependencies = [
+  "android-properties",
+- "bitflags 2.9.4",
++ "bitflags 2.10.0",
+  "cc",
+  "cesu8",
+  "jni",
+@@ -241,22 +251,22 @@ dependencies = [
+ 
+ [[package]]
+ name = "anstyle-query"
+-version = "1.1.4"
++version = "1.1.5"
+ source = "registry+https://github.com/rust-lang/crates.io-index"
+-checksum = "9e231f6134f61b71076a3eab506c379d4f36122f2af15a9ff04415ea4c3339e2"
++checksum = "40c48f72fd53cd289104fc64099abca73db4166ad86ea0b4341abe65af83dadc"
+ dependencies = [
+- "windows-sys 0.60.2",
++ "windows-sys 0.61.2",
+ ]
+ 
+ [[package]]
+ name = "anstyle-wincon"
+-version = "3.0.10"
++version = "3.0.11"
+ source = "registry+https://github.com/rust-lang/crates.io-index"
+-checksum = "3e0633414522a32ffaac8ac6cc8f748e090c5717661fddeea04219e2344f5f2a"
++checksum = "291e6a250ff86cd4a820112fb8898808a366d8f9f58ce16d1f538353ad55747d"
+ dependencies = [
+  "anstyle",
+  "once_cell_polyfill",
+- "windows-sys 0.60.2",
++ "windows-sys 0.61.2",
+ ]
+ 
+ [[package]]
+@@ -281,7 +291,7 @@ dependencies = [
+  "objc2-foundation 0.3.2",
+  "parking_lot",
+  "percent-encoding",
+- "windows-sys 0.60.2",
++ "windows-sys 0.59.0",
+  "x11rb",
+ ]
+ 
+@@ -603,11 +613,11 @@ checksum = "bef38d45163c2f1dde094a7dfd33ccf595c92905c8f8f4fdc18d06fb1037718a"
+ 
+ [[package]]
+ name = "bitflags"
+-version = "2.9.4"
++version = "2.10.0"
+ source = "registry+https://github.com/rust-lang/crates.io-index"
+-checksum = "2261d10cca569e4643e526d8dc2e62e433cc8aba21ab764233731f8d369bf394"
++checksum = "812e12b5285cc515a9c72a5c1d3b6d46a19dac5acfef5265968c166106e31dd3"
+ dependencies = [
+- "serde",
++ "serde_core",
+ ]
+ 
+ [[package]]
+@@ -708,7 +718,7 @@ version = "0.13.0"
+ source = "registry+https://github.com/rust-lang/crates.io-index"
+ checksum = "b99da2f8558ca23c71f4fd15dc57c906239752dd27ff3c00a1d56b685b7cbfec"
+ dependencies = [
+- "bitflags 2.9.4",
++ "bitflags 2.10.0",
+  "log",
+  "polling",
+  "rustix 0.38.38",
+@@ -883,12 +893,12 @@ checksum = "b05b61dc5112cbb17e4b6cd61790d9845d13888356391624cbe7e41efeac1e75"
+ 
+ [[package]]
+ name = "colored"
+-version = "2.2.0"
++version = "2.1.0"
+ source = "registry+https://github.com/rust-lang/crates.io-index"
+-checksum = "117725a109d387c937a1533ce01b450cbde6b88abceea8473c4d7a85853cda3c"
++checksum = "cbf2150cce219b664a8a70df7a1f933836724b503f8a413af9365b4dcc4d90b8"
+ dependencies = [
+  "lazy_static",
+- "windows-sys 0.59.0",
++ "windows-sys 0.48.0",
+ ]
+ 
+ [[package]]
+@@ -986,7 +996,7 @@ version = "0.2.0"
+ source = "registry+https://github.com/rust-lang/crates.io-index"
+ checksum = "3d44a101f213f6c4cdc1853d4b78aef6db6bdfa3468798cc1d9912f4735013eb"
+ dependencies = [
+- "bitflags 2.9.4",
++ "bitflags 2.10.0",
+  "core-foundation 0.10.1",
+  "libc",
+ ]
+@@ -1184,7 +1194,7 @@ dependencies = [
+  "libc",
+  "option-ext",
+  "redox_users",
+- "windows-sys 0.61.2",
++ "windows-sys 0.59.0",
+ ]
+ 
+ [[package]]
+@@ -1199,7 +1209,7 @@ version = "0.3.0"
+ source = "registry+https://github.com/rust-lang/crates.io-index"
+ checksum = "89a09f22a6c6069a18470eb92d2298acf25463f14256d24778e1230d789a2aec"
+ dependencies = [
+- "bitflags 2.9.4",
++ "bitflags 2.10.0",
+  "block2 0.6.2",
+  "libc",
+  "objc2 0.6.3",
+@@ -1304,7 +1314,7 @@ dependencies = [
+  "accesskit",
+  "ahash",
+  "backtrace",
+- "bitflags 2.9.4",
++ "bitflags 2.10.0",
+  "document-features",
+  "emath",
+  "epaint",
+@@ -1363,7 +1373,7 @@ name = "egui_demo_app"
+ version = "0.33.2"
+ dependencies = [
+  "accesskit",
+- "accesskit_consumer",
++ "accesskit_consumer 0.30.1",
+  "bytemuck",
+  "chrono",
+  "eframe",
+@@ -1623,12 +1633,12 @@ checksum = "5443807d6dff69373d433ab9ef5378ad8df50ca6298caf15de6e52e24aaf54d5"
+ 
+ [[package]]
+ name = "errno"
+-version = "0.3.13"
++version = "0.3.14"
+ source = "registry+https://github.com/rust-lang/crates.io-index"
+-checksum = "778e2ac28f6c47af28e4907f13ffd1e1ddbd400980a9abd7c8df189bf578a5ad"
++checksum = "39cab71617ae0d63f51a36d69f866391735b51691dbda63cf6f96d042b63efeb"
+ dependencies = [
+  "libc",
+- "windows-sys 0.60.2",
++ "windows-sys 0.59.0",
+ ]
+ 
+ [[package]]
+@@ -1695,6 +1705,26 @@ version = "2.1.1"
+ source = "registry+https://github.com/rust-lang/crates.io-index"
+ checksum = "e8c02a5121d4ea3eb16a80748c74f5549a5665e4c21333c6098f283870fbdea6"
+ 
++[[package]]
++name = "fax"
++version = "0.2.6"
++source = "registry+https://github.com/rust-lang/crates.io-index"
++checksum = "f05de7d48f37cd6730705cbca900770cab77a89f413d23e100ad7fad7795a0ab"
++dependencies = [
++ "fax_derive",
++]
++
++[[package]]
++name = "fax_derive"
++version = "0.2.0"
++source = "registry+https://github.com/rust-lang/crates.io-index"
++checksum = "a0aca10fb742cb43f9e7bb8467c91aa9bcb8e3ffbc6a6f7389bb93ffc920577d"
++dependencies = [
++ "proc-macro2",
++ "quote",
++ "syn",
++]
++
+ [[package]]
+ name = "fdeflate"
+ version = "0.3.6"
+@@ -1715,9 +1745,9 @@ dependencies = [
+ 
+ [[package]]
+ name = "flate2"
+-version = "1.1.4"
++version = "1.1.5"
+ source = "registry+https://github.com/rust-lang/crates.io-index"
+-checksum = "dc5a4e564e38c699f2880d3fda590bedc2e69f3f84cd48b457bd892ce61d0aa9"
++checksum = "bfe33edd8e85a12a67454e37f8c75e730830d83e313556ab9ebf9ee7fbeb3bfb"
+ dependencies = [
+  "crc32fast",
+  "miniz_oxide",
+@@ -1874,12 +1904,12 @@ dependencies = [
+ 
+ [[package]]
+ name = "gethostname"
+-version = "1.0.2"
++version = "0.4.3"
+ source = "registry+https://github.com/rust-lang/crates.io-index"
+-checksum = "fc257fdb4038301ce4b9cd1b3b51704509692bb3ff716a410cbd07925d9dae55"
++checksum = "0176e0459c2e4a1fe232f984bca6890e681076abb9934f6cea7c326f3fc47818"
+ dependencies = [
+- "rustix 1.0.8",
+- "windows-targets 0.52.6",
++ "libc",
++ "windows-targets 0.48.5",
+ ]
+ 
+ [[package]]
+@@ -1893,9 +1923,9 @@ dependencies = [
+ 
+ [[package]]
+ name = "getrandom"
+-version = "0.2.16"
++version = "0.2.15"
+ source = "registry+https://github.com/rust-lang/crates.io-index"
+-checksum = "335ff9f135e4384c8150d6f27c6daed433577f86b4750418338c01a1a2528592"
++checksum = "c4567c8db10ae91089c99af84c68c38da3ec2f087c3f82960bcdbf3656b6f4d7"
+ dependencies = [
+  "cfg-if",
+  "libc",
+@@ -1916,9 +1946,9 @@ dependencies = [
+ 
+ [[package]]
+ name = "gif"
+-version = "0.13.1"
++version = "0.14.0"
+ source = "registry+https://github.com/rust-lang/crates.io-index"
+-checksum = "3fb2d69b19215e18bb912fa30f7ce15846e301408695e44e0ef719f1da9e19f2"
++checksum = "f954a9e9159ec994f73a30a12b96a702dde78f5547bcb561174597924f7d4162"
+ dependencies = [
+  "color_quant",
+  "weezl",
+@@ -1959,7 +1989,7 @@ version = "0.32.3"
+ source = "registry+https://github.com/rust-lang/crates.io-index"
+ checksum = "12124de845cacfebedff80e877bb37b5b75c34c5a4c89e47e1cdd67fb6041325"
+ dependencies = [
+- "bitflags 2.9.4",
++ "bitflags 2.10.0",
+  "cfg_aliases",
+  "cgl",
+  "dispatch2",
+@@ -2025,7 +2055,7 @@ version = "0.6.0"
+ source = "registry+https://github.com/rust-lang/crates.io-index"
+ checksum = "fbcd2dba93594b227a1f57ee09b8b9da8892c34d55aa332e034a228d0fe6a171"
+ dependencies = [
+- "bitflags 2.9.4",
++ "bitflags 2.10.0",
+  "gpu-alloc-types",
+ ]
+ 
+@@ -2035,7 +2065,7 @@ version = "0.3.0"
+ source = "registry+https://github.com/rust-lang/crates.io-index"
+ checksum = "98ff03b468aa837d70984d55f5d3f846f6ec31fe34bbb97c4f85219caeee1ca4"
+ dependencies = [
+- "bitflags 2.9.4",
++ "bitflags 2.10.0",
+ ]
+ 
+ [[package]]
+@@ -2056,7 +2086,7 @@ version = "0.3.2"
+ source = "registry+https://github.com/rust-lang/crates.io-index"
+ checksum = "b89c83349105e3732062a895becfc71a8f921bb71ecbbdd8ff99263e3b53a0ca"
+ dependencies = [
+- "bitflags 2.9.4",
++ "bitflags 2.10.0",
+  "gpu-descriptor-types",
+  "hashbrown 0.15.2",
+ ]
+@@ -2067,7 +2097,7 @@ version = "0.2.0"
+ source = "registry+https://github.com/rust-lang/crates.io-index"
+ checksum = "fdf242682df893b86f33a73828fb09ca4b2d3bb6cc95249707fc684d27484b91"
+ dependencies = [
+- "bitflags 2.9.4",
++ "bitflags 2.10.0",
+ ]
+ 
+ [[package]]
+@@ -2166,17 +2196,16 @@ dependencies = [
+ 
+ [[package]]
+ name = "iana-time-zone"
+-version = "0.1.63"
++version = "0.1.61"
+ source = "registry+https://github.com/rust-lang/crates.io-index"
+-checksum = "b0c919e5debc312ad217002b8048a17b7d83f80703865bbfcfebb0458b0b27d8"
++checksum = "235e081f3925a06703c2d0117ea8b91f042756fd6e7a6e5d901e8ca1a996b220"
+ dependencies = [
+  "android_system_properties",
+  "core-foundation-sys",
+  "iana-time-zone-haiku",
+  "js-sys",
+- "log",
+  "wasm-bindgen",
+- "windows-core 0.61.0",
++ "windows-core 0.52.0",
+ ]
+ 
+ [[package]]
+@@ -2190,22 +2219,21 @@ dependencies = [
+ 
+ [[package]]
+ name = "icu_collections"
+-version = "2.0.0"
++version = "1.5.0"
+ source = "registry+https://github.com/rust-lang/crates.io-index"
+-checksum = "200072f5d0e3614556f94a9930d5dc3e0662a652823904c3a75dc3b0af7fee47"
++checksum = "db2fa452206ebee18c4b5c2274dbf1de17008e874b4dc4f0aea9d01ca79e4526"
+ dependencies = [
+  "displaydoc",
+- "potential_utf",
+  "yoke",
+  "zerofrom",
+  "zerovec",
+ ]
+ 
+ [[package]]
+-name = "icu_locale_core"
+-version = "2.0.0"
++name = "icu_locid"
++version = "1.5.0"
+ source = "registry+https://github.com/rust-lang/crates.io-index"
+-checksum = "0cde2700ccaed3872079a65fb1a78f6c0a36c91570f28755dda67bc8f7d9f00a"
++checksum = "13acbb8371917fc971be86fc8057c41a64b521c184808a698c02acc242dbf637"
+ dependencies = [
+  "displaydoc",
+  "litemap",
+@@ -2214,11 +2242,31 @@ dependencies = [
+  "zerovec",
+ ]
+ 
++[[package]]
++name = "icu_locid_transform"
++version = "1.5.0"
++source = "registry+https://github.com/rust-lang/crates.io-index"
++checksum = "01d11ac35de8e40fdeda00d9e1e9d92525f3f9d887cdd7aa81d727596788b54e"
++dependencies = [
++ "displaydoc",
++ "icu_locid",
++ "icu_locid_transform_data",
++ "icu_provider",
++ "tinystr",
++ "zerovec",
++]
++
++[[package]]
++name = "icu_locid_transform_data"
++version = "1.5.0"
++source = "registry+https://github.com/rust-lang/crates.io-index"
++checksum = "fdc8ff3388f852bede6b579ad4e978ab004f139284d7b28715f773507b946f6e"
++
+ [[package]]
+ name = "icu_normalizer"
+-version = "2.0.0"
++version = "1.5.0"
+ source = "registry+https://github.com/rust-lang/crates.io-index"
+-checksum = "436880e8e18df4d7bbc06d58432329d6458cc84531f7ac5f024e93deadb37979"
++checksum = "19ce3e0da2ec68599d193c93d088142efd7f9c5d6fc9b803774855747dc6a84f"
+ dependencies = [
+  "displaydoc",
+  "icu_collections",
+@@ -2226,54 +2274,67 @@ dependencies = [
+  "icu_properties",
+  "icu_provider",
+  "smallvec",
++ "utf16_iter",
++ "utf8_iter",
++ "write16",
+  "zerovec",
+ ]
+ 
+ [[package]]
+ name = "icu_normalizer_data"
+-version = "2.0.0"
++version = "1.5.0"
+ source = "registry+https://github.com/rust-lang/crates.io-index"
+-checksum = "00210d6893afc98edb752b664b8890f0ef174c8adbb8d0be9710fa66fbbf72d3"
++checksum = "f8cafbf7aa791e9b22bec55a167906f9e1215fd475cd22adfcf660e03e989516"
+ 
+ [[package]]
+ name = "icu_properties"
+-version = "2.0.1"
++version = "1.5.1"
+ source = "registry+https://github.com/rust-lang/crates.io-index"
+-checksum = "016c619c1eeb94efb86809b015c58f479963de65bdb6253345c1a1276f22e32b"
++checksum = "93d6020766cfc6302c15dbbc9c8778c37e62c14427cb7f6e601d849e092aeef5"
+ dependencies = [
+  "displaydoc",
+  "icu_collections",
+- "icu_locale_core",
++ "icu_locid_transform",
+  "icu_properties_data",
+  "icu_provider",
+- "potential_utf",
+- "zerotrie",
++ "tinystr",
+  "zerovec",
+ ]
+ 
+ [[package]]
+ name = "icu_properties_data"
+-version = "2.0.1"
++version = "1.5.0"
+ source = "registry+https://github.com/rust-lang/crates.io-index"
+-checksum = "298459143998310acd25ffe6810ed544932242d3f07083eee1084d83a71bd632"
++checksum = "67a8effbc3dd3e4ba1afa8ad918d5684b8868b3b26500753effea8d2eed19569"
+ 
+ [[package]]
+ name = "icu_provider"
+-version = "2.0.0"
++version = "1.5.0"
+ source = "registry+https://github.com/rust-lang/crates.io-index"
+-checksum = "03c80da27b5f4187909049ee2d72f276f0d9f99a42c306bd0131ecfe04d8e5af"
++checksum = "6ed421c8a8ef78d3e2dbc98a973be2f3770cb42b606e3ab18d6237c4dfde68d9"
+ dependencies = [
+  "displaydoc",
+- "icu_locale_core",
++ "icu_locid",
++ "icu_provider_macros",
+  "stable_deref_trait",
+  "tinystr",
+  "writeable",
+  "yoke",
+  "zerofrom",
+- "zerotrie",
+  "zerovec",
+ ]
+ 
++[[package]]
++name = "icu_provider_macros"
++version = "1.5.0"
++source = "registry+https://github.com/rust-lang/crates.io-index"
++checksum = "1ec89e9337638ecdc08744df490b221a7399bf8d164eb52a665454e60e075ad6"
++dependencies = [
++ "proc-macro2",
++ "quote",
++ "syn",
++]
++
+ [[package]]
+ name = "idna"
+ version = "1.0.3"
+@@ -2287,9 +2348,9 @@ dependencies = [
+ 
+ [[package]]
+ name = "idna_adapter"
+-version = "1.2.1"
++version = "1.2.0"
+ source = "registry+https://github.com/rust-lang/crates.io-index"
+-checksum = "3acae9609540aa318d1bc588455225fb2085b9ed0c4f6bd0d9d5bcd86f1a0344"
++checksum = "daca1df1c957320b2cf139ac61e7bd64fed304c5040df000a745aa1de3b4ef71"
+ dependencies = [
+  "icu_normalizer",
+  "icu_properties",
+@@ -2297,20 +2358,21 @@ dependencies = [
+ 
+ [[package]]
+ name = "image"
+-version = "0.25.6"
++version = "0.25.9"
+ source = "registry+https://github.com/rust-lang/crates.io-index"
+-checksum = "db35664ce6b9810857a38a906215e75a9c879f0696556a39f59c62829710251a"
++checksum = "e6506c6c10786659413faa717ceebcb8f70731c0a60cbae39795fdf114519c1a"
+ dependencies = [
+  "bytemuck",
+  "byteorder-lite",
+  "color_quant",
+  "gif",
+  "image-webp",
++ "moxcms",
+  "num-traits",
+- "png",
++ "png 0.18.0",
+  "tiff",
+- "zune-core",
+- "zune-jpeg",
++ "zune-core 0.5.0",
++ "zune-jpeg 0.5.5",
+ ]
+ 
+ [[package]]
+@@ -2349,17 +2411,6 @@ dependencies = [
+  "hashbrown 0.15.2",
+ ]
+ 
+-[[package]]
+-name = "io-uring"
+-version = "0.7.10"
+-source = "registry+https://github.com/rust-lang/crates.io-index"
+-checksum = "046fa2d4d00aea763528b4950358d0ead425372445dc8ff86312b3c69ff7727b"
+-dependencies = [
+- "bitflags 2.9.4",
+- "cfg-if",
+- "libc",
+-]
+-
+ [[package]]
+ name = "is-docker"
+ version = "0.2.0"
+@@ -2381,9 +2432,9 @@ dependencies = [
+ 
+ [[package]]
+ name = "is_terminal_polyfill"
+-version = "1.70.1"
++version = "1.70.2"
+ source = "registry+https://github.com/rust-lang/crates.io-index"
+-checksum = "7943c866cc5cd64cbc25b2e01621d07fa8eb2a1a23160ee81ce38704e97b8ecf"
++checksum = "a6cb138bb79a146c1bd460005623e142ef0181e3d0219cb493e02f7d08a35695"
+ 
+ [[package]]
+ name = "itertools"
+@@ -2411,22 +2462,22 @@ checksum = "49f1f14873335454500d59611f1cf4a4b0f786f9ac11f4312a78e4cf2566695b"
+ 
+ [[package]]
+ name = "jiff"
+-version = "0.2.15"
++version = "0.2.16"
+ source = "registry+https://github.com/rust-lang/crates.io-index"
+-checksum = "be1f93b8b1eb69c77f24bbb0afdf66f54b632ee39af40ca21c4365a1d7347e49"
++checksum = "49cce2b81f2098e7e3efc35bc2e0a6b7abec9d34128283d7a26fa8f32a6dbb35"
+ dependencies = [
+  "jiff-static",
+  "log",
+  "portable-atomic",
+  "portable-atomic-util",
+- "serde",
++ "serde_core",
+ ]
+ 
+ [[package]]
+ name = "jiff-static"
+-version = "0.2.15"
++version = "0.2.16"
+ source = "registry+https://github.com/rust-lang/crates.io-index"
+-checksum = "03343451ff899767262ec32146f6d559dd759fdadf42ff0e227c7c48f72594b4"
++checksum = "980af8b43c3ad5d8d349ace167ec8170839f753a42d233ba19e08afe1850fa69"
+ dependencies = [
+  "proc-macro2",
+  "quote",
+@@ -2464,17 +2515,11 @@ dependencies = [
+  "libc",
+ ]
+ 
+-[[package]]
+-name = "jpeg-decoder"
+-version = "0.3.2"
+-source = "registry+https://github.com/rust-lang/crates.io-index"
+-checksum = "00810f1d8b74be64b13dbf3db89ac67740615d6c891f0e7b6179326533011a07"
+-
+ [[package]]
+ name = "js-sys"
+-version = "0.3.77"
++version = "0.3.82"
+ source = "registry+https://github.com/rust-lang/crates.io-index"
+-checksum = "1cfaf33c695fc6e08064efbc1f72ec937429614f25eef83af942d0e227c3a28f"
++checksum = "b011eec8cc36da2aab2d5cff675ec18454fad408585853910a202391cf9f8e65"
+ dependencies = [
+  "once_cell",
+  "wasm-bindgen",
+@@ -2512,7 +2557,7 @@ source = "registry+https://github.com/rust-lang/crates.io-index"
+ checksum = "01fd6dd2cce251a360101038acb9334e3a50cd38cd02fefddbf28aa975f043c8"
+ dependencies = [
+  "accesskit",
+- "accesskit_consumer",
++ "accesskit_consumer 0.30.1",
+  "parking_lot",
+ ]
+ 
+@@ -2534,9 +2579,9 @@ checksum = "bbd2bcb4c963f2ddae06a2efc7e9f3591312473c50c6685e1f298068316e66fe"
+ 
+ [[package]]
+ name = "libc"
+-version = "0.2.176"
++version = "0.2.177"
+ source = "registry+https://github.com/rust-lang/crates.io-index"
+-checksum = "58f929b4d672ea937a23a1ab494143d968337a5f47e56d0815df1e0890ddf174"
++checksum = "2874a2af47a2325c2001a6e6fad9b16a53b802102b528163885171cf92b15976"
+ 
+ [[package]]
+ name = "libloading"
+@@ -2570,7 +2615,7 @@ version = "0.1.3"
+ source = "registry+https://github.com/rust-lang/crates.io-index"
+ checksum = "c0ff37bd590ca25063e35af745c343cb7a0271906fb7b37e4813e8f79f00268d"
+ dependencies = [
+- "bitflags 2.9.4",
++ "bitflags 2.10.0",
+  "libc",
+  "redox_syscall 0.5.7",
+ ]
+@@ -2589,15 +2634,15 @@ checksum = "78b3ae25bc7c8c38cec158d1f2757ee79e9b3740fbc7ccf0e59e4b08d793fa89"
+ 
+ [[package]]
+ name = "linux-raw-sys"
+-version = "0.9.4"
++version = "0.11.0"
+ source = "registry+https://github.com/rust-lang/crates.io-index"
+-checksum = "cd945864f07fe9f5371a27ad7b52a172b4b499999f1d97574c9fa68373937e12"
++checksum = "df1d3c3b53da64cf5760482273a98e575c651a67eec7f77df96b5b642de8f039"
+ 
+ [[package]]
+ name = "litemap"
+-version = "0.8.0"
++version = "0.7.4"
+ source = "registry+https://github.com/rust-lang/crates.io-index"
+-checksum = "241eaef5fd12c88705a01fc1066c48c4b36e0dd4377dcdc7ec3942cea7a69956"
++checksum = "4ee93343901ab17bd981295f2cf0026d4ad018c7c31ba84549a4ddbb47a45104"
+ 
+ [[package]]
+ name = "litrs"
+@@ -2665,7 +2710,7 @@ version = "0.32.0"
+ source = "registry+https://github.com/rust-lang/crates.io-index"
+ checksum = "00c15a6f673ff72ddcc22394663290f870fb224c1bfce55734a75c414150e605"
+ dependencies = [
+- "bitflags 2.9.4",
++ "bitflags 2.10.0",
+  "block",
+  "core-graphics-types 0.2.0",
+  "foreign-types",
+@@ -2728,6 +2773,16 @@ dependencies = [
+  "windows-sys 0.52.0",
+ ]
+ 
++[[package]]
++name = "moxcms"
++version = "0.7.9"
++source = "registry+https://github.com/rust-lang/crates.io-index"
++checksum = "0fbdd3d7436f8b5e892b8b7ea114271ff0fa00bc5acae845d53b07d498616ef6"
++dependencies = [
++ "num-traits",
++ "pxfm",
++]
++
+ [[package]]
+ name = "multiple_viewports"
+ version = "0.1.0"
+@@ -2738,13 +2793,13 @@ dependencies = [
+ 
+ [[package]]
+ name = "naga"
+-version = "27.0.0"
++version = "27.0.3"
+ source = "registry+https://github.com/rust-lang/crates.io-index"
+-checksum = "12b2e757b11b47345d44e7760e45458339bc490463d9548cd8651c53ae523153"
++checksum = "066cf25f0e8b11ee0df221219010f213ad429855f57c494f995590c861a9a7d8"
+ dependencies = [
+  "arrayvec",
+  "bit-set",
+- "bitflags 2.9.4",
++ "bitflags 2.10.0",
+  "cfg-if",
+  "cfg_aliases",
+  "codespan-reporting",
+@@ -2768,7 +2823,7 @@ version = "0.9.0"
+ source = "registry+https://github.com/rust-lang/crates.io-index"
+ checksum = "c3f42e7bbe13d351b6bead8286a43aac9534b82bd3cc43e47037f012ebfd62d4"
+ dependencies = [
+- "bitflags 2.9.4",
++ "bitflags 2.10.0",
+  "jni-sys",
+  "log",
+  "ndk-sys",
+@@ -2798,7 +2853,7 @@ version = "0.29.0"
+ source = "registry+https://github.com/rust-lang/crates.io-index"
+ checksum = "71e2746dc3a24dd78b3cfcb7be93368c6de9963d30f43a6a73998a9cf4b17b46"
+ dependencies = [
+- "bitflags 2.9.4",
++ "bitflags 2.10.0",
+  "cfg-if",
+  "cfg_aliases",
+  "libc",
+@@ -2888,7 +2943,7 @@ version = "0.2.2"
+ source = "registry+https://github.com/rust-lang/crates.io-index"
+ checksum = "e4e89ad9e3d7d297152b17d39ed92cd50ca8063a89a9fa569046d41568891eff"
+ dependencies = [
+- "bitflags 2.9.4",
++ "bitflags 2.10.0",
+  "block2 0.5.1",
+  "libc",
+  "objc2 0.5.2",
+@@ -2904,7 +2959,7 @@ version = "0.3.2"
+ source = "registry+https://github.com/rust-lang/crates.io-index"
+ checksum = "d49e936b501e5c5bf01fda3a9452ff86dc3ea98ad5f283e1455153142d97518c"
+ dependencies = [
+- "bitflags 2.9.4",
++ "bitflags 2.10.0",
+  "block2 0.6.2",
+  "objc2 0.6.3",
+  "objc2-core-foundation",
+@@ -2918,7 +2973,7 @@ version = "0.2.2"
+ source = "registry+https://github.com/rust-lang/crates.io-index"
+ checksum = "74dd3b56391c7a0596a295029734d3c1c5e7e510a4cb30245f8221ccea96b009"
+ dependencies = [
+- "bitflags 2.9.4",
++ "bitflags 2.10.0",
+  "block2 0.5.1",
+  "objc2 0.5.2",
+  "objc2-core-location",
+@@ -2942,7 +2997,7 @@ version = "0.2.2"
+ source = "registry+https://github.com/rust-lang/crates.io-index"
+ checksum = "617fbf49e071c178c0b24c080767db52958f716d9eabdf0890523aeae54773ef"
+ dependencies = [
+- "bitflags 2.9.4",
++ "bitflags 2.10.0",
+  "block2 0.5.1",
+  "objc2 0.5.2",
+  "objc2-foundation 0.2.2",
+@@ -2954,7 +3009,7 @@ version = "0.3.2"
+ source = "registry+https://github.com/rust-lang/crates.io-index"
+ checksum = "2a180dd8642fa45cdb7dd721cd4c11b1cadd4929ce112ebd8b9f5803cc79d536"
+ dependencies = [
+- "bitflags 2.9.4",
++ "bitflags 2.10.0",
+  "dispatch2",
+  "objc2 0.6.3",
+ ]
+@@ -2965,7 +3020,7 @@ version = "0.3.2"
+ source = "registry+https://github.com/rust-lang/crates.io-index"
+ checksum = "e022c9d066895efa1345f8e33e584b9f958da2fd4cd116792e15e07e4720a807"
+ dependencies = [
+- "bitflags 2.9.4",
++ "bitflags 2.10.0",
+  "dispatch2",
+  "objc2 0.6.3",
+  "objc2-core-foundation",
+@@ -3008,7 +3063,7 @@ version = "0.2.2"
+ source = "registry+https://github.com/rust-lang/crates.io-index"
+ checksum = "0ee638a5da3799329310ad4cfa62fbf045d5f56e3ef5ba4149e7452dcf89d5a8"
+ dependencies = [
+- "bitflags 2.9.4",
++ "bitflags 2.10.0",
+  "block2 0.5.1",
+  "dispatch",
+  "libc",
+@@ -3021,7 +3076,7 @@ version = "0.3.2"
+ source = "registry+https://github.com/rust-lang/crates.io-index"
+ checksum = "e3e0adef53c21f888deb4fa59fc59f7eb17404926ee8a6f59f5df0fd7f9f3272"
+ dependencies = [
+- "bitflags 2.9.4",
++ "bitflags 2.10.0",
+  "objc2 0.6.3",
+  "objc2-core-foundation",
+ ]
+@@ -3032,7 +3087,7 @@ version = "0.3.2"
+ source = "registry+https://github.com/rust-lang/crates.io-index"
+ checksum = "180788110936d59bab6bd83b6060ffdfffb3b922ba1396b312ae795e1de9d81d"
+ dependencies = [
+- "bitflags 2.9.4",
++ "bitflags 2.10.0",
+  "objc2 0.6.3",
+  "objc2-core-foundation",
+ ]
+@@ -3055,7 +3110,7 @@ version = "0.2.2"
+ source = "registry+https://github.com/rust-lang/crates.io-index"
+ checksum = "dd0cba1276f6023976a406a14ffa85e1fdd19df6b0f737b063b95f6c8c7aadd6"
+ dependencies = [
+- "bitflags 2.9.4",
++ "bitflags 2.10.0",
+  "block2 0.5.1",
+  "objc2 0.5.2",
+  "objc2-foundation 0.2.2",
+@@ -3067,7 +3122,7 @@ version = "0.2.2"
+ source = "registry+https://github.com/rust-lang/crates.io-index"
+ checksum = "e42bee7bff906b14b167da2bac5efe6b6a07e6f7c0a21a7308d40c960242dc7a"
+ dependencies = [
+- "bitflags 2.9.4",
++ "bitflags 2.10.0",
+  "block2 0.5.1",
+  "objc2 0.5.2",
+  "objc2-foundation 0.2.2",
+@@ -3090,7 +3145,7 @@ version = "0.2.2"
+ source = "registry+https://github.com/rust-lang/crates.io-index"
+ checksum = "b8bb46798b20cd6b91cbd113524c490f1686f4c4e8f49502431415f3512e2b6f"
+ dependencies = [
+- "bitflags 2.9.4",
++ "bitflags 2.10.0",
+  "block2 0.5.1",
+  "objc2 0.5.2",
+  "objc2-cloud-kit",
+@@ -3122,7 +3177,7 @@ version = "0.2.2"
+ source = "registry+https://github.com/rust-lang/crates.io-index"
+ checksum = "76cfcbf642358e8689af64cee815d139339f3ed8ad05103ed5eaf73db8d84cb3"
+ dependencies = [
+- "bitflags 2.9.4",
++ "bitflags 2.10.0",
+  "block2 0.5.1",
+  "objc2 0.5.2",
+  "objc2-core-location",
+@@ -3146,9 +3201,9 @@ checksum = "42f5e15c9953c5e4ccceeb2e7382a716482c34515315f7b03532b8b4e8393d2d"
+ 
+ [[package]]
+ name = "once_cell_polyfill"
+-version = "1.70.1"
++version = "1.70.2"
+ source = "registry+https://github.com/rust-lang/crates.io-index"
+-checksum = "a4895175b425cb1f87721b59f0f286c2092bd4af812243672510e1ac53e2e0ad"
++checksum = "384b8ab6d37215f3c5301a95a4accb5d64aa607f1fcb26a11b5303878451b4fe"
+ 
+ [[package]]
+ name = "oorandom"
+@@ -3392,6 +3447,19 @@ dependencies = [
+  "miniz_oxide",
+ ]
+ 
++[[package]]
++name = "png"
++version = "0.18.0"
++source = "registry+https://github.com/rust-lang/crates.io-index"
++checksum = "97baced388464909d42d89643fe4361939af9b7ce7a31ee32a168f832a70f2a0"
++dependencies = [
++ "bitflags 2.10.0",
++ "crc32fast",
++ "fdeflate",
++ "flate2",
++ "miniz_oxide",
++]
++
+ [[package]]
+ name = "poll-promise"
+ version = "0.3.0"
+@@ -3446,15 +3514,6 @@ dependencies = [
+  "portable-atomic",
+ ]
+ 
+-[[package]]
+-name = "potential_utf"
+-version = "0.1.3"
+-source = "registry+https://github.com/rust-lang/crates.io-index"
+-checksum = "84df19adbe5b5a0782edcab45899906947ab039ccf4573713735ee7de1e6b08a"
+-dependencies = [
+- "zerovec",
+-]
+-
+ [[package]]
+ name = "powerfmt"
+ version = "0.2.0"
+@@ -3487,9 +3546,9 @@ dependencies = [
+ 
+ [[package]]
+ name = "proc-macro2"
+-version = "1.0.101"
++version = "1.0.93"
+ source = "registry+https://github.com/rust-lang/crates.io-index"
+-checksum = "89ae43fd86e4158d6db51ad8e2b80f313af9cc74f5c0e03ccb87de09998732de"
++checksum = "60946a68e5f9d28b0dc1c21bb8a97ee7d018a8b322fa57838ba31cc878e22d99"
+ dependencies = [
+  "unicode-ident",
+ ]
+@@ -3556,6 +3615,15 @@ dependencies = [
+  "puffin_http",
+ ]
+ 
++[[package]]
++name = "pxfm"
++version = "0.1.25"
++source = "registry+https://github.com/rust-lang/crates.io-index"
++checksum = "a3cbdf373972bf78df4d3b518d07003938e2c7d1fb5891e55f9cb6df57009d84"
++dependencies = [
++ "num-traits",
++]
++
+ [[package]]
+ name = "quick-error"
+ version = "2.0.1"
+@@ -3592,9 +3660,9 @@ dependencies = [
+ 
+ [[package]]
+ name = "quote"
+-version = "1.0.41"
++version = "1.0.42"
+ source = "registry+https://github.com/rust-lang/crates.io-index"
+-checksum = "ce25767e7b499d1b604768e7cde645d14cc8584231ea6b295e9c9eb22c02e1d1"
++checksum = "a338cc41d27e6cc6dce6cefc13a0729dfbb81c262b1f519331575dd80ef3067f"
+ dependencies = [
+  "proc-macro2",
+ ]
+@@ -3646,7 +3714,7 @@ version = "0.6.4"
+ source = "registry+https://github.com/rust-lang/crates.io-index"
+ checksum = "ec0be4795e2f6a28069bec0b5ff3e2ac9bafc99e6a9a7dc3547996c5c816922c"
+ dependencies = [
+- "getrandom 0.2.16",
++ "getrandom 0.2.15",
+ ]
+ 
+ [[package]]
+@@ -3705,7 +3773,7 @@ version = "0.5.7"
+ source = "registry+https://github.com/rust-lang/crates.io-index"
+ checksum = "9b6dfecf2c74bce2466cabf93f6664d6998a69eb21e39f4207930065b27b771f"
+ dependencies = [
+- "bitflags 2.9.4",
++ "bitflags 2.10.0",
+ ]
+ 
+ [[package]]
+@@ -3714,7 +3782,7 @@ version = "0.5.2"
+ source = "registry+https://github.com/rust-lang/crates.io-index"
+ checksum = "a4e608c6638b9c18977b00b475ac1f28d14e84b27d8d42f70e0bf1e3dec127ac"
+ dependencies = [
+- "getrandom 0.2.16",
++ "getrandom 0.2.15",
+  "libredox",
+  "thiserror 2.0.17",
+ ]
+@@ -3809,7 +3877,7 @@ checksum = "a4689e6c2294d81e88dc6261c768b63bc4fcdb852be6d1352498b114f61383b7"
+ dependencies = [
+  "cc",
+  "cfg-if",
+- "getrandom 0.2.16",
++ "getrandom 0.2.15",
+  "libc",
+  "untrusted",
+  "windows-sys 0.52.0",
+@@ -3822,7 +3890,7 @@ source = "registry+https://github.com/rust-lang/crates.io-index"
+ checksum = "db09040cc89e461f1a265139777a2bde7f8d8c67c4936f700c63ce3e2904d468"
+ dependencies = [
+  "base64",
+- "bitflags 2.9.4",
++ "bitflags 2.10.0",
+  "serde",
+  "serde_derive",
+  "unicode-ident",
+@@ -3858,7 +3926,7 @@ version = "0.38.38"
+ source = "registry+https://github.com/rust-lang/crates.io-index"
+ checksum = "aa260229e6538e52293eeb577aabd09945a09d6d9cc0fc550ed7529056c2e32a"
+ dependencies = [
+- "bitflags 2.9.4",
++ "bitflags 2.10.0",
+  "errno",
+  "libc",
+  "linux-raw-sys 0.4.14",
+@@ -3867,15 +3935,15 @@ dependencies = [
+ 
+ [[package]]
+ name = "rustix"
+-version = "1.0.8"
++version = "1.1.2"
+ source = "registry+https://github.com/rust-lang/crates.io-index"
+-checksum = "11181fbabf243db407ef8df94a6ce0b2f9a733bd8be4ad02b4eda9602296cac8"
++checksum = "cd15f8a2c5551a84d56efdc1cd049089e409ac19a3072d5037a17fd70719ff3e"
+ dependencies = [
+- "bitflags 2.9.4",
++ "bitflags 2.10.0",
+  "errno",
+  "libc",
+- "linux-raw-sys 0.9.4",
+- "windows-sys 0.60.2",
++ "linux-raw-sys 0.11.0",
++ "windows-sys 0.59.0",
+ ]
+ 
+ [[package]]
+@@ -3922,7 +3990,7 @@ version = "0.20.1"
+ source = "registry+https://github.com/rust-lang/crates.io-index"
+ checksum = "fd3c7c96f8a08ee34eff8857b11b49b07d71d1c3f4e88f8a88d4c9e9f90b1702"
+ dependencies = [
+- "bitflags 2.9.4",
++ "bitflags 2.10.0",
+  "bytemuck",
+  "core_maths",
+  "log",
+@@ -4124,6 +4192,9 @@ name = "smallvec"
+ version = "1.15.1"
+ source = "registry+https://github.com/rust-lang/crates.io-index"
+ checksum = "67b1b7a3b5fe4f1376887184045fcf45c69e92af734b7aaddc05fb777b6fbd03"
++dependencies = [
++ "serde",
++]
+ 
+ [[package]]
+ name = "smithay-client-toolkit"
+@@ -4131,7 +4202,7 @@ version = "0.19.2"
+ source = "registry+https://github.com/rust-lang/crates.io-index"
+ checksum = "3457dea1f0eb631b4034d61d4d8c32074caa6cd1ab2d59f2327bd8461e2c0016"
+ dependencies = [
+- "bitflags 2.9.4",
++ "bitflags 2.10.0",
+  "calloop",
+  "calloop-wayland-source",
+  "cursor-icon",
+@@ -4172,12 +4243,12 @@ dependencies = [
+ 
+ [[package]]
+ name = "socket2"
+-version = "0.6.0"
++version = "0.6.1"
+ source = "registry+https://github.com/rust-lang/crates.io-index"
+-checksum = "233504af464074f9d066d7b5416c5f9b894a5862a6506e306f7b816cdd6f1807"
++checksum = "17129e116933cf371d018bb80ae557e889637989d8638274fb25622827b03881"
+ dependencies = [
+  "libc",
+- "windows-sys 0.59.0",
++ "windows-sys 0.60.2",
+ ]
+ 
+ [[package]]
+@@ -4186,7 +4257,7 @@ version = "0.3.0+sdk-1.3.268.0"
+ source = "registry+https://github.com/rust-lang/crates.io-index"
+ checksum = "eda41003dc44290527a59b13432d4a0379379fa074b70174882adfbdfd917844"
+ dependencies = [
+- "bitflags 2.9.4",
++ "bitflags 2.10.0",
+ ]
+ 
+ [[package]]
+@@ -4228,9 +4299,9 @@ dependencies = [
+ 
+ [[package]]
+ name = "syn"
+-version = "2.0.106"
++version = "2.0.110"
+ source = "registry+https://github.com/rust-lang/crates.io-index"
+-checksum = "ede7c438028d4436d71104916910f5bb611972c5cfd7f89b8300a8186e6fada6"
++checksum = "a99801b5bd34ede4cf3fc688c5919368fea4e4814a4664359503e6015b280aea"
+ dependencies = [
+  "proc-macro2",
+  "quote",
+@@ -4278,8 +4349,8 @@ dependencies = [
+  "fastrand",
+  "getrandom 0.3.1",
+  "once_cell",
+- "rustix 1.0.8",
+- "windows-sys 0.61.2",
++ "rustix 1.1.2",
++ "windows-sys 0.59.0",
+ ]
+ 
+ [[package]]
+@@ -4374,13 +4445,16 @@ dependencies = [
+ 
+ [[package]]
+ name = "tiff"
+-version = "0.9.1"
++version = "0.10.3"
+ source = "registry+https://github.com/rust-lang/crates.io-index"
+-checksum = "ba1310fcea54c6a9a4fd1aad794ecc02c31682f6bfbecdf460bf19533eed1e3e"
++checksum = "af9605de7fee8d9551863fd692cce7637f548dbd9db9180fcc07ccc6d26c336f"
+ dependencies = [
++ "fax",
+  "flate2",
+- "jpeg-decoder",
++ "half",
++ "quick-error",
+  "weezl",
++ "zune-jpeg 0.4.21",
+ ]
+ 
+ [[package]]
+@@ -4425,7 +4499,7 @@ dependencies = [
+  "bytemuck",
+  "cfg-if",
+  "log",
+- "png",
++ "png 0.17.14",
+  "tiny-skia-path",
+ ]
+ 
+@@ -4442,9 +4516,9 @@ dependencies = [
+ 
+ [[package]]
+ name = "tinystr"
+-version = "0.8.1"
++version = "0.7.6"
+ source = "registry+https://github.com/rust-lang/crates.io-index"
+-checksum = "5d4f6d1145dcb577acf783d4e601bc1d76a13337bb54e6233add580b07344c8b"
++checksum = "9117f5d4db391c1cf6927e7bea3db74b9a1c1add8f7eda9ffd5364f40f57b82f"
+ dependencies = [
+  "displaydoc",
+  "zerovec",
+@@ -4477,18 +4551,15 @@ checksum = "1f3ccbac311fea05f86f61904b462b55fb3df8837a366dfc601a0161d0532f20"
+ 
+ [[package]]
+ name = "tokio"
+-version = "1.47.1"
++version = "1.48.0"
+ source = "registry+https://github.com/rust-lang/crates.io-index"
+-checksum = "89e49afdadebb872d3145a5638b59eb0691ea23e46ca484037cfab3b76b95038"
++checksum = "ff360e02eab121e0bc37a2d3b4d4dc622e6eda3a8e5253d5435ecf5bd4c68408"
+ dependencies = [
+- "backtrace",
+- "io-uring",
+  "libc",
+  "mio",
+  "pin-project-lite",
+- "slab",
+  "socket2",
+- "windows-sys 0.59.0",
++ "windows-sys 0.61.2",
+ ]
+ 
+ [[package]]
+@@ -4499,13 +4570,13 @@ checksum = "0dd7358ecb8fc2f8d014bf86f6f638ce72ba252a2c3a2572f2a795f1d23efb41"
+ 
+ [[package]]
+ name = "toml_edit"
+-version = "0.22.24"
++version = "0.22.22"
+ source = "registry+https://github.com/rust-lang/crates.io-index"
+-checksum = "17b4795ff5edd201c7cd6dca065ae59972ce77d1b80fa0a84d94950ece7d1474"
++checksum = "4ae48d6208a266e853d946088ed816055e556cc6028c5e8e2b84d9fa5dd7c7f5"
+ dependencies = [
+  "indexmap",
+  "toml_datetime",
+- "winnow",
++ "winnow 0.6.20",
+ ]
+ 
+ [[package]]
+@@ -4594,9 +4665,9 @@ checksum = "ce61d488bcdc9bc8b5d1772c404828b17fc481c0a582b5581e95fb233aef503e"
+ 
+ [[package]]
+ name = "unicode-ident"
+-version = "1.0.19"
++version = "1.0.13"
+ source = "registry+https://github.com/rust-lang/crates.io-index"
+-checksum = "f63a545481291138910575129486daeaf8ac54aee4387fe7906919f7830c7d9d"
++checksum = "e91b56cd4cadaeb79bbf1a5645f6b4f8dc5bde8834ad5894a8db35fda9efa1fe"
+ 
+ [[package]]
+ name = "unicode-properties"
+@@ -4723,6 +4794,12 @@ dependencies = [
+  "xmlwriter",
+ ]
+ 
++[[package]]
++name = "utf16_iter"
++version = "1.0.5"
++source = "registry+https://github.com/rust-lang/crates.io-index"
++checksum = "c8232dd3cdaed5356e0f716d285e4b40b932ac434100fe9b7e0e8e935b9e6246"
++
+ [[package]]
+ name = "utf8_iter"
+ version = "1.0.4"
+@@ -4768,48 +4845,34 @@ dependencies = [
+ 
+ [[package]]
+ name = "wasm-bindgen"
+-version = "0.2.100"
++version = "0.2.105"
+ source = "registry+https://github.com/rust-lang/crates.io-index"
+-checksum = "1edc8929d7499fc4e8f0be2262a241556cfc54a0bea223790e71446f2aab1ef5"
++checksum = "da95793dfc411fbbd93f5be7715b0578ec61fe87cb1a42b12eb625caa5c5ea60"
+ dependencies = [
+  "cfg-if",
+  "once_cell",
+  "rustversion",
+  "wasm-bindgen-macro",
+-]
+-
+-[[package]]
+-name = "wasm-bindgen-backend"
+-version = "0.2.100"
+-source = "registry+https://github.com/rust-lang/crates.io-index"
+-checksum = "2f0a0651a5c2bc21487bde11ee802ccaf4c51935d0d3d42a6101f98161700bc6"
+-dependencies = [
+- "bumpalo",
+- "log",
+- "proc-macro2",
+- "quote",
+- "syn",
+  "wasm-bindgen-shared",
+ ]
+ 
+ [[package]]
+ name = "wasm-bindgen-futures"
+-version = "0.4.50"
++version = "0.4.45"
+ source = "registry+https://github.com/rust-lang/crates.io-index"
+-checksum = "555d470ec0bc3bb57890405e5d4322cc9ea83cebb085523ced7be4144dac1e61"
++checksum = "cc7ec4f8827a71586374db3e87abdb5a2bb3a15afed140221307c3ec06b1f63b"
+ dependencies = [
+  "cfg-if",
+  "js-sys",
+- "once_cell",
+  "wasm-bindgen",
+  "web-sys",
+ ]
+ 
+ [[package]]
+ name = "wasm-bindgen-macro"
+-version = "0.2.100"
++version = "0.2.105"
+ source = "registry+https://github.com/rust-lang/crates.io-index"
+-checksum = "7fe63fc6d09ed3792bd0897b314f53de8e16568c2b3f7982f468c0bf9bd0b407"
++checksum = "04264334509e04a7bf8690f2384ef5265f05143a4bff3889ab7a3269adab59c2"
+ dependencies = [
+  "quote",
+  "wasm-bindgen-macro-support",
+@@ -4817,22 +4880,22 @@ dependencies = [
+ 
+ [[package]]
+ name = "wasm-bindgen-macro-support"
+-version = "0.2.100"
++version = "0.2.105"
+ source = "registry+https://github.com/rust-lang/crates.io-index"
+-checksum = "8ae87ea40c9f689fc23f209965b6fb8a99ad69aeeb0231408be24920604395de"
++checksum = "420bc339d9f322e562942d52e115d57e950d12d88983a14c79b86859ee6c7ebc"
+ dependencies = [
++ "bumpalo",
+  "proc-macro2",
+  "quote",
+  "syn",
+- "wasm-bindgen-backend",
+  "wasm-bindgen-shared",
+ ]
+ 
+ [[package]]
+ name = "wasm-bindgen-shared"
+-version = "0.2.100"
++version = "0.2.105"
+ source = "registry+https://github.com/rust-lang/crates.io-index"
+-checksum = "1a05d73b933a847d6cccdda8f838a22ff101ad9bf93e33684f39c1f5f0eece3d"
++checksum = "76f218a38c84bcb33c25ec7059b07847d465ce0e0a76b995e134a45adcb6af76"
+ dependencies = [
+  "unicode-ident",
+ ]
+@@ -4845,7 +4908,7 @@ checksum = "673a33c33048a5ade91a6b139580fa174e19fb0d23f396dca9fa15f2e1e49b35"
+ dependencies = [
+  "cc",
+  "downcast-rs",
+- "rustix 1.0.8",
++ "rustix 1.1.2",
+  "scoped-tls",
+  "smallvec",
+  "wayland-sys",
+@@ -4857,8 +4920,8 @@ version = "0.31.11"
+ source = "registry+https://github.com/rust-lang/crates.io-index"
+ checksum = "c66a47e840dc20793f2264eb4b3e4ecb4b75d91c0dd4af04b456128e0bdd449d"
+ dependencies = [
+- "bitflags 2.9.4",
+- "rustix 1.0.8",
++ "bitflags 2.10.0",
++ "rustix 1.1.2",
+  "wayland-backend",
+  "wayland-scanner",
+ ]
+@@ -4869,7 +4932,7 @@ version = "0.3.0"
+ source = "registry+https://github.com/rust-lang/crates.io-index"
+ checksum = "625c5029dbd43d25e6aa9615e88b829a5cad13b2819c4ae129fdbb7c31ab4c7e"
+ dependencies = [
+- "bitflags 2.9.4",
++ "bitflags 2.10.0",
+  "cursor-icon",
+  "wayland-backend",
+ ]
+@@ -4880,7 +4943,7 @@ version = "0.31.11"
+ source = "registry+https://github.com/rust-lang/crates.io-index"
+ checksum = "447ccc440a881271b19e9989f75726d60faa09b95b0200a9b7eb5cc47c3eeb29"
+ dependencies = [
+- "rustix 1.0.8",
++ "rustix 1.1.2",
+  "wayland-client",
+  "xcursor",
+ ]
+@@ -4891,7 +4954,7 @@ version = "0.32.9"
+ source = "registry+https://github.com/rust-lang/crates.io-index"
+ checksum = "efa790ed75fbfd71283bd2521a1cfdc022aabcc28bdcff00851f9e4ae88d9901"
+ dependencies = [
+- "bitflags 2.9.4",
++ "bitflags 2.10.0",
+  "wayland-backend",
+  "wayland-client",
+  "wayland-scanner",
+@@ -4903,7 +4966,7 @@ version = "0.3.9"
+ source = "registry+https://github.com/rust-lang/crates.io-index"
+ checksum = "a07a14257c077ab3279987c4f8bb987851bf57081b93710381daea94f2c2c032"
+ dependencies = [
+- "bitflags 2.9.4",
++ "bitflags 2.10.0",
+  "wayland-backend",
+  "wayland-client",
+  "wayland-protocols",
+@@ -4916,7 +4979,7 @@ version = "0.3.5"
+ source = "registry+https://github.com/rust-lang/crates.io-index"
+ checksum = "782e12f6cd923c3c316130d56205ebab53f55d6666b7faddfad36cecaeeb4022"
+ dependencies = [
+- "bitflags 2.9.4",
++ "bitflags 2.10.0",
+  "wayland-backend",
+  "wayland-client",
+  "wayland-protocols",
+@@ -4948,9 +5011,9 @@ dependencies = [
+ 
+ [[package]]
+ name = "web-sys"
+-version = "0.3.77"
++version = "0.3.82"
+ source = "registry+https://github.com/rust-lang/crates.io-index"
+-checksum = "33b6dd2ef9186f1f2072e409e99cd22a975331a6b3591b12c764e0e55c60d5d2"
++checksum = "3a1f95c0d03a47f4ae1f7a64643a6bb97465d9b740f0fa8f90ea33915c99a9a1"
+ dependencies = [
+  "js-sys",
+  "wasm-bindgen",
+@@ -4968,9 +5031,9 @@ dependencies = [
+ 
+ [[package]]
+ name = "webbrowser"
+-version = "1.0.5"
++version = "1.0.6"
+ source = "registry+https://github.com/rust-lang/crates.io-index"
+-checksum = "aaf4f3c0ba838e82b4e5ccc4157003fb8c324ee24c058470ffb82820becbde98"
++checksum = "00f1243ef785213e3a32fa0396093424a3a6ea566f9948497e5a2309261a4c97"
+ dependencies = [
+  "core-foundation 0.10.1",
+  "jni",
+@@ -4993,9 +5056,9 @@ dependencies = [
+ 
+ [[package]]
+ name = "weezl"
+-version = "0.1.10"
++version = "0.1.12"
+ source = "registry+https://github.com/rust-lang/crates.io-index"
+-checksum = "a751b3277700db47d3e574514de2eced5e54dc8a5436a3bf7a0b248b2cee16f3"
++checksum = "a28ac98ddc8b9274cb41bb4d9d4d5c425b6020c50c46f25559911905610b4a88"
+ 
+ [[package]]
+ name = "wgpu"
+@@ -5004,7 +5067,7 @@ source = "registry+https://github.com/rust-lang/crates.io-index"
+ checksum = "bfe68bac7cde125de7a731c3400723cadaaf1703795ad3f4805f187459cd7a77"
+ dependencies = [
+  "arrayvec",
+- "bitflags 2.9.4",
++ "bitflags 2.10.0",
+  "cfg-if",
+  "cfg_aliases",
+  "document-features",
+@@ -5028,14 +5091,14 @@ dependencies = [
+ 
+ [[package]]
+ name = "wgpu-core"
+-version = "27.0.0"
++version = "27.0.3"
+ source = "registry+https://github.com/rust-lang/crates.io-index"
+-checksum = "893764e276cdafec946c7f394f044e283bc8f1e445ab3fea8ad3b6dbc10c0322"
++checksum = "27a75de515543b1897b26119f93731b385a19aea165a1ec5f0e3acecc229cae7"
+ dependencies = [
+  "arrayvec",
+  "bit-set",
+  "bit-vec",
+- "bitflags 2.9.4",
++ "bitflags 2.10.0",
+  "bytemuck",
+  "cfg_aliases",
+  "document-features",
+@@ -5097,15 +5160,15 @@ dependencies = [
+ 
+ [[package]]
+ name = "wgpu-hal"
+-version = "27.0.0"
++version = "27.0.4"
+ source = "registry+https://github.com/rust-lang/crates.io-index"
+-checksum = "a753c3dc95e69be3aacfe9c871c5fa2cfa9e35748cdc87de7ba5fc1735b61604"
++checksum = "5b21cb61c57ee198bc4aff71aeadff4cbb80b927beb912506af9c780d64313ce"
+ dependencies = [
+  "android_system_properties",
+  "arrayvec",
+  "ash",
+  "bit-set",
+- "bitflags 2.9.4",
++ "bitflags 2.10.0",
+  "block",
+  "bytemuck",
+  "cfg-if",
+@@ -5146,11 +5209,11 @@ dependencies = [
+ 
+ [[package]]
+ name = "wgpu-types"
+-version = "27.0.0"
++version = "27.0.1"
+ source = "registry+https://github.com/rust-lang/crates.io-index"
+-checksum = "d67453b02f7adc33c452d17da1c2cad813448221df1547bce9dd4b02d3558538"
++checksum = "afdcf84c395990db737f2dd91628706cb31e86d72e53482320d368e52b5da5eb"
+ dependencies = [
+- "bitflags 2.9.4",
++ "bitflags 2.10.0",
+  "bytemuck",
+  "js-sys",
+  "log",
+@@ -5208,7 +5271,7 @@ dependencies = [
+  "windows-collections",
+  "windows-core 0.61.0",
+  "windows-future",
+- "windows-link 0.1.3",
++ "windows-link 0.1.1",
+  "windows-numerics",
+ ]
+ 
+@@ -5221,6 +5284,15 @@ dependencies = [
+  "windows-core 0.61.0",
+ ]
+ 
++[[package]]
++name = "windows-core"
++version = "0.52.0"
++source = "registry+https://github.com/rust-lang/crates.io-index"
++checksum = "33ab640c8d7e35bf8ba19b884ba838ceb4fba93a4e8c65a9059d08afcfc683d9"
++dependencies = [
++ "windows-targets 0.52.6",
++]
++
+ [[package]]
+ name = "windows-core"
+ version = "0.58.0"
+@@ -5242,7 +5314,7 @@ checksum = "4763c1de310c86d75a878046489e2e5ba02c649d185f21c67d4cf8a56d098980"
+ dependencies = [
+  "windows-implement 0.60.0",
+  "windows-interface 0.59.1",
+- "windows-link 0.1.3",
++ "windows-link 0.1.1",
+  "windows-result 0.3.2",
+  "windows-strings 0.4.0",
+ ]
+@@ -5254,7 +5326,7 @@ source = "registry+https://github.com/rust-lang/crates.io-index"
+ checksum = "7a1d6bbefcb7b60acd19828e1bc965da6fcf18a7e39490c5f8be71e54a19ba32"
+ dependencies = [
+  "windows-core 0.61.0",
+- "windows-link 0.1.3",
++ "windows-link 0.1.1",
+ ]
+ 
+ [[package]]
+@@ -5303,9 +5375,9 @@ dependencies = [
+ 
+ [[package]]
+ name = "windows-link"
+-version = "0.1.3"
++version = "0.1.1"
+ source = "registry+https://github.com/rust-lang/crates.io-index"
+-checksum = "5e6ad25900d524eaabdbbb96d20b4311e1e7ae1699af4fb28c17ae66c80d798a"
++checksum = "76840935b766e1b0a05c0066835fb9ec80071d4c09a16f6bd5f7e655e3c14c38"
+ 
+ [[package]]
+ name = "windows-link"
+@@ -5320,7 +5392,7 @@ source = "registry+https://github.com/rust-lang/crates.io-index"
+ checksum = "9150af68066c4c5c07ddc0ce30421554771e528bde427614c61038bc2c92c2b1"
+ dependencies = [
+  "windows-core 0.61.0",
+- "windows-link 0.1.3",
++ "windows-link 0.1.1",
+ ]
+ 
+ [[package]]
+@@ -5338,7 +5410,7 @@ version = "0.3.2"
+ source = "registry+https://github.com/rust-lang/crates.io-index"
+ checksum = "c64fd11a4fd95df68efcfee5f44a294fe71b8bc6a91993e2791938abcc712252"
+ dependencies = [
+- "windows-link 0.1.3",
++ "windows-link 0.1.1",
+ ]
+ 
+ [[package]]
+@@ -5357,7 +5429,7 @@ version = "0.4.0"
+ source = "registry+https://github.com/rust-lang/crates.io-index"
+ checksum = "7a2ba9642430ee452d5a7aa78d72907ebe8cfda358e8cb7918a2050581322f97"
+ dependencies = [
+- "windows-link 0.1.3",
++ "windows-link 0.1.1",
+ ]
+ 
+ [[package]]
+@@ -5369,6 +5441,15 @@ dependencies = [
+  "windows-targets 0.42.2",
+ ]
+ 
++[[package]]
++name = "windows-sys"
++version = "0.48.0"
++source = "registry+https://github.com/rust-lang/crates.io-index"
++checksum = "677d2418bec65e3338edb076e806bc1ec15693c5d0104683f2efe857f61056a9"
++dependencies = [
++ "windows-targets 0.48.5",
++]
++
+ [[package]]
+ name = "windows-sys"
+ version = "0.52.0"
+@@ -5393,7 +5474,7 @@ version = "0.60.2"
+ source = "registry+https://github.com/rust-lang/crates.io-index"
+ checksum = "f2f500e4d28234f72040990ec9d39e3a6b950f9f22d3dba18416c35882612bcb"
+ dependencies = [
+- "windows-targets 0.53.3",
++ "windows-targets 0.53.5",
+ ]
+ 
+ [[package]]
+@@ -5420,6 +5501,21 @@ dependencies = [
+  "windows_x86_64_msvc 0.42.2",
+ ]
+ 
++[[package]]
++name = "windows-targets"
++version = "0.48.5"
++source = "registry+https://github.com/rust-lang/crates.io-index"
++checksum = "9a2fa6e2155d7247be68c096456083145c183cbbbc2764150dda45a87197940c"
++dependencies = [
++ "windows_aarch64_gnullvm 0.48.5",
++ "windows_aarch64_msvc 0.48.5",
++ "windows_i686_gnu 0.48.5",
++ "windows_i686_msvc 0.48.5",
++ "windows_x86_64_gnu 0.48.5",
++ "windows_x86_64_gnullvm 0.48.5",
++ "windows_x86_64_msvc 0.48.5",
++]
++
+ [[package]]
+ name = "windows-targets"
+ version = "0.52.6"
+@@ -5438,19 +5534,19 @@ dependencies = [
+ 
+ [[package]]
+ name = "windows-targets"
+-version = "0.53.3"
++version = "0.53.5"
+ source = "registry+https://github.com/rust-lang/crates.io-index"
+-checksum = "d5fe6031c4041849d7c496a8ded650796e7b6ecc19df1a431c1a363342e5dc91"
++checksum = "4945f9f551b88e0d65f3db0bc25c33b8acea4d9e41163edf90dcd0b19f9069f3"
+ dependencies = [
+- "windows-link 0.1.3",
+- "windows_aarch64_gnullvm 0.53.0",
+- "windows_aarch64_msvc 0.53.0",
+- "windows_i686_gnu 0.53.0",
+- "windows_i686_gnullvm 0.53.0",
+- "windows_i686_msvc 0.53.0",
+- "windows_x86_64_gnu 0.53.0",
+- "windows_x86_64_gnullvm 0.53.0",
+- "windows_x86_64_msvc 0.53.0",
++ "windows-link 0.2.1",
++ "windows_aarch64_gnullvm 0.53.1",
++ "windows_aarch64_msvc 0.53.1",
++ "windows_i686_gnu 0.53.1",
++ "windows_i686_gnullvm 0.53.1",
++ "windows_i686_msvc 0.53.1",
++ "windows_x86_64_gnu 0.53.1",
++ "windows_x86_64_gnullvm 0.53.1",
++ "windows_x86_64_msvc 0.53.1",
+ ]
+ 
+ [[package]]
+@@ -5459,6 +5555,12 @@ version = "0.42.2"
+ source = "registry+https://github.com/rust-lang/crates.io-index"
+ checksum = "597a5118570b68bc08d8d59125332c54f1ba9d9adeedeef5b99b02ba2b0698f8"
+ 
++[[package]]
++name = "windows_aarch64_gnullvm"
++version = "0.48.5"
++source = "registry+https://github.com/rust-lang/crates.io-index"
++checksum = "2b38e32f0abccf9987a4e3079dfb67dcd799fb61361e53e2882c3cbaf0d905d8"
++
+ [[package]]
+ name = "windows_aarch64_gnullvm"
+ version = "0.52.6"
+@@ -5467,9 +5569,9 @@ checksum = "32a4622180e7a0ec044bb555404c800bc9fd9ec262ec147edd5989ccd0c02cd3"
+ 
+ [[package]]
+ name = "windows_aarch64_gnullvm"
+-version = "0.53.0"
++version = "0.53.1"
+ source = "registry+https://github.com/rust-lang/crates.io-index"
+-checksum = "86b8d5f90ddd19cb4a147a5fa63ca848db3df085e25fee3cc10b39b6eebae764"
++checksum = "a9d8416fa8b42f5c947f8482c43e7d89e73a173cead56d044f6a56104a6d1b53"
+ 
+ [[package]]
+ name = "windows_aarch64_msvc"
+@@ -5477,6 +5579,12 @@ version = "0.42.2"
+ source = "registry+https://github.com/rust-lang/crates.io-index"
+ checksum = "e08e8864a60f06ef0d0ff4ba04124db8b0fb3be5776a5cd47641e942e58c4d43"
+ 
++[[package]]
++name = "windows_aarch64_msvc"
++version = "0.48.5"
++source = "registry+https://github.com/rust-lang/crates.io-index"
++checksum = "dc35310971f3b2dbbf3f0690a219f40e2d9afcf64f9ab7cc1be722937c26b4bc"
++
+ [[package]]
+ name = "windows_aarch64_msvc"
+ version = "0.52.6"
+@@ -5485,9 +5593,9 @@ checksum = "09ec2a7bb152e2252b53fa7803150007879548bc709c039df7627cabbd05d469"
+ 
+ [[package]]
+ name = "windows_aarch64_msvc"
+-version = "0.53.0"
++version = "0.53.1"
+ source = "registry+https://github.com/rust-lang/crates.io-index"
+-checksum = "c7651a1f62a11b8cbd5e0d42526e55f2c99886c77e007179efff86c2b137e66c"
++checksum = "b9d782e804c2f632e395708e99a94275910eb9100b2114651e04744e9b125006"
+ 
+ [[package]]
+ name = "windows_i686_gnu"
+@@ -5495,6 +5603,12 @@ version = "0.42.2"
+ source = "registry+https://github.com/rust-lang/crates.io-index"
+ checksum = "c61d927d8da41da96a81f029489353e68739737d3beca43145c8afec9a31a84f"
+ 
++[[package]]
++name = "windows_i686_gnu"
++version = "0.48.5"
++source = "registry+https://github.com/rust-lang/crates.io-index"
++checksum = "a75915e7def60c94dcef72200b9a8e58e5091744960da64ec734a6c6e9b3743e"
++
+ [[package]]
+ name = "windows_i686_gnu"
+ version = "0.52.6"
+@@ -5503,9 +5617,9 @@ checksum = "8e9b5ad5ab802e97eb8e295ac6720e509ee4c243f69d781394014ebfe8bbfa0b"
+ 
+ [[package]]
+ name = "windows_i686_gnu"
+-version = "0.53.0"
++version = "0.53.1"
+ source = "registry+https://github.com/rust-lang/crates.io-index"
+-checksum = "c1dc67659d35f387f5f6c479dc4e28f1d4bb90ddd1a5d3da2e5d97b42d6272c3"
++checksum = "960e6da069d81e09becb0ca57a65220ddff016ff2d6af6a223cf372a506593a3"
+ 
+ [[package]]
+ name = "windows_i686_gnullvm"
+@@ -5515,9 +5629,9 @@ checksum = "0eee52d38c090b3caa76c563b86c3a4bd71ef1a819287c19d586d7334ae8ed66"
+ 
+ [[package]]
+ name = "windows_i686_gnullvm"
+-version = "0.53.0"
++version = "0.53.1"
+ source = "registry+https://github.com/rust-lang/crates.io-index"
+-checksum = "9ce6ccbdedbf6d6354471319e781c0dfef054c81fbc7cf83f338a4296c0cae11"
++checksum = "fa7359d10048f68ab8b09fa71c3daccfb0e9b559aed648a8f95469c27057180c"
+ 
+ [[package]]
+ name = "windows_i686_msvc"
+@@ -5525,6 +5639,12 @@ version = "0.42.2"
+ source = "registry+https://github.com/rust-lang/crates.io-index"
+ checksum = "44d840b6ec649f480a41c8d80f9c65108b92d89345dd94027bfe06ac444d1060"
+ 
++[[package]]
++name = "windows_i686_msvc"
++version = "0.48.5"
++source = "registry+https://github.com/rust-lang/crates.io-index"
++checksum = "8f55c233f70c4b27f66c523580f78f1004e8b5a8b659e05a4eb49d4166cca406"
++
+ [[package]]
+ name = "windows_i686_msvc"
+ version = "0.52.6"
+@@ -5533,9 +5653,9 @@ checksum = "240948bc05c5e7c6dabba28bf89d89ffce3e303022809e73deaefe4f6ec56c66"
+ 
+ [[package]]
+ name = "windows_i686_msvc"
+-version = "0.53.0"
++version = "0.53.1"
+ source = "registry+https://github.com/rust-lang/crates.io-index"
+-checksum = "581fee95406bb13382d2f65cd4a908ca7b1e4c2f1917f143ba16efe98a589b5d"
++checksum = "1e7ac75179f18232fe9c285163565a57ef8d3c89254a30685b57d83a38d326c2"
+ 
+ [[package]]
+ name = "windows_x86_64_gnu"
+@@ -5543,6 +5663,12 @@ version = "0.42.2"
+ source = "registry+https://github.com/rust-lang/crates.io-index"
+ checksum = "8de912b8b8feb55c064867cf047dda097f92d51efad5b491dfb98f6bbb70cb36"
+ 
++[[package]]
++name = "windows_x86_64_gnu"
++version = "0.48.5"
++source = "registry+https://github.com/rust-lang/crates.io-index"
++checksum = "53d40abd2583d23e4718fddf1ebec84dbff8381c07cae67ff7768bbf19c6718e"
++
+ [[package]]
+ name = "windows_x86_64_gnu"
+ version = "0.52.6"
+@@ -5551,9 +5677,9 @@ checksum = "147a5c80aabfbf0c7d901cb5895d1de30ef2907eb21fbbab29ca94c5b08b1a78"
+ 
+ [[package]]
+ name = "windows_x86_64_gnu"
+-version = "0.53.0"
++version = "0.53.1"
+ source = "registry+https://github.com/rust-lang/crates.io-index"
+-checksum = "2e55b5ac9ea33f2fc1716d1742db15574fd6fc8dadc51caab1c16a3d3b4190ba"
++checksum = "9c3842cdd74a865a8066ab39c8a7a473c0778a3f29370b5fd6b4b9aa7df4a499"
+ 
+ [[package]]
+ name = "windows_x86_64_gnullvm"
+@@ -5561,6 +5687,12 @@ version = "0.42.2"
+ source = "registry+https://github.com/rust-lang/crates.io-index"
+ checksum = "26d41b46a36d453748aedef1486d5c7a85db22e56aff34643984ea85514e94a3"
+ 
++[[package]]
++name = "windows_x86_64_gnullvm"
++version = "0.48.5"
++source = "registry+https://github.com/rust-lang/crates.io-index"
++checksum = "0b7b52767868a23d5bab768e390dc5f5c55825b6d30b86c844ff2dc7414044cc"
++
+ [[package]]
+ name = "windows_x86_64_gnullvm"
+ version = "0.52.6"
+@@ -5569,9 +5701,9 @@ checksum = "24d5b23dc417412679681396f2b49f3de8c1473deb516bd34410872eff51ed0d"
+ 
+ [[package]]
+ name = "windows_x86_64_gnullvm"
+-version = "0.53.0"
++version = "0.53.1"
+ source = "registry+https://github.com/rust-lang/crates.io-index"
+-checksum = "0a6e035dd0599267ce1ee132e51c27dd29437f63325753051e71dd9e42406c57"
++checksum = "0ffa179e2d07eee8ad8f57493436566c7cc30ac536a3379fdf008f47f6bb7ae1"
+ 
+ [[package]]
+ name = "windows_x86_64_msvc"
+@@ -5579,6 +5711,12 @@ version = "0.42.2"
+ source = "registry+https://github.com/rust-lang/crates.io-index"
+ checksum = "9aec5da331524158c6d1a4ac0ab1541149c0b9505fde06423b02f5ef0106b9f0"
+ 
++[[package]]
++name = "windows_x86_64_msvc"
++version = "0.48.5"
++source = "registry+https://github.com/rust-lang/crates.io-index"
++checksum = "ed94fce61571a4006852b7389a063ab983c02eb1bb37b47f8272ce92d06d9538"
++
+ [[package]]
+ name = "windows_x86_64_msvc"
+ version = "0.52.6"
+@@ -5587,9 +5725,9 @@ checksum = "589f6da84c646204747d1270a2a5661ea66ed1cced2631d546fdfb155959f9ec"
+ 
+ [[package]]
+ name = "windows_x86_64_msvc"
+-version = "0.53.0"
++version = "0.53.1"
+ source = "registry+https://github.com/rust-lang/crates.io-index"
+-checksum = "271414315aff87387382ec3d271b52d7ae78726f5d44ac98b4f4030c91880486"
++checksum = "d6bbff5f0aada427a1e5a6da5f1f98158182f26556f345ac9e04d36d0ebed650"
+ 
+ [[package]]
+ name = "winit"
+@@ -5600,7 +5738,7 @@ dependencies = [
+  "ahash",
+  "android-activity",
+  "atomic-waker",
+- "bitflags 2.9.4",
++ "bitflags 2.10.0",
+  "block2 0.5.1",
+  "bytemuck",
+  "calloop",
+@@ -5643,6 +5781,15 @@ dependencies = [
+  "xkbcommon-dl",
+ ]
+ 
++[[package]]
++name = "winnow"
++version = "0.6.20"
++source = "registry+https://github.com/rust-lang/crates.io-index"
++checksum = "36c1fec1a2bb5866f07c25f68c26e565c4c200aebb96d7e55710c19d3e8ac49b"
++dependencies = [
++ "memchr",
++]
++
+ [[package]]
+ name = "winnow"
+ version = "0.7.3"
+@@ -5658,14 +5805,20 @@ version = "0.33.0"
+ source = "registry+https://github.com/rust-lang/crates.io-index"
+ checksum = "3268f3d866458b787f390cf61f4bbb563b922d091359f9608842999eaee3943c"
+ dependencies = [
+- "bitflags 2.9.4",
++ "bitflags 2.10.0",
+ ]
+ 
++[[package]]
++name = "write16"
++version = "1.0.0"
++source = "registry+https://github.com/rust-lang/crates.io-index"
++checksum = "d1890f4022759daae28ed4fe62859b1236caebfc61ede2f63ed4e695f3f6d936"
++
+ [[package]]
+ name = "writeable"
+-version = "0.6.1"
++version = "0.5.5"
+ source = "registry+https://github.com/rust-lang/crates.io-index"
+-checksum = "ea2f10b9bb0928dfb1b42b65e1f9e36f7f54dbdf08457afefb38afcdec4fa2bb"
++checksum = "1e9df38ee2d2c3c5948ea468a8406ff0db0b29ae1ffde1bcf20ef305bcc95c51"
+ 
+ [[package]]
+ name = "x11-dl"
+@@ -5680,24 +5833,24 @@ dependencies = [
+ 
+ [[package]]
+ name = "x11rb"
+-version = "0.13.2"
++version = "0.13.1"
+ source = "registry+https://github.com/rust-lang/crates.io-index"
+-checksum = "9993aa5be5a26815fe2c3eacfc1fde061fc1a1f094bf1ad2a18bf9c495dd7414"
++checksum = "5d91ffca73ee7f68ce055750bf9f6eca0780b8c85eff9bc046a3b0da41755e12"
+ dependencies = [
+  "as-raw-xcb-connection",
+  "gethostname",
+  "libc",
+  "libloading",
+  "once_cell",
+- "rustix 1.0.8",
++ "rustix 0.38.38",
+  "x11rb-protocol",
+ ]
+ 
+ [[package]]
+ name = "x11rb-protocol"
+-version = "0.13.2"
++version = "0.13.1"
+ source = "registry+https://github.com/rust-lang/crates.io-index"
+-checksum = "ea6fc2961e4ef194dcbfe56bb845534d0dc8098940c7e5c012a258bfec6701bd"
++checksum = "ec107c4503ea0b4a98ef47356329af139c0a4f7750e621cf2973cd3385ebcb3d"
+ 
+ [[package]]
+ name = "xcursor"
+@@ -5721,7 +5874,7 @@ version = "0.4.2"
+ source = "registry+https://github.com/rust-lang/crates.io-index"
+ checksum = "d039de8032a9a8856a6be89cea3e5d12fdd82306ab7c94d74e6deab2460651c5"
+ dependencies = [
+- "bitflags 2.9.4",
++ "bitflags 2.10.0",
+  "dlib",
+  "log",
+  "once_cell",
+@@ -5761,9 +5914,9 @@ dependencies = [
+ 
+ [[package]]
+ name = "yoke"
+-version = "0.8.0"
++version = "0.7.5"
+ source = "registry+https://github.com/rust-lang/crates.io-index"
+-checksum = "5f41bb01b8226ef4bfd589436a297c53d118f65921786300e427be8d487695cc"
++checksum = "120e6aef9aa629e3d4f52dc8cc43a015c7724194c97dfaf45180d2daf2b77f40"
+ dependencies = [
+  "serde",
+  "stable_deref_trait",
+@@ -5773,9 +5926,9 @@ dependencies = [
+ 
+ [[package]]
+ name = "yoke-derive"
+-version = "0.8.0"
++version = "0.7.5"
+ source = "registry+https://github.com/rust-lang/crates.io-index"
+-checksum = "38da3c9736e16c5d3c8c597a9aaa5d1fa565d0532ae05e27c24aa62fb32c0ab6"
++checksum = "2380878cad4ac9aac1e2435f3eb4020e8374b5f13c296cb75b4620ff8e229154"
+ dependencies = [
+  "proc-macro2",
+  "quote",
+@@ -5812,7 +5965,7 @@ dependencies = [
+  "tracing",
+  "uds_windows",
+  "windows-sys 0.59.0",
+- "winnow",
++ "winnow 0.7.3",
+  "xdg-home",
+  "zbus_macros",
+  "zbus_names",
+@@ -5860,13 +6013,13 @@ dependencies = [
+ 
+ [[package]]
+ name = "zbus_names"
+-version = "4.2.0"
++version = "4.1.0"
+ source = "registry+https://github.com/rust-lang/crates.io-index"
+-checksum = "7be68e64bf6ce8db94f63e72f0c7eb9a60d733f7e0499e628dfab0f84d6bcb97"
++checksum = "856b7a38811f71846fd47856ceee8bccaec8399ff53fb370247e66081ace647b"
+ dependencies = [
+  "serde",
+  "static_assertions",
+- "winnow",
++ "winnow 0.6.20",
+  "zvariant",
+ ]
+ 
+@@ -5951,22 +6104,11 @@ version = "1.8.1"
+ source = "registry+https://github.com/rust-lang/crates.io-index"
+ checksum = "ced3678a2879b30306d323f4542626697a464a97c0a07c9aebf7ebca65cd4dde"
+ 
+-[[package]]
+-name = "zerotrie"
+-version = "0.2.2"
+-source = "registry+https://github.com/rust-lang/crates.io-index"
+-checksum = "36f0bbd478583f79edad978b407914f61b2972f5af6fa089686016be8f9af595"
+-dependencies = [
+- "displaydoc",
+- "yoke",
+- "zerofrom",
+-]
+-
+ [[package]]
+ name = "zerovec"
+-version = "0.11.4"
++version = "0.10.4"
+ source = "registry+https://github.com/rust-lang/crates.io-index"
+-checksum = "e7aa2bd55086f1ab526693ecbe444205da57e25f4489879da80635a46d90e73b"
++checksum = "aa2b893d79df23bfb12d5461018d408ea19dfafe76c2c7ef6d4eba614f8ff079"
+ dependencies = [
+  "yoke",
+  "zerofrom",
+@@ -5975,9 +6117,9 @@ dependencies = [
+ 
+ [[package]]
+ name = "zerovec-derive"
+-version = "0.11.1"
++version = "0.10.3"
+ source = "registry+https://github.com/rust-lang/crates.io-index"
+-checksum = "5b96237efa0c878c64bd89c436f661be4e46b2f3eff1ebb976f7ef2321d2f58f"
++checksum = "6eafa6dfb17584ea3e2bd6e76e0cc15ad7af12b09abdd1ca55961bed9b1063c6"
+ dependencies = [
+  "proc-macro2",
+  "quote",
+@@ -5990,13 +6132,28 @@ version = "0.4.12"
+ source = "registry+https://github.com/rust-lang/crates.io-index"
+ checksum = "3f423a2c17029964870cfaabb1f13dfab7d092a62a29a89264f4d36990ca414a"
+ 
++[[package]]
++name = "zune-core"
++version = "0.5.0"
++source = "registry+https://github.com/rust-lang/crates.io-index"
++checksum = "111f7d9820f05fd715df3144e254d6fc02ee4088b0644c0ffd0efc9e6d9d2773"
++
+ [[package]]
+ name = "zune-jpeg"
+ version = "0.4.21"
+ source = "registry+https://github.com/rust-lang/crates.io-index"
+ checksum = "29ce2c8a9384ad323cf564b67da86e21d3cfdff87908bc1223ed5c99bc792713"
+ dependencies = [
+- "zune-core",
++ "zune-core 0.4.12",
++]
++
++[[package]]
++name = "zune-jpeg"
++version = "0.5.5"
++source = "registry+https://github.com/rust-lang/crates.io-index"
++checksum = "dc6fb7703e32e9a07fb3f757360338b3a567a5054f21b5f52a666752e333d58e"
++dependencies = [
++ "zune-core 0.5.0",
+ ]
+ 
+ [[package]]
+@@ -6010,7 +6167,7 @@ dependencies = [
+  "serde",
+  "static_assertions",
+  "url",
+- "winnow",
++ "winnow 0.7.3",
+  "zvariant_derive",
+  "zvariant_utils",
+ ]
+@@ -6039,5 +6196,5 @@ dependencies = [
+  "serde",
+  "static_assertions",
+  "syn",
+- "winnow",
++ "winnow 0.7.3",
+ ]
+diff --git a/egui-rs/Cargo.toml b/egui-rs/Cargo.toml
+index 0eb60d9d..a5528863 100644
+--- a/egui-rs/Cargo.toml
++++ b/egui-rs/Cargo.toml
+@@ -146,7 +146,7 @@ winit = { version = "0.30.12", default-features = false }
+ 
+ 
+ [workspace.lints.rust]
+-unsafe_code = "deny"
++unsafe_code = "allow"
+ 
+ elided_lifetimes_in_paths = "warn"
+ future_incompatible = { level = "warn", priority = -1 }
+diff --git a/egui-rs/crates/ecolor/src/hsva_gamma.rs b/egui-rs/crates/ecolor/src/hsva_gamma.rs
+index 19e31f33..61633440 100644
+--- a/egui-rs/crates/ecolor/src/hsva_gamma.rs
++++ b/egui-rs/crates/ecolor/src/hsva_gamma.rs
+@@ -3,6 +3,7 @@ use crate::{Color32, Hsva, Rgba, gamma_from_linear, linear_from_gamma};
+ /// Like Hsva but with the `v` value (brightness) being gamma corrected
+ /// so that it is somewhat perceptually even.
+ #[derive(Clone, Copy, Debug, Default, PartialEq)]
++#[cfg_attr(feature = "serde", derive(serde::Deserialize, serde::Serialize))]
+ pub struct HsvaGamma {
+     /// hue 0-1
+     pub h: f32,
+diff --git a/egui-rs/crates/egui/Cargo.toml b/egui-rs/crates/egui/Cargo.toml
+index c82ae561..b8566f4e 100644
+--- a/egui-rs/crates/egui/Cargo.toml
++++ b/egui-rs/crates/egui/Cargo.toml
+@@ -61,7 +61,7 @@ persistence = ["serde", "epaint/serde", "ron"]
+ rayon = ["epaint/rayon"]
+ 
+ ## Allow serialization using [`serde`](https://docs.rs/serde).
+-serde = ["dep:serde", "epaint/serde", "accesskit?/serde"]
++serde = ["dep:serde", "epaint/serde", "accesskit?/serde", "smallvec/serde"]
+ 
+ ## Change Vertex layout to be compatible with unity
+ unity = ["epaint/unity"]
+diff --git a/egui-rs/crates/egui/src/atomics/atom.rs b/egui-rs/crates/egui/src/atomics/atom.rs
+index 6425ac72..1dee038b 100644
+--- a/egui-rs/crates/egui/src/atomics/atom.rs
++++ b/egui-rs/crates/egui/src/atomics/atom.rs
+@@ -13,7 +13,8 @@ use epaint::text::TextWrapMode;
+ /// let image_atom = Image::new("some_image_url").atom_size(Vec2::splat(20.0));
+ /// ```
+ #[derive(Clone, Debug)]
+-pub struct Atom<'a> {
++#[cfg_attr(feature = "serde", derive(serde::Deserialize, serde::Serialize))]
++pub struct Atom {
+     /// See [`crate::AtomExt::atom_size`]
+     pub size: Option<Vec2>,
+ 
+@@ -27,10 +28,10 @@ pub struct Atom<'a> {
+     pub shrink: bool,
+ 
+     /// The atom type
+-    pub kind: AtomKind<'a>,
++    pub kind: AtomKind,
+ }
+ 
+-impl Default for Atom<'_> {
++impl Default for Atom {
+     fn default() -> Self {
+         Atom {
+             size: None,
+@@ -42,7 +43,7 @@ impl Default for Atom<'_> {
+     }
+ }
+ 
+-impl<'a> Atom<'a> {
++impl Atom {
+     /// Create an empty [`Atom`] marked as `grow`.
+     ///
+     /// This will expand in size, allowing all preceding atoms to be left-aligned,
+@@ -70,7 +71,7 @@ impl<'a> Atom<'a> {
+         mut available_size: Vec2,
+         mut wrap_mode: Option<TextWrapMode>,
+         fallback_font: FontSelection,
+-    ) -> SizedAtom<'a> {
++    ) -> SizedAtom {
+         if !self.shrink && self.max_size.x.is_infinite() {
+             wrap_mode = Some(TextWrapMode::Extend);
+         }
+@@ -99,9 +100,9 @@ impl<'a> Atom<'a> {
+     }
+ }
+ 
+-impl<'a, T> From<T> for Atom<'a>
++impl<T> From<T> for Atom
+ where
+-    T: Into<AtomKind<'a>>,
++    T: Into<AtomKind>,
+ {
+     fn from(value: T) -> Self {
+         Atom {
+diff --git a/egui-rs/crates/egui/src/atomics/atom_ext.rs b/egui-rs/crates/egui/src/atomics/atom_ext.rs
+index 6d008b84..fff107da 100644
+--- a/egui-rs/crates/egui/src/atomics/atom_ext.rs
++++ b/egui-rs/crates/egui/src/atomics/atom_ext.rs
+@@ -4,7 +4,7 @@ use emath::Vec2;
+ /// A trait for conveniently building [`Atom`]s.
+ ///
+ /// The functions are prefixed with `atom_` to avoid conflicts with e.g. [`crate::RichText::size`].
+-pub trait AtomExt<'a> {
++pub trait AtomExt {
+     /// Set the atom to a fixed size.
+     ///
+     /// If [`Atom::grow`] is `true`, this will be the minimum width.
+@@ -14,7 +14,7 @@ pub trait AtomExt<'a> {
+     /// [`Self::atom_max_size`] will limit size.
+     ///
+     /// See [`crate::AtomKind`] docs to see how the size affects the different types.
+-    fn atom_size(self, size: Vec2) -> Atom<'a>;
++    fn atom_size(self, size: Vec2) -> Atom;
+ 
+     /// Grow this atom to the available space.
+     ///
+@@ -23,7 +23,7 @@ pub trait AtomExt<'a> {
+     ///
+     /// You can also combine this with [`Self::atom_shrink`] to make it always take exactly the
+     /// remaining space.
+-    fn atom_grow(self, grow: bool) -> Atom<'a>;
++    fn atom_grow(self, grow: bool) -> Atom;
+ 
+     /// Shrink this atom if there isn't enough space.
+     ///
+@@ -34,27 +34,27 @@ pub trait AtomExt<'a> {
+     ///
+     /// If no atom was set to shrink and `wrap_mode != TextWrapMode::Extend`, the first
+     /// `AtomKind::Text` is set to shrink.
+-    fn atom_shrink(self, shrink: bool) -> Atom<'a>;
++    fn atom_shrink(self, shrink: bool) -> Atom;
+ 
+     /// Set the maximum size of this atom.
+     ///
+     /// Will not affect the space taken by `grow` (All atoms marked as grow will always grow
+     /// equally to fill the available space).
+-    fn atom_max_size(self, max_size: Vec2) -> Atom<'a>;
++    fn atom_max_size(self, max_size: Vec2) -> Atom;
+ 
+     /// Set the maximum width of this atom.
+     ///
+     /// Will not affect the space taken by `grow` (All atoms marked as grow will always grow
+     /// equally to fill the available space).
+-    fn atom_max_width(self, max_width: f32) -> Atom<'a>;
++    fn atom_max_width(self, max_width: f32) -> Atom;
+ 
+     /// Set the maximum height of this atom.
+-    fn atom_max_height(self, max_height: f32) -> Atom<'a>;
++    fn atom_max_height(self, max_height: f32) -> Atom;
+ 
+     /// Set the max height of this atom to match the font size.
+     ///
+     /// This is useful for e.g. limiting the height of icons in buttons.
+-    fn atom_max_height_font_size(self, ui: &Ui) -> Atom<'a>
++    fn atom_max_height_font_size(self, ui: &Ui) -> Atom
+     where
+         Self: Sized,
+     {
+@@ -65,41 +65,41 @@ pub trait AtomExt<'a> {
+     }
+ }
+ 
+-impl<'a, T> AtomExt<'a> for T
++impl<T> AtomExt for T
+ where
+-    T: Into<Atom<'a>> + Sized,
++    T: Into<Atom> + Sized,
+ {
+-    fn atom_size(self, size: Vec2) -> Atom<'a> {
++    fn atom_size(self, size: Vec2) -> Atom {
+         let mut atom = self.into();
+         atom.size = Some(size);
+         atom
+     }
+ 
+-    fn atom_grow(self, grow: bool) -> Atom<'a> {
++    fn atom_grow(self, grow: bool) -> Atom {
+         let mut atom = self.into();
+         atom.grow = grow;
+         atom
+     }
+ 
+-    fn atom_shrink(self, shrink: bool) -> Atom<'a> {
++    fn atom_shrink(self, shrink: bool) -> Atom {
+         let mut atom = self.into();
+         atom.shrink = shrink;
+         atom
+     }
+ 
+-    fn atom_max_size(self, max_size: Vec2) -> Atom<'a> {
++    fn atom_max_size(self, max_size: Vec2) -> Atom {
+         let mut atom = self.into();
+         atom.max_size = max_size;
+         atom
+     }
+ 
+-    fn atom_max_width(self, max_width: f32) -> Atom<'a> {
++    fn atom_max_width(self, max_width: f32) -> Atom {
+         let mut atom = self.into();
+         atom.max_size.x = max_width;
+         atom
+     }
+ 
+-    fn atom_max_height(self, max_height: f32) -> Atom<'a> {
++    fn atom_max_height(self, max_height: f32) -> Atom {
+         let mut atom = self.into();
+         atom.max_size.y = max_height;
+         atom
+diff --git a/egui-rs/crates/egui/src/atomics/atom_kind.rs b/egui-rs/crates/egui/src/atomics/atom_kind.rs
+index 3c54c496..934cc7af 100644
+--- a/egui-rs/crates/egui/src/atomics/atom_kind.rs
++++ b/egui-rs/crates/egui/src/atomics/atom_kind.rs
+@@ -4,7 +4,8 @@ use epaint::text::TextWrapMode;
+ 
+ /// The different kinds of [`crate::Atom`]s.
+ #[derive(Clone, Default, Debug)]
+-pub enum AtomKind<'a> {
++#[cfg_attr(feature = "serde", derive(serde::Deserialize, serde::Serialize))]
++pub enum AtomKind {
+     /// Empty, that can be used with [`crate::AtomExt::atom_grow`] to reserve space.
+     #[default]
+     Empty,
+@@ -36,7 +37,7 @@ pub enum AtomKind<'a> {
+     /// You can use [`crate::AtomExt::atom_max_size`] or [`crate::AtomExt::atom_size`] to customize the size.
+     /// There is also a helper [`crate::AtomExt::atom_max_height_font_size`] to set the max height to the
+     /// default font height, which is convenient for icons.
+-    Image(Image<'a>),
++    Image(Image),
+ 
+     /// For custom rendering.
+     ///
+@@ -60,12 +61,12 @@ pub enum AtomKind<'a> {
+     Custom(Id),
+ }
+ 
+-impl<'a> AtomKind<'a> {
++impl AtomKind {
+     pub fn text(text: impl Into<WidgetText>) -> Self {
+         AtomKind::Text(text.into())
+     }
+ 
+-    pub fn image(image: impl Into<Image<'a>>) -> Self {
++    pub fn image(image: impl Into<Image>) -> Self {
+         AtomKind::Image(image.into())
+     }
+ 
+@@ -79,7 +80,7 @@ impl<'a> AtomKind<'a> {
+         available_size: Vec2,
+         wrap_mode: Option<TextWrapMode>,
+         fallback_font: FontSelection,
+-    ) -> (Vec2, SizedAtomKind<'a>) {
++    ) -> (Vec2, SizedAtomKind) {
+         match self {
+             AtomKind::Text(text) => {
+                 let wrap_mode = wrap_mode.unwrap_or(ui.wrap_mode());
+@@ -97,19 +98,19 @@ impl<'a> AtomKind<'a> {
+     }
+ }
+ 
+-impl<'a> From<ImageSource<'a>> for AtomKind<'a> {
+-    fn from(value: ImageSource<'a>) -> Self {
++impl From<ImageSource> for AtomKind {
++    fn from(value: ImageSource) -> Self {
+         AtomKind::Image(value.into())
+     }
+ }
+ 
+-impl<'a> From<Image<'a>> for AtomKind<'a> {
+-    fn from(value: Image<'a>) -> Self {
++impl From<Image> for AtomKind {
++    fn from(value: Image) -> Self {
+         AtomKind::Image(value)
+     }
+ }
+ 
+-impl<T> From<T> for AtomKind<'_>
++impl<T> From<T> for AtomKind
+ where
+     T: Into<WidgetText>,
+ {
+diff --git a/egui-rs/crates/egui/src/atomics/atom_layout.rs b/egui-rs/crates/egui/src/atomics/atom_layout.rs
+index 1df89025..5fd8d53d 100644
+--- a/egui-rs/crates/egui/src/atomics/atom_layout.rs
++++ b/egui-rs/crates/egui/src/atomics/atom_layout.rs
+@@ -29,9 +29,11 @@ use std::sync::Arc;
+ ///
+ /// You can use this to first allocate a response and then modify, e.g., the [`Frame`] on the
+ /// [`AllocatedAtomLayout`] for interaction styling.
+-pub struct AtomLayout<'a> {
++#[derive(Clone)]
++#[cfg_attr(feature = "serde", derive(serde::Deserialize, serde::Serialize))]
++pub struct AtomLayout {
+     id: Option<Id>,
+-    pub atoms: Atoms<'a>,
++    pub atoms: Atoms,
+     gap: Option<f32>,
+     pub(crate) frame: Frame,
+     pub(crate) sense: Sense,
+@@ -42,14 +44,14 @@ pub struct AtomLayout<'a> {
+     align2: Option<Align2>,
+ }
+ 
+-impl Default for AtomLayout<'_> {
++impl Default for AtomLayout {
+     fn default() -> Self {
+         Self::new(())
+     }
+ }
+ 
+-impl<'a> AtomLayout<'a> {
+-    pub fn new(atoms: impl IntoAtoms<'a>) -> Self {
++impl AtomLayout {
++    pub fn new(atoms: impl IntoAtoms) -> Self {
+         Self {
+             id: None,
+             atoms: atoms.into_atoms(),
+@@ -152,7 +154,7 @@ impl<'a> AtomLayout<'a> {
+     /// Calculate sizes, create [`Galley`]s and allocate a [`Response`].
+     ///
+     /// Use the returned [`AllocatedAtomLayout`] for painting.
+-    pub fn allocate(self, ui: &mut Ui) -> AllocatedAtomLayout<'a> {
++    pub fn allocate(self, ui: &mut Ui) -> AllocatedAtomLayout {
+         let Self {
+             id,
+             mut atoms,
+@@ -298,8 +300,9 @@ impl<'a> AtomLayout<'a> {
+ 
+ /// Instructions for painting an [`AtomLayout`].
+ #[derive(Clone, Debug)]
+-pub struct AllocatedAtomLayout<'a> {
+-    pub sized_atoms: SmallVec<[SizedAtom<'a>; ATOMS_SMALL_VEC_SIZE]>,
++#[cfg_attr(feature = "serde", derive(serde::Deserialize, serde::Serialize))]
++pub struct AllocatedAtomLayout {
++    pub sized_atoms: SmallVec<[SizedAtom; ATOMS_SMALL_VEC_SIZE]>,
+     pub frame: Frame,
+     pub fallback_text_color: Color32,
+     pub response: Response,
+@@ -310,16 +313,16 @@ pub struct AllocatedAtomLayout<'a> {
+     gap: f32,
+ }
+ 
+-impl<'atom> AllocatedAtomLayout<'atom> {
+-    pub fn iter_kinds(&self) -> impl Iterator<Item = &SizedAtomKind<'atom>> {
++impl AllocatedAtomLayout {
++    pub fn iter_kinds(&self) -> impl Iterator<Item = &SizedAtomKind> {
+         self.sized_atoms.iter().map(|atom| &atom.kind)
+     }
+ 
+-    pub fn iter_kinds_mut(&mut self) -> impl Iterator<Item = &mut SizedAtomKind<'atom>> {
++    pub fn iter_kinds_mut(&mut self) -> impl Iterator<Item = &mut SizedAtomKind> {
+         self.sized_atoms.iter_mut().map(|atom| &mut atom.kind)
+     }
+ 
+-    pub fn iter_images(&self) -> impl Iterator<Item = &Image<'atom>> {
++    pub fn iter_images(&self) -> impl Iterator<Item = &Image> {
+         self.iter_kinds().filter_map(|kind| {
+             if let SizedAtomKind::Image(image, _) = kind {
+                 Some(image)
+@@ -329,7 +332,7 @@ impl<'atom> AllocatedAtomLayout<'atom> {
+         })
+     }
+ 
+-    pub fn iter_images_mut(&mut self) -> impl Iterator<Item = &mut Image<'atom>> {
++    pub fn iter_images_mut(&mut self) -> impl Iterator<Item = &mut Image> {
+         self.iter_kinds_mut().filter_map(|kind| {
+             if let SizedAtomKind::Image(image, _) = kind {
+                 Some(image)
+@@ -339,7 +342,7 @@ impl<'atom> AllocatedAtomLayout<'atom> {
+         })
+     }
+ 
+-    pub fn iter_texts(&self) -> impl Iterator<Item = &Arc<Galley>> + use<'atom, '_> {
++    pub fn iter_texts(&self) -> impl Iterator<Item = &Arc<Galley>> + use<'_> {
+         self.iter_kinds().filter_map(|kind| {
+             if let SizedAtomKind::Text(text) = kind {
+                 Some(text)
+@@ -349,7 +352,7 @@ impl<'atom> AllocatedAtomLayout<'atom> {
+         })
+     }
+ 
+-    pub fn iter_texts_mut(&mut self) -> impl Iterator<Item = &mut Arc<Galley>> + use<'atom, '_> {
++    pub fn iter_texts_mut(&mut self) -> impl Iterator<Item = &mut Arc<Galley>> + use<'_> {
+         self.iter_kinds_mut().filter_map(|kind| {
+             if let SizedAtomKind::Text(text) = kind {
+                 Some(text)
+@@ -361,7 +364,7 @@ impl<'atom> AllocatedAtomLayout<'atom> {
+ 
+     pub fn map_kind<F>(&mut self, mut f: F)
+     where
+-        F: FnMut(SizedAtomKind<'atom>) -> SizedAtomKind<'atom>,
++        F: FnMut(SizedAtomKind) -> SizedAtomKind,
+     {
+         for kind in self.iter_kinds_mut() {
+             *kind = f(std::mem::take(kind));
+@@ -370,7 +373,7 @@ impl<'atom> AllocatedAtomLayout<'atom> {
+ 
+     pub fn map_images<F>(&mut self, mut f: F)
+     where
+-        F: FnMut(Image<'atom>) -> Image<'atom>,
++        F: FnMut(Image) -> Image,
+     {
+         self.map_kind(|kind| {
+             if let SizedAtomKind::Image(image, size) = kind {
+@@ -452,6 +455,7 @@ impl<'atom> AllocatedAtomLayout<'atom> {
+ ///
+ /// Use [`AtomLayoutResponse::rect`] to get the response rects from [`AtomKind::Custom`].
+ #[derive(Clone, Debug)]
++#[cfg_attr(feature = "serde", derive(serde::Deserialize, serde::Serialize))]
+ pub struct AtomLayoutResponse {
+     pub response: Response,
+     // There should rarely be more than one custom rect.
+@@ -480,35 +484,35 @@ impl AtomLayoutResponse {
+     }
+ }
+ 
+-impl Widget for AtomLayout<'_> {
++impl Widget for AtomLayout {
+     fn ui(self, ui: &mut Ui) -> Response {
+         self.show(ui).response
+     }
+ }
+ 
+-impl<'a> Deref for AtomLayout<'a> {
+-    type Target = Atoms<'a>;
++impl Deref for AtomLayout {
++    type Target = Atoms;
+ 
+     fn deref(&self) -> &Self::Target {
+         &self.atoms
+     }
+ }
+ 
+-impl DerefMut for AtomLayout<'_> {
++impl DerefMut for AtomLayout {
+     fn deref_mut(&mut self) -> &mut Self::Target {
+         &mut self.atoms
+     }
+ }
+ 
+-impl<'a> Deref for AllocatedAtomLayout<'a> {
+-    type Target = [SizedAtom<'a>];
++impl Deref for AllocatedAtomLayout {
++    type Target = [SizedAtom];
+ 
+     fn deref(&self) -> &Self::Target {
+         &self.sized_atoms
+     }
+ }
+ 
+-impl DerefMut for AllocatedAtomLayout<'_> {
++impl DerefMut for AllocatedAtomLayout {
+     fn deref_mut(&mut self) -> &mut Self::Target {
+         &mut self.sized_atoms
+     }
+diff --git a/egui-rs/crates/egui/src/atomics/atoms.rs b/egui-rs/crates/egui/src/atomics/atoms.rs
+index 4b19c9e2..9cd9cf99 100644
+--- a/egui-rs/crates/egui/src/atomics/atoms.rs
++++ b/egui-rs/crates/egui/src/atomics/atoms.rs
+@@ -9,20 +9,21 @@ pub(crate) const ATOMS_SMALL_VEC_SIZE: usize = 2;
+ 
+ /// A list of [`Atom`]s.
+ #[derive(Clone, Debug, Default)]
+-pub struct Atoms<'a>(SmallVec<[Atom<'a>; ATOMS_SMALL_VEC_SIZE]>);
++#[cfg_attr(feature = "serde", derive(serde::Deserialize, serde::Serialize))]
++pub struct Atoms(SmallVec<[Atom; ATOMS_SMALL_VEC_SIZE]>);
+ 
+-impl<'a> Atoms<'a> {
+-    pub fn new(atoms: impl IntoAtoms<'a>) -> Self {
++impl Atoms {
++    pub fn new(atoms: impl IntoAtoms) -> Self {
+         atoms.into_atoms()
+     }
+ 
+     /// Insert a new [`Atom`] at the end of the list (right side).
+-    pub fn push_right(&mut self, atom: impl Into<Atom<'a>>) {
++    pub fn push_right(&mut self, atom: impl Into<Atom>) {
+         self.0.push(atom.into());
+     }
+ 
+     /// Insert a new [`Atom`] at the beginning of the list (left side).
+-    pub fn push_left(&mut self, atom: impl Into<Atom<'a>>) {
++    pub fn push_left(&mut self, atom: impl Into<Atom>) {
+         self.0.insert(0, atom.into());
+     }
+ 
+@@ -54,15 +55,15 @@ impl<'a> Atoms<'a> {
+         string
+     }
+ 
+-    pub fn iter_kinds(&self) -> impl Iterator<Item = &AtomKind<'a>> {
++    pub fn iter_kinds(&self) -> impl Iterator<Item = &AtomKind> {
+         self.0.iter().map(|atom| &atom.kind)
+     }
+ 
+-    pub fn iter_kinds_mut(&mut self) -> impl Iterator<Item = &mut AtomKind<'a>> {
++    pub fn iter_kinds_mut(&mut self) -> impl Iterator<Item = &mut AtomKind> {
+         self.0.iter_mut().map(|atom| &mut atom.kind)
+     }
+ 
+-    pub fn iter_images(&self) -> impl Iterator<Item = &Image<'a>> {
++    pub fn iter_images(&self) -> impl Iterator<Item = &Image> {
+         self.iter_kinds().filter_map(|kind| {
+             if let AtomKind::Image(image) = kind {
+                 Some(image)
+@@ -72,7 +73,7 @@ impl<'a> Atoms<'a> {
+         })
+     }
+ 
+-    pub fn iter_images_mut(&mut self) -> impl Iterator<Item = &mut Image<'a>> {
++    pub fn iter_images_mut(&mut self) -> impl Iterator<Item = &mut Image> {
+         self.iter_kinds_mut().filter_map(|kind| {
+             if let AtomKind::Image(image) = kind {
+                 Some(image)
+@@ -82,7 +83,7 @@ impl<'a> Atoms<'a> {
+         })
+     }
+ 
+-    pub fn iter_texts(&self) -> impl Iterator<Item = &WidgetText> + use<'_, 'a> {
++    pub fn iter_texts(&self) -> impl Iterator<Item = &WidgetText> + use<'_> {
+         self.iter_kinds().filter_map(|kind| {
+             if let AtomKind::Text(text) = kind {
+                 Some(text)
+@@ -92,7 +93,7 @@ impl<'a> Atoms<'a> {
+         })
+     }
+ 
+-    pub fn iter_texts_mut(&mut self) -> impl Iterator<Item = &mut WidgetText> + use<'a, '_> {
++    pub fn iter_texts_mut(&mut self) -> impl Iterator<Item = &mut WidgetText> + use<'_> {
+         self.iter_kinds_mut().filter_map(|kind| {
+             if let AtomKind::Text(text) = kind {
+                 Some(text)
+@@ -102,14 +103,14 @@ impl<'a> Atoms<'a> {
+         })
+     }
+ 
+-    pub fn map_atoms(&mut self, mut f: impl FnMut(Atom<'a>) -> Atom<'a>) {
++    pub fn map_atoms(&mut self, mut f: impl FnMut(Atom) -> Atom) {
+         self.iter_mut()
+             .for_each(|atom| *atom = f(std::mem::take(atom)));
+     }
+ 
+     pub fn map_kind<F>(&mut self, mut f: F)
+     where
+-        F: FnMut(AtomKind<'a>) -> AtomKind<'a>,
++        F: FnMut(AtomKind) -> AtomKind,
+     {
+         for kind in self.iter_kinds_mut() {
+             *kind = f(std::mem::take(kind));
+@@ -118,7 +119,7 @@ impl<'a> Atoms<'a> {
+ 
+     pub fn map_images<F>(&mut self, mut f: F)
+     where
+-        F: FnMut(Image<'a>) -> Image<'a>,
++        F: FnMut(Image) -> Image,
+     {
+         self.map_kind(|kind| {
+             if let AtomKind::Image(image) = kind {
+@@ -143,9 +144,9 @@ impl<'a> Atoms<'a> {
+     }
+ }
+ 
+-impl<'a> IntoIterator for Atoms<'a> {
+-    type Item = Atom<'a>;
+-    type IntoIter = smallvec::IntoIter<[Atom<'a>; ATOMS_SMALL_VEC_SIZE]>;
++impl IntoIterator for Atoms {
++    type Item = Atom;
++    type IntoIter = smallvec::IntoIter<[Atom; ATOMS_SMALL_VEC_SIZE]>;
+ 
+     fn into_iter(self) -> Self::IntoIter {
+         self.0.into_iter()
+@@ -162,20 +163,20 @@ impl<'a> IntoIterator for Atoms<'a> {
+ ///     Image::new("some_image_url"),
+ /// ).into_atoms();
+ /// ```
+-impl<'a, T> IntoAtoms<'a> for T
++impl<T> IntoAtoms for T
+ where
+-    T: Into<Atom<'a>>,
++    T: Into<Atom>,
+ {
+-    fn collect(self, atoms: &mut Atoms<'a>) {
++    fn collect(self, atoms: &mut Atoms) {
+         atoms.push_right(self);
+     }
+ }
+ 
+ /// Trait for turning a tuple of [`Atom`]s into [`Atoms`].
+-pub trait IntoAtoms<'a> {
+-    fn collect(self, atoms: &mut Atoms<'a>);
++pub trait IntoAtoms {
++    fn collect(self, atoms: &mut Atoms);
+ 
+-    fn into_atoms(self) -> Atoms<'a>
++    fn into_atoms(self) -> Atoms
+     where
+         Self: Sized,
+     {
+@@ -185,7 +186,7 @@ pub trait IntoAtoms<'a> {
+     }
+ }
+ 
+-impl<'a> IntoAtoms<'a> for Atoms<'a> {
++impl IntoAtoms for Atoms {
+     fn collect(self, atoms: &mut Self) {
+         atoms.0.extend(self.0);
+     }
+@@ -193,11 +194,11 @@ impl<'a> IntoAtoms<'a> for Atoms<'a> {
+ 
+ macro_rules! all_the_atoms {
+     ($($T:ident),*) => {
+-        impl<'a, $($T),*> IntoAtoms<'a> for ($($T),*)
++        impl<$($T),*> IntoAtoms for ($($T),*)
+         where
+-            $($T: IntoAtoms<'a>),*
++            $($T: IntoAtoms),*
+         {
+-            fn collect(self, _atoms: &mut Atoms<'a>) {
++            fn collect(self, _atoms: &mut Atoms) {
+                 #[allow(clippy::allow_attributes)]
+                 #[allow(non_snake_case)]
+                 let ($($T),*) = self;
+@@ -214,33 +215,33 @@ all_the_atoms!(T0, T1, T2, T3);
+ all_the_atoms!(T0, T1, T2, T3, T4);
+ all_the_atoms!(T0, T1, T2, T3, T4, T5);
+ 
+-impl<'a> Deref for Atoms<'a> {
+-    type Target = [Atom<'a>];
++impl Deref for Atoms {
++    type Target = [Atom];
+ 
+     fn deref(&self) -> &Self::Target {
+         &self.0
+     }
+ }
+ 
+-impl DerefMut for Atoms<'_> {
++impl DerefMut for Atoms {
+     fn deref_mut(&mut self) -> &mut Self::Target {
+         &mut self.0
+     }
+ }
+ 
+-impl<'a, T: Into<Atom<'a>>> From<Vec<T>> for Atoms<'a> {
++impl<T: Into<Atom>> From<Vec<T>> for Atoms {
+     fn from(vec: Vec<T>) -> Self {
+         Atoms(vec.into_iter().map(Into::into).collect())
+     }
+ }
+ 
+-impl<'a, T: Into<Atom<'a>> + Clone> From<&[T]> for Atoms<'a> {
++impl<T: Into<Atom> + Clone> From<&[T]> for Atoms {
+     fn from(slice: &[T]) -> Self {
+         Atoms(slice.iter().cloned().map(Into::into).collect())
+     }
+ }
+ 
+-impl<'a, Item: Into<Atom<'a>>> FromIterator<Item> for Atoms<'a> {
++impl<Item: Into<Atom>> FromIterator<Item> for Atoms {
+     fn from_iter<T: IntoIterator<Item = Item>>(iter: T) -> Self {
+         Atoms(iter.into_iter().map(Into::into).collect())
+     }
+@@ -252,7 +253,7 @@ mod tests {
+ 
+     #[test]
+     fn collect_atoms() {
+-        let _: Atoms<'_> = ["Hello", "World"].into_iter().collect();
++        let _: Atoms = ["Hello", "World"].into_iter().collect();
+         let _ = Atoms::from(vec!["Hi"]);
+         let _ = Atoms::from(["Hi"].as_slice());
+     }
+diff --git a/egui-rs/crates/egui/src/atomics/sized_atom.rs b/egui-rs/crates/egui/src/atomics/sized_atom.rs
+index f1ae0f81..0862b433 100644
+--- a/egui-rs/crates/egui/src/atomics/sized_atom.rs
++++ b/egui-rs/crates/egui/src/atomics/sized_atom.rs
+@@ -3,7 +3,8 @@ use emath::Vec2;
+ 
+ /// A [`crate::Atom`] which has been sized.
+ #[derive(Clone, Debug)]
+-pub struct SizedAtom<'a> {
++#[cfg_attr(feature = "serde", derive(serde::Deserialize, serde::Serialize))]
++pub struct SizedAtom {
+     pub(crate) grow: bool,
+ 
+     /// The size of the atom.
+@@ -15,10 +16,10 @@ pub struct SizedAtom<'a> {
+     /// Intrinsic size of the atom. This is used to calculate `Response::intrinsic_size`.
+     pub intrinsic_size: Vec2,
+ 
+-    pub kind: SizedAtomKind<'a>,
++    pub kind: SizedAtomKind,
+ }
+ 
+-impl SizedAtom<'_> {
++impl SizedAtom {
+     /// Was this [`crate::Atom`] marked as `grow`?
+     pub fn is_grow(&self) -> bool {
+         self.grow
+diff --git a/egui-rs/crates/egui/src/atomics/sized_atom_kind.rs b/egui-rs/crates/egui/src/atomics/sized_atom_kind.rs
+index ff8da163..2383fbb6 100644
+--- a/egui-rs/crates/egui/src/atomics/sized_atom_kind.rs
++++ b/egui-rs/crates/egui/src/atomics/sized_atom_kind.rs
+@@ -5,15 +5,16 @@ use std::sync::Arc;
+ 
+ /// A sized [`crate::AtomKind`].
+ #[derive(Clone, Default, Debug)]
+-pub enum SizedAtomKind<'a> {
++#[cfg_attr(feature = "serde", derive(serde::Deserialize, serde::Serialize))]
++pub enum SizedAtomKind {
+     #[default]
+     Empty,
+     Text(Arc<Galley>),
+-    Image(Image<'a>, Vec2),
++    Image(Image, Vec2),
+     Custom(Id),
+ }
+ 
+-impl SizedAtomKind<'_> {
++impl SizedAtomKind {
+     /// Get the calculated size.
+     pub fn size(&self) -> Vec2 {
+         match self {
+diff --git a/egui-rs/crates/egui/src/containers/area.rs b/egui-rs/crates/egui/src/containers/area.rs
+index 3ebac1d6..d9e4f2e6 100644
+--- a/egui-rs/crates/egui/src/containers/area.rs
++++ b/egui-rs/crates/egui/src/containers/area.rs
+@@ -28,7 +28,8 @@ pub struct AreaState {
+     /// so that a bad tooltip or menu size won't be remembered forever.
+     /// A resizable [`crate::Window`] remembers the size the user picked using
+     /// the state in the [`crate::Resize`] container.
+-    #[cfg_attr(feature = "serde", serde(skip))]
++    //egui_net: need to save
++    //#[cfg_attr(feature = "serde", serde(skip))]
+     pub size: Option<Vec2>,
+ 
+     /// If false, clicks goes straight through to what is behind us. Useful for tooltips etc.
+@@ -37,7 +38,8 @@ pub struct AreaState {
+     /// At what time was this area first shown?
+     ///
+     /// Used to fade in the area.
+-    #[cfg_attr(feature = "serde", serde(skip))]
++    //egui_net: need to save
++    //#[cfg_attr(feature = "serde", serde(skip))]
+     pub last_became_visible_at: Option<f64>,
+ }
+ 
+@@ -104,6 +106,7 @@ impl AreaState {
+ /// The previous rectangle used by this area can be obtained through [`crate::Memory::area_rect()`].
+ #[must_use = "You should call .show()"]
+ #[derive(Clone, Debug)]
++#[cfg_attr(feature = "serde", derive(serde::Deserialize, serde::Serialize))]
+ pub struct Area {
+     pub(crate) id: Id,
+     info: UiStackInfo,
+diff --git a/egui-rs/crates/egui/src/containers/collapsing_header.rs b/egui-rs/crates/egui/src/containers/collapsing_header.rs
+index 3afb7768..7f440310 100644
+--- a/egui-rs/crates/egui/src/containers/collapsing_header.rs
++++ b/egui-rs/crates/egui/src/containers/collapsing_header.rs
+@@ -24,6 +24,7 @@ pub(crate) struct InnerState {
+ ///
+ /// See [`CollapsingState::show_header`] for how to show a collapsing header with a custom header.
+ #[derive(Clone, Debug)]
++#[cfg_attr(feature = "serde", derive(serde::Deserialize, serde::Serialize))]
+ pub struct CollapsingState {
+     id: Id,
+     state: InnerState,
+@@ -289,10 +290,10 @@ impl CollapsingState {
+ /// From [`CollapsingState::show_header`].
+ #[must_use = "Remember to show the body"]
+ pub struct HeaderResponse<'ui, HeaderRet> {
+-    state: CollapsingState,
++    pub state: CollapsingState,
+     ui: &'ui mut Ui,
+-    toggle_button_response: Response,
+-    header_response: InnerResponse<HeaderRet>,
++    pub toggle_button_response: Response,
++    pub header_response: InnerResponse<HeaderRet>,
+ }
+ 
+ impl<HeaderRet> HeaderResponse<'_, HeaderRet> {
+@@ -389,6 +390,7 @@ pub type IconPainter = Box<dyn FnOnce(&mut Ui, f32, &Response)>;
+ ///
+ /// If you want to customize the header contents, see [`CollapsingState::show_header`].
+ #[must_use = "You should call .show()"]
++#[cfg_attr(feature = "serde", derive(serde::Deserialize, serde::Serialize))]
+ pub struct CollapsingHeader {
+     text: WidgetText,
+     default_open: bool,
+@@ -398,6 +400,7 @@ pub struct CollapsingHeader {
+     selectable: bool,
+     selected: bool,
+     show_background: bool,
++    #[cfg_attr(feature = "serde", serde(skip))]
+     icon: Option<IconPainter>,
+ }
+ 
+diff --git a/egui-rs/crates/egui/src/containers/combo_box.rs b/egui-rs/crates/egui/src/containers/combo_box.rs
+index c4097f80..3324b0c2 100644
+--- a/egui-rs/crates/egui/src/containers/combo_box.rs
++++ b/egui-rs/crates/egui/src/containers/combo_box.rs
+@@ -35,15 +35,18 @@ pub type IconPainter = Box<dyn FnOnce(&Ui, Rect, &WidgetVisuals, bool)>;
+ /// # });
+ /// ```
+ #[must_use = "You should call .show*"]
++#[cfg_attr(feature = "serde", derive(serde::Deserialize, serde::Serialize))]
+ pub struct ComboBox {
+     id_salt: Id,
+     label: Option<WidgetText>,
+     selected_text: WidgetText,
+     width: Option<f32>,
+     height: Option<f32>,
++    #[cfg_attr(feature = "serde", serde(skip))]
+     icon: Option<IconPainter>,
+     wrap_mode: Option<TextWrapMode>,
+     close_behavior: Option<PopupCloseBehavior>,
++    #[cfg_attr(feature = "serde", serde(skip))]
+     popup_style: StyleModifier,
+ }
+ 
+diff --git a/egui-rs/crates/egui/src/containers/menu.rs b/egui-rs/crates/egui/src/containers/menu.rs
+index f2aaee04..fb218d46 100644
+--- a/egui-rs/crates/egui/src/containers/menu.rs
++++ b/egui-rs/crates/egui/src/containers/menu.rs
+@@ -62,6 +62,7 @@ pub fn is_in_menu(ui: &Ui) -> bool {
+ 
+ /// Configuration and style for menus.
+ #[derive(Clone, Debug)]
++#[cfg_attr(feature = "serde", derive(serde::Deserialize, serde::Serialize))]
+ pub struct MenuConfig {
+     /// Is this a menu bar?
+     bar: bool,
+@@ -72,6 +73,7 @@ pub struct MenuConfig {
+     /// Override the menu style.
+     ///
+     /// Default is [`menu_style`].
++    #[cfg_attr(feature = "serde", serde(skip))]
+     pub style: StyleModifier,
+ }
+ 
+@@ -133,6 +135,7 @@ impl MenuConfig {
+ 
+ /// Holds the state of the menu.
+ #[derive(Clone)]
++#[cfg_attr(feature = "serde", derive(serde::Deserialize, serde::Serialize))]
+ pub struct MenuState {
+     /// The currently open sub menu in this menu.
+     pub open_item: Option<Id>,
+@@ -215,8 +218,10 @@ impl MenuState {
+ /// # });
+ /// ```
+ #[derive(Clone, Debug)]
++#[cfg_attr(feature = "serde", derive(serde::Deserialize, serde::Serialize))]
+ pub struct MenuBar {
+     config: MenuConfig,
++    #[cfg_attr(feature = "serde", serde(skip))]
+     style: StyleModifier,
+ }
+ 
+@@ -291,13 +296,15 @@ impl MenuBar {
+ /// The only thing this does is search for the current menu config (if set via [`MenuBar`]).
+ /// If your menu button is not in a [`MenuBar`] it's fine to use [`Ui::button`] and [`Popup::menu`]
+ /// directly.
+-pub struct MenuButton<'a> {
+-    pub button: Button<'a>,
++#[derive(Clone)]
++#[cfg_attr(feature = "serde", derive(serde::Deserialize, serde::Serialize))]
++pub struct MenuButton {
++    pub button: Button,
+     pub config: Option<MenuConfig>,
+ }
+ 
+-impl<'a> MenuButton<'a> {
+-    pub fn new(atoms: impl IntoAtoms<'a>) -> Self {
++impl MenuButton {
++    pub fn new(atoms: impl IntoAtoms) -> Self {
+         Self::from_button(Button::new(atoms.into_atoms()))
+     }
+ 
+@@ -310,7 +317,7 @@ impl<'a> MenuButton<'a> {
+ 
+     /// Create a new menu button from a [`Button`].
+     #[inline]
+-    pub fn from_button(button: Button<'a>) -> Self {
++    pub fn from_button(button: Button) -> Self {
+         Self {
+             button,
+             config: None,
+@@ -338,16 +345,18 @@ impl<'a> MenuButton<'a> {
+ }
+ 
+ /// A submenu button that shows a [`SubMenu`] if a [`Button`] is hovered.
+-pub struct SubMenuButton<'a> {
+-    pub button: Button<'a>,
++#[derive(Clone)]
++#[cfg_attr(feature = "serde", derive(serde::Deserialize, serde::Serialize))]
++pub struct SubMenuButton {
++    pub button: Button,
+     pub sub_menu: SubMenu,
+ }
+ 
+-impl<'a> SubMenuButton<'a> {
++impl SubMenuButton {
+     /// The default right arrow symbol: `"⏵"`
+     pub const RIGHT_ARROW: &'static str = "⏵";
+ 
+-    pub fn new(atoms: impl IntoAtoms<'a>) -> Self {
++    pub fn new(atoms: impl IntoAtoms) -> Self {
+         Self::from_button(Button::new(atoms.into_atoms()).right_text("⏵"))
+     }
+ 
+@@ -355,7 +364,7 @@ impl<'a> SubMenuButton<'a> {
+     ///
+     /// Use [`Button::right_text`] and [`SubMenuButton::RIGHT_ARROW`] to add the default right
+     /// arrow symbol.
+-    pub fn from_button(button: Button<'a>) -> Self {
++    pub fn from_button(button: Button) -> Self {
+         Self {
+             button,
+             sub_menu: SubMenu::default(),
+@@ -400,6 +409,7 @@ impl<'a> SubMenuButton<'a> {
+ /// Useful if you want to make custom menu buttons.
+ /// Usually, just use [`MenuButton`] or [`SubMenuButton`] instead.
+ #[derive(Clone, Debug, Default)]
++#[cfg_attr(feature = "serde", derive(serde::Deserialize, serde::Serialize))]
+ pub struct SubMenu {
+     config: Option<MenuConfig>,
+ }
+diff --git a/egui-rs/crates/egui/src/containers/mod.rs b/egui-rs/crates/egui/src/containers/mod.rs
+index 4312385d..09906b28 100644
+--- a/egui-rs/crates/egui/src/containers/mod.rs
++++ b/egui-rs/crates/egui/src/containers/mod.rs
+@@ -32,7 +32,7 @@ pub use {
+     resize::Resize,
+     scene::{DragPanButtons, Scene},
+     scroll_area::ScrollArea,
+-    sides::Sides,
++    sides::{Sides, SidesKind},
+     tooltip::*,
+     window::Window,
+ };
+diff --git a/egui-rs/crates/egui/src/containers/modal.rs b/egui-rs/crates/egui/src/containers/modal.rs
+index 23190ddf..5d051468 100644
+--- a/egui-rs/crates/egui/src/containers/modal.rs
++++ b/egui-rs/crates/egui/src/containers/modal.rs
+@@ -13,6 +13,7 @@ use crate::{
+ /// the most recently shown one.
+ /// If multiple modals are newly shown in the same frame, the order of the modals is undefined
+ /// (either first or second could be top).
++#[cfg_attr(feature = "serde", derive(serde::Deserialize, serde::Serialize))]
+ pub struct Modal {
+     pub area: Area,
+     pub backdrop_color: Color32,
+diff --git a/egui-rs/crates/egui/src/containers/panel.rs b/egui-rs/crates/egui/src/containers/panel.rs
+index 6e582b42..8bad040e 100644
+--- a/egui-rs/crates/egui/src/containers/panel.rs
++++ b/egui-rs/crates/egui/src/containers/panel.rs
+@@ -53,6 +53,7 @@ impl PanelState {
+ 
+ /// [`Left`](Side::Left) or [`Right`](Side::Right)
+ #[derive(Clone, Copy, Debug, PartialEq, Eq)]
++#[cfg_attr(feature = "serde", derive(serde::Deserialize, serde::Serialize))]
+ pub enum Side {
+     Left,
+     Right,
+@@ -107,6 +108,7 @@ impl Side {
+ ///
+ /// See also [`TopBottomPanel`].
+ #[must_use = "You should call .show()"]
++#[cfg_attr(feature = "serde", derive(serde::Deserialize, serde::Serialize))]
+ pub struct SidePanel {
+     side: Side,
+     id: Id,
+@@ -544,6 +546,7 @@ impl SidePanel {
+ 
+ /// [`Top`](TopBottomSide::Top) or [`Bottom`](TopBottomSide::Bottom)
+ #[derive(Clone, Copy, Debug, PartialEq, Eq)]
++#[cfg_attr(feature = "serde", derive(serde::Deserialize, serde::Serialize))]
+ pub enum TopBottomSide {
+     Top,
+     Bottom,
+@@ -598,6 +601,7 @@ impl TopBottomSide {
+ ///
+ /// See also [`SidePanel`].
+ #[must_use = "You should call .show()"]
++#[cfg_attr(feature = "serde", derive(serde::Deserialize, serde::Serialize))]
+ pub struct TopBottomPanel {
+     side: TopBottomSide,
+     id: Id,
+@@ -1085,6 +1089,7 @@ impl TopBottomPanel {
+ /// ```
+ #[must_use = "You should call .show()"]
+ #[derive(Default)]
++#[cfg_attr(feature = "serde", derive(serde::Deserialize, serde::Serialize))]
+ pub struct CentralPanel {
+     frame: Option<Frame>,
+ }
+diff --git a/egui-rs/crates/egui/src/containers/popup.rs b/egui-rs/crates/egui/src/containers/popup.rs
+index a9c00661..71c0fb3c 100644
+--- a/egui-rs/crates/egui/src/containers/popup.rs
++++ b/egui-rs/crates/egui/src/containers/popup.rs
+@@ -23,6 +23,7 @@ use crate::{
+ /// The rect should be in global coordinates. `PopupAnchor::from(&response)` will automatically
+ /// do this conversion.
+ #[derive(Clone, Copy, Debug, PartialEq, Eq)]
++#[cfg_attr(feature = "serde", derive(serde::Deserialize, serde::Serialize))]
+ pub enum PopupAnchor {
+     /// Show the popup relative to some parent [`Rect`].
+     ParentRect(Rect),
+@@ -76,6 +77,7 @@ impl PopupAnchor {
+ 
+ /// Determines popup's close behavior
+ #[derive(Clone, Copy, PartialEq, Eq, Default, Debug)]
++#[cfg_attr(feature = "serde", derive(serde::Deserialize, serde::Serialize))]
+ pub enum PopupCloseBehavior {
+     /// Popup will be closed on click anywhere, inside or outside the popup.
+     ///
+@@ -93,6 +95,7 @@ pub enum PopupCloseBehavior {
+ }
+ 
+ #[derive(Clone, Copy, Debug, PartialEq, Eq)]
++#[cfg_attr(feature = "serde", derive(serde::Deserialize, serde::Serialize))]
+ pub enum SetOpenCommand {
+     /// Set the open state to the given value
+     Bool(bool),
+@@ -108,7 +111,7 @@ impl From<bool> for SetOpenCommand {
+ }
+ 
+ /// How do we determine if the popup should be open or closed
+-enum OpenKind<'a> {
++pub enum OpenKind<'a> {
+     /// Always open
+     Open,
+ 
+@@ -136,6 +139,7 @@ impl OpenKind<'_> {
+ 
+ /// Is the popup a popup, tooltip or menu?
+ #[derive(Clone, Copy, Debug, PartialEq, Eq)]
++#[cfg_attr(feature = "serde", derive(serde::Deserialize, serde::Serialize))]
+ pub enum PopupKind {
+     Popup,
+     Tooltip,
+@@ -165,26 +169,26 @@ impl From<PopupKind> for UiKind {
+ /// A popup container.
+ #[must_use = "Call `.show()` to actually display the popup"]
+ pub struct Popup<'a> {
+-    id: Id,
+-    ctx: Context,
+-    anchor: PopupAnchor,
+-    rect_align: RectAlign,
+-    alternative_aligns: Option<&'a [RectAlign]>,
+-    layer_id: LayerId,
+-    open_kind: OpenKind<'a>,
+-    close_behavior: PopupCloseBehavior,
+-    info: Option<UiStackInfo>,
+-    kind: PopupKind,
++    pub id: Id,
++    pub ctx: Context,
++    pub anchor: PopupAnchor,
++    pub rect_align: RectAlign,
++    pub alternative_aligns: Option<&'a [RectAlign]>,
++    pub layer_id: LayerId,
++    pub open_kind: OpenKind<'a>,
++    pub close_behavior: PopupCloseBehavior,
++    pub info: Option<UiStackInfo>,
++    pub kind: PopupKind,
+ 
+     /// Gap between the anchor and the popup
+-    gap: f32,
++    pub gap: f32,
+ 
+     /// Default width passed to the Area
+-    width: Option<f32>,
+-    sense: Sense,
+-    layout: Layout,
+-    frame: Option<Frame>,
+-    style: StyleModifier,
++    pub width: Option<f32>,
++    pub sense: Sense,
++    pub layout: Layout,
++    pub frame: Option<Frame>,
++    pub style: StyleModifier,
+ }
+ 
+ impl<'a> Popup<'a> {
+diff --git a/egui-rs/crates/egui/src/containers/resize.rs b/egui-rs/crates/egui/src/containers/resize.rs
+index 50cc2877..fd86a9f5 100644
+--- a/egui-rs/crates/egui/src/containers/resize.rs
++++ b/egui-rs/crates/egui/src/containers/resize.rs
+@@ -32,6 +32,7 @@ impl State {
+ /// A region that can be resized by dragging the bottom right corner.
+ #[derive(Clone, Copy, Debug)]
+ #[must_use = "You should call .show()"]
++#[cfg_attr(feature = "serde", derive(serde::Deserialize, serde::Serialize))]
+ pub struct Resize {
+     id: Option<Id>,
+     id_salt: Option<Id>,
+diff --git a/egui-rs/crates/egui/src/containers/scene.rs b/egui-rs/crates/egui/src/containers/scene.rs
+index 58739ba2..e0694a39 100644
+--- a/egui-rs/crates/egui/src/containers/scene.rs
++++ b/egui-rs/crates/egui/src/containers/scene.rs
+@@ -43,6 +43,7 @@ fn fit_to_rect_in_scene(
+ /// * Has no limits on the scrolling
+ #[derive(Clone, Debug)]
+ #[must_use = "You should call .show()"]
++#[cfg_attr(feature = "serde", derive(serde::Deserialize, serde::Serialize))]
+ pub struct Scene {
+     zoom_range: Rangef,
+     sense: Sense,
+@@ -52,6 +53,7 @@ pub struct Scene {
+ 
+ /// Specifies which pointer buttons can be used to pan the scene by dragging.
+ #[derive(Clone, Copy, Debug, Default, Eq, PartialEq)]
++#[cfg_attr(feature = "serde", derive(serde::Deserialize, serde::Serialize))]
+ pub struct DragPanButtons(u8);
+ 
+ bitflags::bitflags! {
+diff --git a/egui-rs/crates/egui/src/containers/scroll_area.rs b/egui-rs/crates/egui/src/containers/scroll_area.rs
+index ceb91cf0..51213a2e 100644
+--- a/egui-rs/crates/egui/src/containers/scroll_area.rs
++++ b/egui-rs/crates/egui/src/containers/scroll_area.rs
+@@ -277,6 +277,7 @@ impl AddAssign for ScrollSource {
+ /// If you want to allow zooming, use [`crate::Scene`].
+ #[derive(Clone, Debug)]
+ #[must_use = "You should call .show()"]
++#[cfg_attr(feature = "serde", derive(serde::Deserialize, serde::Serialize))]
+ pub struct ScrollArea {
+     /// Do we have horizontal/vertical scrolling enabled?
+     direction_enabled: Vec2b,
+diff --git a/egui-rs/crates/egui/src/containers/sides.rs b/egui-rs/crates/egui/src/containers/sides.rs
+index 709c1b64..f394546f 100644
+--- a/egui-rs/crates/egui/src/containers/sides.rs
++++ b/egui-rs/crates/egui/src/containers/sides.rs
+@@ -42,6 +42,7 @@ use crate::{Layout, Ui, UiBuilder};
+ /// ```
+ #[must_use = "You should call sides.show()"]
+ #[derive(Clone, Copy, Debug, Default)]
++#[cfg_attr(feature = "serde", derive(serde::Deserialize, serde::Serialize))]
+ pub struct Sides {
+     height: Option<f32>,
+     spacing: Option<f32>,
+@@ -50,7 +51,8 @@ pub struct Sides {
+ }
+ 
+ #[derive(Clone, Copy, Debug, Default)]
+-enum SidesKind {
++#[cfg_attr(feature = "serde", derive(serde::Deserialize, serde::Serialize))]
++pub enum SidesKind {
+     #[default]
+     Extend,
+     ShrinkLeft,
+diff --git a/egui-rs/crates/egui/src/containers/tooltip.rs b/egui-rs/crates/egui/src/containers/tooltip.rs
+index 682b11fd..eeb9c034 100644
+--- a/egui-rs/crates/egui/src/containers/tooltip.rs
++++ b/egui-rs/crates/egui/src/containers/tooltip.rs
+@@ -9,10 +9,10 @@ pub struct Tooltip<'a> {
+     pub popup: Popup<'a>,
+ 
+     /// The layer of the parent widget.
+-    parent_layer: LayerId,
++    pub parent_layer: LayerId,
+ 
+     /// The id of the widget that owns this tooltip.
+-    parent_widget: Id,
++    pub parent_widget: Id,
+ }
+ 
+ impl Tooltip<'_> {
+diff --git a/egui-rs/crates/egui/src/containers/window.rs b/egui-rs/crates/egui/src/containers/window.rs
+index 7f4bdaa0..55c26921 100644
+--- a/egui-rs/crates/egui/src/containers/window.rs
++++ b/egui-rs/crates/egui/src/containers/window.rs
+@@ -34,16 +34,16 @@ use super::{Area, Frame, Resize, ScrollArea, area, resize};
+ /// To create a new native OS window, use [`crate::Context::show_viewport_deferred`].
+ #[must_use = "You should call .show()"]
+ pub struct Window<'open> {
+-    title: WidgetText,
+-    open: Option<&'open mut bool>,
+-    area: Area,
+-    frame: Option<Frame>,
+-    resize: Resize,
+-    scroll: ScrollArea,
+-    collapsible: bool,
+-    default_open: bool,
+-    with_title_bar: bool,
+-    fade_out: bool,
++    pub title: WidgetText,
++    pub open: Option<&'open mut bool>,
++    pub area: Area,
++    pub frame: Option<Frame>,
++    pub resize: Resize,
++    pub scroll: ScrollArea,
++    pub collapsible: bool,
++    pub default_open: bool,
++    pub with_title_bar: bool,
++    pub fade_out: bool,
+ }
+ 
+ impl<'open> Window<'open> {
+diff --git a/egui-rs/crates/egui/src/context.rs b/egui-rs/crates/egui/src/context.rs
+index 5a868dd7..3bf71f15 100644
+--- a/egui-rs/crates/egui/src/context.rs
++++ b/egui-rs/crates/egui/src/context.rs
+@@ -249,8 +249,11 @@ pub struct ViewportState {
+ 
+ /// What called [`Context::request_repaint`] or [`Context::request_discard`]?
+ #[derive(Clone, PartialEq, Eq, Hash)]
++#[cfg_attr(feature = "serde", derive(serde::Deserialize, serde::Serialize))]
++
+ pub struct RepaintCause {
+     /// What file had the call that requested the repaint?
++    #[cfg_attr(feature = "serde", serde(skip))]
+     pub file: &'static str,
+ 
+     /// What line number of the call that requested the repaint?
+@@ -2970,13 +2973,11 @@ impl Context {
+     // ---------------------------------------------------------------------
+ 
+     /// Whether or not to debug widget layout on hover.
+-    #[cfg(debug_assertions)]
+     pub fn debug_on_hover(&self) -> bool {
+         self.options(|opt| opt.style().debug.debug_on_hover)
+     }
+ 
+     /// Turn on/off whether or not to debug widget layout on hover.
+-    #[cfg(debug_assertions)]
+     pub fn set_debug_on_hover(&self, debug_on_hover: bool) {
+         self.all_styles_mut(|style| style.debug.debug_on_hover = debug_on_hover);
+     }
+diff --git a/egui-rs/crates/egui/src/data/input.rs b/egui-rs/crates/egui/src/data/input.rs
+index 8eecd979..82549c9c 100644
+--- a/egui-rs/crates/egui/src/data/input.rs
++++ b/egui-rs/crates/egui/src/data/input.rs
+@@ -1255,6 +1255,7 @@ impl From<u32> for TouchId {
+ ///
+ /// Any events not covered by the filter are given to the widget, but are not exclusive.
+ #[derive(Clone, Copy, Debug)]
++#[cfg_attr(feature = "serde", derive(serde::Deserialize, serde::Serialize))]
+ pub struct EventFilter {
+     /// If `true`, pressing tab will act on the widget,
+     /// and NOT move focus away from the focused widget.
+diff --git a/egui-rs/crates/egui/src/data/output.rs b/egui-rs/crates/egui/src/data/output.rs
+index deec5162..2653cbf4 100644
+--- a/egui-rs/crates/egui/src/data/output.rs
++++ b/egui-rs/crates/egui/src/data/output.rs
+@@ -6,6 +6,7 @@ use crate::{OrderedViewportIdMap, RepaintCause, ViewportOutput, WidgetType};
+ ///
+ /// The backend should use this.
+ #[derive(Clone, Default)]
++#[cfg_attr(feature = "serde", derive(serde::Deserialize, serde::Serialize))]
+ pub struct FullOutput {
+     /// Non-rendering related output.
+     pub platform_output: PlatformOutput,
+diff --git a/egui-rs/crates/egui/src/data/user_data.rs b/egui-rs/crates/egui/src/data/user_data.rs
+index 12d90adf..90edf37d 100644
+--- a/egui-rs/crates/egui/src/data/user_data.rs
++++ b/egui-rs/crates/egui/src/data/user_data.rs
+@@ -42,7 +42,7 @@ impl serde::Serialize for UserData {
+     where
+         S: serde::Serializer,
+     {
+-        serializer.serialize_none() // can't serialize an `Any`
++        serializer.serialize_unit() // can't serialize an `Any`
+     }
+ }
+ 
+@@ -61,7 +61,7 @@ impl<'de> serde::Deserialize<'de> for UserData {
+                 formatter.write_str("a None value")
+             }
+ 
+-            fn visit_none<E>(self) -> Result<UserData, E>
++            fn visit_unit<E>(self) -> Result<UserData, E>
+             where
+                 E: serde::de::Error,
+             {
+@@ -69,6 +69,6 @@ impl<'de> serde::Deserialize<'de> for UserData {
+             }
+         }
+ 
+-        deserializer.deserialize_option(UserDataVisitor)
++        deserializer.deserialize_unit(UserDataVisitor)
+     }
+ }
+diff --git a/egui-rs/crates/egui/src/grid.rs b/egui-rs/crates/egui/src/grid.rs
+index 31f9e7a7..ddec7360 100644
+--- a/egui-rs/crates/egui/src/grid.rs
++++ b/egui-rs/crates/egui/src/grid.rs
+@@ -309,6 +309,7 @@ impl GridLayout {
+ /// # });
+ /// ```
+ #[must_use = "You should call .show()"]
++#[cfg_attr(feature = "serde", derive(serde::Deserialize, serde::Serialize))]
+ pub struct Grid {
+     id_salt: Id,
+     num_columns: Option<usize>,
+@@ -317,6 +318,7 @@ pub struct Grid {
+     max_cell_size: Vec2,
+     spacing: Option<Vec2>,
+     start_row: usize,
++    #[cfg_attr(feature = "serde", serde(skip))]
+     color_picker: Option<ColorPickerFn>,
+ }
+ 
+diff --git a/egui-rs/crates/egui/src/gui_zoom.rs b/egui-rs/crates/egui/src/gui_zoom.rs
+index 4242d927..f32e21a1 100644
+--- a/egui-rs/crates/egui/src/gui_zoom.rs
++++ b/egui-rs/crates/egui/src/gui_zoom.rs
+@@ -70,7 +70,7 @@ pub fn zoom_out(ctx: &Context) {
+ ///
+ /// This is meant to be called from within a menu (See [`Ui::menu_button`]).
+ pub fn zoom_menu_buttons(ui: &mut Ui) {
+-    fn button(ctx: &Context, text: &str, shortcut: &KeyboardShortcut) -> Button<'static> {
++    fn button(ctx: &Context, text: &str, shortcut: &KeyboardShortcut) -> Button {
+         let btn = Button::new(text);
+         let zoom_with_keyboard = ctx.options(|o| o.zoom_with_keyboard);
+         if zoom_with_keyboard {
+diff --git a/egui-rs/crates/egui/src/input_state/mod.rs b/egui-rs/crates/egui/src/input_state/mod.rs
+index b5c1a416..a32b7737 100644
+--- a/egui-rs/crates/egui/src/input_state/mod.rs
++++ b/egui-rs/crates/egui/src/input_state/mod.rs
+@@ -15,7 +15,7 @@ use std::{
+ };
+ 
+ pub use crate::Key;
+-pub use touch_state::MultiTouchInfo;
++pub use touch_state::{MultiTouchInfo, PinchType};
+ use touch_state::TouchState;
+ 
+ #[derive(Clone, Copy, Debug, Default, PartialEq, Eq)]
+@@ -992,7 +992,7 @@ impl InputState {
+ /// A pointer (mouse or touch) click.
+ #[derive(Clone, Debug, PartialEq)]
+ #[cfg_attr(feature = "serde", derive(serde::Deserialize, serde::Serialize))]
+-pub(crate) struct Click {
++pub struct Click {
+     pub pos: Pos2,
+ 
+     /// 1 or 2 (double-click) or 3 (triple-click)
+@@ -1014,7 +1014,7 @@ impl Click {
+ 
+ #[derive(Clone, Debug, PartialEq)]
+ #[cfg_attr(feature = "serde", derive(serde::Deserialize, serde::Serialize))]
+-pub(crate) enum PointerEvent {
++pub enum PointerEvent {
+     Moved(Pos2),
+     Pressed {
+         position: Pos2,
+diff --git a/egui-rs/crates/egui/src/input_state/touch_state.rs b/egui-rs/crates/egui/src/input_state/touch_state.rs
+index 102b91ff..1ddd595d 100644
+--- a/egui-rs/crates/egui/src/input_state/touch_state.rs
++++ b/egui-rs/crates/egui/src/input_state/touch_state.rs
+@@ -8,6 +8,7 @@ use crate::{
+ 
+ /// All you probably need to know about a multi-touch gesture.
+ #[derive(Clone, Copy, Debug, PartialEq)]
++#[cfg_attr(feature = "serde", derive(serde::Deserialize, serde::Serialize))]
+ pub struct MultiTouchInfo {
+     /// Point in time when the gesture started.
+     pub start_time: f64,
+@@ -68,10 +69,10 @@ pub struct MultiTouchInfo {
+ /// The current state (for a specific touch device) of touch events and gestures.
+ #[derive(Clone)]
+ #[cfg_attr(feature = "serde", derive(serde::Deserialize, serde::Serialize))]
+-pub(crate) struct TouchState {
++pub struct TouchState {
+     /// Technical identifier of the touch device. This is used to identify relevant touch events
+     /// for this [`TouchState`] instance.
+-    device_id: TouchDeviceId,
++    pub device_id: TouchDeviceId,
+ 
+     /// Active touches, if any.
+     ///
+@@ -79,45 +80,45 @@ pub(crate) struct TouchState {
+     /// next touch will receive a new unique ID.
+     ///
+     /// Refer to [`ActiveTouch`].
+-    active_touches: BTreeMap<TouchId, ActiveTouch>,
++    pub active_touches: BTreeMap<TouchId, ActiveTouch>,
+ 
+     /// If a gesture has been recognized (i.e. when exactly two fingers touch the surface), this
+     /// holds state information
+-    gesture_state: Option<GestureState>,
++    pub gesture_state: Option<GestureState>,
+ }
+ 
+ #[derive(Clone, Debug)]
+ #[cfg_attr(feature = "serde", derive(serde::Deserialize, serde::Serialize))]
+-struct GestureState {
+-    start_time: f64,
+-    start_pointer_pos: Pos2,
+-    pinch_type: PinchType,
+-    previous: Option<DynGestureState>,
+-    current: DynGestureState,
++pub struct GestureState {
++    pub start_time: f64,
++    pub start_pointer_pos: Pos2,
++    pub pinch_type: PinchType,
++    pub previous: Option<DynGestureState>,
++    pub current: DynGestureState,
+ }
+ 
+ /// Gesture data that can change over time
+ #[derive(Clone, Copy, Debug)]
+ #[cfg_attr(feature = "serde", derive(serde::Deserialize, serde::Serialize))]
+-struct DynGestureState {
++pub struct DynGestureState {
+     /// used for proportional zooming
+-    avg_distance: f32,
++    pub avg_distance: f32,
+ 
+     /// used for non-proportional zooming
+-    avg_abs_distance2: Vec2,
++    pub avg_abs_distance2: Vec2,
+ 
+-    avg_pos: Pos2,
++    pub avg_pos: Pos2,
+ 
+-    avg_force: f32,
++    pub avg_force: f32,
+ 
+-    heading: f32,
++    pub heading: f32,
+ }
+ 
+ /// Describes an individual touch (finger or digitizer) on the touch surface. Instances exist as
+ /// long as the finger/pen touches the surface.
+ #[derive(Clone, Copy, Debug)]
+ #[cfg_attr(feature = "serde", derive(serde::Deserialize, serde::Serialize))]
+-struct ActiveTouch {
++pub struct ActiveTouch {
+     /// Current position of this touch, in device coordinates (not necessarily screen position)
+     pos: Pos2,
+ 
+@@ -315,7 +316,7 @@ impl Debug for TouchState {
+ 
+ #[derive(Clone, Debug)]
+ #[cfg_attr(feature = "serde", derive(serde::Deserialize, serde::Serialize))]
+-enum PinchType {
++pub enum PinchType {
+     Horizontal,
+     Vertical,
+     Proportional,
+diff --git a/egui-rs/crates/egui/src/layers.rs b/egui-rs/crates/egui/src/layers.rs
+index 96ce4648..473d6b57 100644
+--- a/egui-rs/crates/egui/src/layers.rs
++++ b/egui-rs/crates/egui/src/layers.rs
+@@ -112,10 +112,12 @@ impl std::fmt::Debug for LayerId {
+ /// A unique identifier of a specific [`Shape`] in a [`PaintList`].
+ 
+ #[derive(Clone, Copy, Debug, PartialEq, Eq)]
++#[cfg_attr(feature = "serde", derive(serde::Deserialize, serde::Serialize))]
+ pub struct ShapeIdx(pub usize);
+ 
+ /// A list of [`Shape`]s paired with a clip rectangle.
+ #[derive(Clone, Default)]
++#[cfg_attr(feature = "serde", derive(serde::Deserialize, serde::Serialize))]
+ pub struct PaintList(Vec<ClippedShape>);
+ 
+ impl PaintList {
+@@ -196,6 +198,7 @@ impl PaintList {
+ 
+ /// This is where painted [`Shape`]s end up during a frame.
+ #[derive(Clone, Default)]
++#[cfg_attr(feature = "serde", derive(serde::Deserialize, serde::Serialize))]
+ pub struct GraphicLayers([IdMap<PaintList>; Order::COUNT]);
+ 
+ impl GraphicLayers {
+diff --git a/egui-rs/crates/egui/src/layout.rs b/egui-rs/crates/egui/src/layout.rs
+index c44c928b..01120db2 100644
+--- a/egui-rs/crates/egui/src/layout.rs
++++ b/egui-rs/crates/egui/src/layout.rs
+@@ -128,7 +128,7 @@ impl Direction {
+ /// # });
+ /// ```
+ #[derive(Clone, Copy, Debug, PartialEq, Eq)]
+-// #[cfg_attr(feature = "serde", derive(serde::Deserialize, serde::Serialize))]
++#[cfg_attr(feature = "serde", derive(serde::Deserialize, serde::Serialize))]
+ pub struct Layout {
+     /// Main axis direction
+     pub main_dir: Direction,
+@@ -819,7 +819,6 @@ impl Layout {
+ /// ## Debug stuff
+ impl Layout {
+     /// Shows where the next widget is going to be placed
+-    #[cfg(debug_assertions)]
+     pub(crate) fn paint_text_at_cursor(
+         &self,
+         painter: &crate::Painter,
+diff --git a/egui-rs/crates/egui/src/lib.rs b/egui-rs/crates/egui/src/lib.rs
+index 960480b2..3751a396 100644
+--- a/egui-rs/crates/egui/src/lib.rs
++++ b/egui-rs/crates/egui/src/lib.rs
+@@ -496,7 +496,7 @@ pub use self::{
+     epaint::text::TextWrapMode,
+     grid::Grid,
+     id::{Id, IdMap},
+-    input_state::{InputOptions, InputState, MultiTouchInfo, PointerState, SurrenderFocusOn},
++    input_state::{InputOptions, InputState, MultiTouchInfo, PointerState, PinchType, PointerEvent, SurrenderFocusOn},
+     layers::{LayerId, Order},
+     layout::*,
+     load::SizeHint,
+diff --git a/egui-rs/crates/egui/src/load.rs b/egui-rs/crates/egui/src/load.rs
+index 1c74e504..5973d116 100644
+--- a/egui-rs/crates/egui/src/load.rs
++++ b/egui-rs/crates/egui/src/load.rs
+@@ -145,6 +145,7 @@ pub type Result<T, E = LoadError> = std::result::Result<T, E>;
+ /// Used mostly for rendering SVG:s to a good size.
+ /// The [`SizeHint`] determines at what resolution the image should be rasterized.
+ #[derive(Clone, Copy, Debug, PartialEq, Eq, PartialOrd, Ord, Hash)]
++#[cfg_attr(feature = "serde", derive(serde::Deserialize, serde::Serialize))]
+ pub enum SizeHint {
+     /// Scale original size by some factor, keeping the original aspect ratio.
+     ///
+@@ -208,6 +209,40 @@ pub enum Bytes {
+     Shared(Arc<[u8]>),
+ }
+ 
++#[cfg(feature = "serde")]
++impl serde::Serialize for Bytes {
++    fn serialize<S>(&self, serializer: S) -> std::result::Result<S::Ok, S::Error>
++    where
++        S: serde::Serializer,
++    {
++        egui_net_patch_helper::Bytes(self.as_ref().into()).serialize(serializer)
++    }
++}
++
++#[cfg(feature = "serde")]
++impl<'a> serde::Deserialize<'a> for Bytes {
++    fn deserialize<D>(deserializer: D) -> std::result::Result<Self, D::Error>
++    where
++        D: serde::Deserializer<'a>,
++    {
++        Ok(Self::Shared(
++            egui_net_patch_helper::Bytes::deserialize(deserializer)?.0,
++        ))
++    }
++}
++
++#[cfg(feature = "serde")]
++mod egui_net_patch_helper {
++    use super::*;
++
++    /// Represents a byte buffer.
++    ///
++    /// This is essentially `Cow<'static, [u8]>` but with the `Owned` variant being an `Arc`.
++    #[derive(Clone)]
++    #[cfg_attr(feature = "serde", derive(serde::Deserialize, serde::Serialize))]
++    pub struct Bytes(pub Arc<[u8]>);
++}
++
+ impl Debug for Bytes {
+     fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+         match self {
+@@ -270,6 +305,7 @@ impl Deref for Bytes {
+ /// contains an optional `size`, which may be used during layout to
+ /// pre-allocate space the image.
+ #[derive(Clone)]
++#[cfg_attr(feature = "serde", derive(serde::Deserialize, serde::Serialize))]
+ pub enum BytesPoll {
+     /// Bytes are being loaded.
+     Pending {
+@@ -441,6 +477,7 @@ pub trait ImageLoader: std::any::Any {
+ 
+ /// A texture with a known size.
+ #[derive(Clone, Copy, Debug, PartialEq, Eq)]
++#[cfg_attr(feature = "serde", derive(serde::Deserialize, serde::Serialize))]
+ pub struct SizedTexture {
+     pub id: TextureId,
+ 
+@@ -487,6 +524,7 @@ impl<'a> From<&'a TextureHandle> for SizedTexture {
+ /// contains an optional `size`, which may be used during layout to
+ /// pre-allocate space the image.
+ #[derive(Clone, Copy)]
++#[cfg_attr(feature = "serde", derive(serde::Deserialize, serde::Serialize))]
+ pub enum TexturePoll {
+     /// Texture is loading.
+     Pending {
+diff --git a/egui-rs/crates/egui/src/memory/mod.rs b/egui-rs/crates/egui/src/memory/mod.rs
+index ddc5a9ff..b3d16941 100644
+--- a/egui-rs/crates/egui/src/memory/mod.rs
++++ b/egui-rs/crates/egui/src/memory/mod.rs
+@@ -186,11 +186,11 @@ impl FocusDirection {
+ #[cfg_attr(feature = "serde", serde(default))]
+ pub struct Options {
+     /// The default style for new [`Ui`](crate::Ui):s in dark mode.
+-    #[cfg_attr(feature = "serde", serde(skip))]
++    //#[cfg_attr(feature = "serde", serde(skip))]
+     pub dark_style: std::sync::Arc<Style>,
+ 
+     /// The default style for new [`Ui`](crate::Ui):s in light mode.
+-    #[cfg_attr(feature = "serde", serde(skip))]
++    //#[cfg_attr(feature = "serde", serde(skip))]
+     pub light_style: std::sync::Arc<Style>,
+ 
+     /// Preference for selection between dark and light [`crate::Context::style`]
+@@ -207,7 +207,7 @@ pub struct Options {
+ 
+     /// The current system theme, used to choose between
+     /// dark and light style in case [`Self::theme_preference`] is [`ThemePreference::System`].
+-    #[cfg_attr(feature = "serde", serde(skip))]
++    //#[cfg_attr(feature = "serde", serde(skip))]
+     pub(crate) system_theme: Option<Theme>,
+ 
+     /// Global zoom factor of the UI.
+@@ -231,7 +231,7 @@ pub struct Options {
+     /// which will change the `native_pixels_per_point` (`devicePixelRatio`).
+     /// You can still zoom egui independently by calling [`crate::Context::set_zoom_factor`],
+     /// which will be applied on top of the browsers global zoom.
+-    #[cfg_attr(feature = "serde", serde(skip))]
++    //#[cfg_attr(feature = "serde", serde(skip))]
+     pub zoom_with_keyboard: bool,
+ 
+     /// Controls the tessellator.
+diff --git a/egui-rs/crates/egui/src/menu.rs b/egui-rs/crates/egui/src/menu.rs
+index 348f42c2..9be912d3 100644
+--- a/egui-rs/crates/egui/src/menu.rs
++++ b/egui-rs/crates/egui/src/menu.rs
+@@ -120,7 +120,7 @@ pub fn menu_button<R>(
+ /// Returns `None` if the menu is not open.
+ pub fn menu_custom_button<R>(
+     ui: &mut Ui,
+-    button: Button<'_>,
++    button: Button,
+     add_contents: impl FnOnce(&mut Ui) -> R,
+ ) -> InnerResponse<Option<R>> {
+     stationary_menu_button_impl(ui, button, Box::new(add_contents))
+@@ -134,7 +134,7 @@ pub fn menu_custom_button<R>(
+ #[deprecated = "Use `menu_custom_button` instead"]
+ pub fn menu_image_button<R>(
+     ui: &mut Ui,
+-    image_button: ImageButton<'_>,
++    image_button: ImageButton,
+     add_contents: impl FnOnce(&mut Ui) -> R,
+ ) -> InnerResponse<Option<R>> {
+     stationary_menu_button_impl(
+@@ -155,7 +155,7 @@ pub fn submenu_button<R>(
+     title: impl Into<WidgetText>,
+     add_contents: impl FnOnce(&mut Ui) -> R,
+ ) -> InnerResponse<Option<R>> {
+-    SubMenu::new(parent_state, title).show(ui, add_contents)
++    SubMenu2::new(parent_state, title).show(ui, add_contents)
+ }
+ 
+ /// wrapper for the contents of every menu.
+@@ -254,7 +254,7 @@ fn stationary_menu_impl<'c, R>(
+ /// Responds to primary clicks.
+ fn stationary_menu_button_impl<'c, R>(
+     ui: &mut Ui,
+-    button: Button<'_>,
++    button: Button,
+     add_contents: Box<dyn FnOnce(&mut Ui) -> R + 'c>,
+ ) -> InnerResponse<Option<R>> {
+     let bar_id = ui.id();
+@@ -497,13 +497,13 @@ impl MenuResponse {
+     }
+ }
+ 
+-pub struct SubMenuButton {
++pub struct SubMenuButton2 {
+     text: WidgetText,
+     icon: WidgetText,
+     index: usize,
+ }
+ 
+-impl SubMenuButton {
++impl SubMenuButton2 {
+     /// The `icon` can be an emoji (e.g. `⏵` right arrow), shown right of the label
+     fn new(text: impl Into<WidgetText>, icon: impl Into<WidgetText>, index: usize) -> Self {
+         Self {
+@@ -597,16 +597,16 @@ impl SubMenuButton {
+     }
+ }
+ 
+-pub struct SubMenu {
+-    button: SubMenuButton,
++pub struct SubMenu2 {
++    button: SubMenuButton2,
+     parent_state: Arc<RwLock<MenuState>>,
+ }
+ 
+-impl SubMenu {
++impl SubMenu2 {
+     fn new(parent_state: Arc<RwLock<MenuState>>, text: impl Into<WidgetText>) -> Self {
+         let index = parent_state.write().next_entry_index();
+         Self {
+-            button: SubMenuButton::new(text, "⏵", index),
++            button: SubMenuButton2::new(text, "⏵", index),
+             parent_state,
+         }
+     }
+diff --git a/egui-rs/crates/egui/src/os.rs b/egui-rs/crates/egui/src/os.rs
+index 407a5335..faed644e 100644
+--- a/egui-rs/crates/egui/src/os.rs
++++ b/egui-rs/crates/egui/src/os.rs
+@@ -1,6 +1,7 @@
+ /// An `enum` of common operating systems.
+ #[expect(clippy::upper_case_acronyms)] // `Ios` looks too ugly
+ #[derive(Clone, Copy, Debug, PartialEq, Eq, Hash)]
++#[cfg_attr(feature = "serde", derive(serde::Deserialize, serde::Serialize))]
+ pub enum OperatingSystem {
+     /// Unknown OS - could be wasm
+     Unknown,
+diff --git a/egui-rs/crates/egui/src/placer.rs b/egui-rs/crates/egui/src/placer.rs
+index b5f68f72..4f1e69aa 100644
+--- a/egui-rs/crates/egui/src/placer.rs
++++ b/egui-rs/crates/egui/src/placer.rs
+@@ -1,6 +1,5 @@
+ use crate::{Layout, Painter, Pos2, Rect, Region, Vec2, grid, vec2};
+ 
+-#[cfg(debug_assertions)]
+ use crate::{Align2, Color32, Stroke};
+ 
+ pub(crate) struct Placer {
+@@ -280,7 +279,6 @@ impl Placer {
+ }
+ 
+ impl Placer {
+-    #[cfg(debug_assertions)]
+     pub(crate) fn debug_paint_cursor(&self, painter: &crate::Painter, text: impl ToString) {
+         let stroke = Stroke::new(1.0, Color32::DEBUG_COLOR);
+ 
+diff --git a/egui-rs/crates/egui/src/response.rs b/egui-rs/crates/egui/src/response.rs
+index 4e75142c..8d4b2b41 100644
+--- a/egui-rs/crates/egui/src/response.rs
++++ b/egui-rs/crates/egui/src/response.rs
+@@ -73,9 +73,92 @@ pub struct Response {
+     pub flags: Flags,
+ }
+ 
++#[cfg(feature = "serde")]
++impl serde::Serialize for Response {
++    fn serialize<S>(&self, serializer: S) -> Result<S::Ok, S::Error>
++    where
++        S: serde::Serializer,
++    {
++        unsafe {
++            response_serde_helper::Response {
++                ctx: std::mem::transmute::<_, usize>(self.ctx.clone()),
++                layer_id: self.layer_id,
++                id: self.id,
++                rect: self.rect,
++                interact_rect: self.interact_rect,
++                sense: self.sense,
++                interact_pointer_pos: self.interact_pointer_pos,
++                intrinsic_size: self.intrinsic_size,
++                flags: self.flags,
++            }
++            .serialize(serializer)
++        }
++    }
++}
++
++#[cfg(feature = "serde")]
++impl<'de> serde::Deserialize<'de> for Response {
++    fn deserialize<D>(deserializer: D) -> Result<Self, D::Error>
++    where
++        D: serde::Deserializer<'de>,
++    {
++        unsafe {
++            let inner = response_serde_helper::Response::deserialize(deserializer)?;
++
++            if inner.ctx < 8 {
++                Ok(Self {
++                    ctx: Context::default(),
++                    layer_id: inner.layer_id,
++                    id: inner.id,
++                    rect: inner.rect,
++                    interact_rect: inner.interact_rect,
++                    sense: inner.sense,
++                    interact_pointer_pos: inner.interact_pointer_pos,
++                    intrinsic_size: inner.intrinsic_size,
++                    flags: inner.flags,
++                })
++            } else {
++                Ok(Self {
++                    ctx: std::mem::transmute::<_, &Context>(&inner.ctx).clone(),
++                    layer_id: inner.layer_id,
++                    id: inner.id,
++                    rect: inner.rect,
++                    interact_rect: inner.interact_rect,
++                    sense: inner.sense,
++                    interact_pointer_pos: inner.interact_pointer_pos,
++                    intrinsic_size: inner.intrinsic_size,
++                    flags: inner.flags,
++                })
++            }
++        }
++    }
++}
++
++mod response_serde_helper {
++    use super::*;
++
++    /// The data to serialize for a [`Response`].
++    #[derive(Clone, Copy)]
++    #[cfg_attr(feature = "serde", derive(serde::Deserialize, serde::Serialize))]
++    pub struct Response {
++        pub ctx: usize,
++        pub layer_id: LayerId,
++        pub id: Id,
++        pub rect: Rect,
++        pub interact_rect: Rect,
++        pub sense: Sense,
++        #[doc(hidden)]
++        pub interact_pointer_pos: Option<Pos2>,
++        pub intrinsic_size: Option<Vec2>,
++        #[doc(hidden)]
++        pub flags: Flags,
++    }
++}
++
+ /// A bit set for various boolean properties of `Response`.
+ #[doc(hidden)]
+ #[derive(Copy, Clone, Debug)]
++#[cfg_attr(feature = "serde", derive(serde::Deserialize, serde::Serialize))]
+ pub struct Flags(u16);
+ 
+ bitflags::bitflags! {
+diff --git a/egui-rs/crates/egui/src/sense.rs b/egui-rs/crates/egui/src/sense.rs
+index 464db311..651407fb 100644
+--- a/egui-rs/crates/egui/src/sense.rs
++++ b/egui-rs/crates/egui/src/sense.rs
+@@ -1,6 +1,6 @@
+ /// What sort of interaction is a widget sensitive to?
+ #[derive(Clone, Copy, Eq, PartialEq)]
+-// #[cfg_attr(feature = "serde", derive(serde::Serialize))]
++#[cfg_attr(feature = "serde", derive(serde::Deserialize, serde::Serialize))]
+ pub struct Sense(u8);
+ 
+ bitflags::bitflags! {
+diff --git a/egui-rs/crates/egui/src/style.rs b/egui-rs/crates/egui/src/style.rs
+index 454fc6d8..55d5eda1 100644
+--- a/egui-rs/crates/egui/src/style.rs
++++ b/egui-rs/crates/egui/src/style.rs
+@@ -3,15 +3,14 @@
+ #![allow(clippy::if_same_then_else)]
+ 
+ use emath::Align;
+-use epaint::{AlphaFromCoverage, CornerRadius, Shadow, Stroke, text::FontTweak};
++use epaint::{text::FontTweak, AlphaFromCoverage, CornerRadius, Shadow, Stroke};
+ use std::{collections::BTreeMap, ops::RangeInclusive, sync::Arc};
+ 
+ use crate::{
+-    ComboBox, CursorIcon, FontFamily, FontId, Grid, Margin, Response, RichText, TextWrapMode,
+-    WidgetText,
+     ecolor::Color32,
+-    emath::{Rangef, Rect, Vec2, pos2, vec2},
+-    reset_button_with,
++    emath::{pos2, vec2, Rangef, Rect, Vec2},
++    reset_button_with, ComboBox, CursorIcon, FontFamily, FontId, Grid, Margin, Response, RichText,
++    TextWrapMode, WidgetText,
+ };
+ 
+ /// How to format numbers in e.g. a [`crate::DragValue`].
+@@ -121,6 +120,7 @@ impl TextStyle {
+ // ----------------------------------------------------------------------------
+ 
+ /// A way to select [`FontId`], either by picking one directly or by using a [`TextStyle`].
++#[cfg_attr(feature = "serde", derive(serde::Deserialize, serde::Serialize))]
+ #[derive(Debug, Clone)]
+ pub enum FontSelection {
+     /// Default text style - will use [`TextStyle::Body`], unless
+@@ -329,7 +329,6 @@ pub struct Style {
+     /// Options to help debug why egui behaves strangely.
+     ///
+     /// Only available in debug builds.
+-    #[cfg(debug_assertions)]
+     pub debug: DebugOptions,
+ 
+     /// Show tooltips explaining [`DragValue`]:s etc when hovered.
+@@ -1233,7 +1232,6 @@ impl WidgetVisuals {
+ /// Options for help debug egui by adding extra visualization
+ #[derive(Clone, Copy, Debug, PartialEq, Eq)]
+ #[cfg_attr(feature = "serde", derive(serde::Deserialize, serde::Serialize))]
+-#[cfg(debug_assertions)]
+ pub struct DebugOptions {
+     /// Always show callstack to ui on hover.
+     ///
+@@ -1242,7 +1240,6 @@ pub struct DebugOptions {
+     /// Only works in debug builds.
+     /// Requires the `callstack` feature.
+     /// Does not work on web.
+-    #[cfg(debug_assertions)]
+     pub debug_on_hover: bool,
+ 
+     /// Show callstack for the current widget on hover if all modifier keys are pressed down.
+@@ -1254,11 +1251,9 @@ pub struct DebugOptions {
+     /// Does not work on web.
+     ///
+     /// Default is `true` in debug builds, on native, if the `callstack` feature is enabled.
+-    #[cfg(debug_assertions)]
+     pub debug_on_hover_with_all_modifiers: bool,
+ 
+     /// If we show the hover ui, include where the next widget is placed.
+-    #[cfg(debug_assertions)]
+     pub hover_shows_next: bool,
+ 
+     /// Show which widgets make their parent wider
+@@ -1281,7 +1276,6 @@ pub struct DebugOptions {
+     pub show_unaligned: bool,
+ }
+ 
+-#[cfg(debug_assertions)]
+ impl Default for DebugOptions {
+     fn default() -> Self {
+         Self {
+@@ -1331,7 +1325,6 @@ impl Default for Style {
+             interaction: Interaction::default(),
+             visuals: Visuals::default(),
+             animation_time: 6.0 / 60.0, // If we make this too slow, it will be too obvious that our panel animations look like shit :(
+-            #[cfg(debug_assertions)]
+             debug: Default::default(),
+             explanation_tooltips: false,
+             url_in_tooltip: false,
+@@ -1619,8 +1612,8 @@ impl Default for Widgets {
+ // ----------------------------------------------------------------------------
+ 
+ use crate::{
++    widgets::{reset_button, DragValue, Slider, Widget},
+     Ui,
+-    widgets::{DragValue, Slider, Widget, reset_button},
+ };
+ 
+ impl Style {
+@@ -1639,7 +1632,6 @@ impl Style {
+             interaction,
+             visuals,
+             animation_time,
+-            #[cfg(debug_assertions)]
+             debug,
+             explanation_tooltips,
+             url_in_tooltip,
+@@ -1748,7 +1740,6 @@ impl Style {
+         ui.collapsing("🎨 Visuals", |ui| visuals.ui(ui));
+         ui.collapsing("🔄 Scroll animation", |ui| scroll_animation.ui(ui));
+ 
+-        #[cfg(debug_assertions)]
+         ui.collapsing("🐛 Debug", |ui| debug.ui(ui));
+ 
+         ui.checkbox(compact_menu_style, "Compact menu style");
+@@ -2425,7 +2416,6 @@ impl TextCursorStyle {
+     }
+ }
+ 
+-#[cfg(debug_assertions)]
+ impl DebugOptions {
+     pub fn ui(&mut self, ui: &mut crate::Ui) {
+         let Self {
+diff --git a/egui-rs/crates/egui/src/text_selection/label_text_selection.rs b/egui-rs/crates/egui/src/text_selection/label_text_selection.rs
+index 0405ca5d..f89f69ee 100644
+--- a/egui-rs/crates/egui/src/text_selection/label_text_selection.rs
++++ b/egui-rs/crates/egui/src/text_selection/label_text_selection.rs
+@@ -18,6 +18,7 @@ const DEBUG: bool = false; // Don't merge `true`!
+ 
+ /// One end of a text selection, inside any widget.
+ #[derive(Clone, Copy)]
++#[cfg_attr(feature = "serde", derive(serde::Deserialize, serde::Serialize))]
+ struct WidgetTextCursor {
+     widget_id: Id,
+     ccursor: CCursor,
+@@ -57,6 +58,7 @@ impl std::fmt::Debug for WidgetTextCursor {
+ }
+ 
+ #[derive(Clone, Copy, Debug)]
++#[cfg_attr(feature = "serde", derive(serde::Deserialize, serde::Serialize))]
+ struct CurrentSelection {
+     /// The selection is in this layer.
+     ///
+@@ -77,6 +79,7 @@ struct CurrentSelection {
+ ///
+ /// One state for all labels, because we only support text selection in one label at a time.
+ #[derive(Clone, Debug)]
++#[cfg_attr(feature = "serde", derive(serde::Deserialize, serde::Serialize))]
+ pub struct LabelSelectionState {
+     /// The current selection, if any.
+     selection: Option<CurrentSelection>,
+diff --git a/egui-rs/crates/egui/src/text_selection/visuals.rs b/egui-rs/crates/egui/src/text_selection/visuals.rs
+index e3054b19..667247c9 100644
+--- a/egui-rs/crates/egui/src/text_selection/visuals.rs
++++ b/egui-rs/crates/egui/src/text_selection/visuals.rs
+@@ -5,6 +5,7 @@ use crate::{Galley, Painter, Rect, Ui, Visuals, pos2, vec2};
+ use super::CCursorRange;
+ 
+ #[derive(Clone, Debug)]
++#[cfg_attr(feature = "serde", derive(serde::Deserialize, serde::Serialize))]
+ pub struct RowVertexIndices {
+     pub row: usize,
+     pub vertex_indices: [u32; 6],
+diff --git a/egui-rs/crates/egui/src/ui.rs b/egui-rs/crates/egui/src/ui.rs
+index d746b8fe..d7590ca5 100644
+--- a/egui-rs/crates/egui/src/ui.rs
++++ b/egui-rs/crates/egui/src/ui.rs
+@@ -2137,7 +2137,7 @@ impl Ui {
+     /// ```
+     #[must_use = "You should check if the user clicked this with `if ui.button(…).clicked() { … } "]
+     #[inline]
+-    pub fn button<'a>(&mut self, atoms: impl IntoAtoms<'a>) -> Response {
++    pub fn button(&mut self, atoms: impl IntoAtoms) -> Response {
+         Button::new(atoms).ui(self)
+     }
+ 
+@@ -2155,7 +2155,7 @@ impl Ui {
+     ///
+     /// See also [`Self::toggle_value`].
+     #[inline]
+-    pub fn checkbox<'a>(&mut self, checked: &'a mut bool, atoms: impl IntoAtoms<'a>) -> Response {
++    pub fn checkbox<'a>(&mut self, checked: &'a mut bool, atoms: impl IntoAtoms) -> Response {
+         Checkbox::new(checked, atoms).ui(self)
+     }
+ 
+@@ -2164,7 +2164,7 @@ impl Ui {
+     /// Click to toggle to bool.
+     ///
+     /// See also [`Self::checkbox`].
+-    pub fn toggle_value<'a>(&mut self, selected: &mut bool, atoms: impl IntoAtoms<'a>) -> Response {
++    pub fn toggle_value(&mut self, selected: &mut bool, atoms: impl IntoAtoms) -> Response {
+         let mut response = self.selectable_label(*selected, atoms);
+         if response.clicked() {
+             *selected = !*selected;
+@@ -2177,7 +2177,7 @@ impl Ui {
+     /// Often you want to use [`Self::radio_value`] instead.
+     #[must_use = "You should check if the user clicked this with `if ui.radio(…).clicked() { … } "]
+     #[inline]
+-    pub fn radio<'a>(&mut self, selected: bool, atoms: impl IntoAtoms<'a>) -> Response {
++    pub fn radio(&mut self, selected: bool, atoms: impl IntoAtoms) -> Response {
+         RadioButton::new(selected, atoms).ui(self)
+     }
+ 
+@@ -2200,11 +2200,11 @@ impl Ui {
+     /// }
+     /// # });
+     /// ```
+-    pub fn radio_value<'a, Value: PartialEq>(
++    pub fn radio_value<Value: PartialEq>(
+         &mut self,
+         current_value: &mut Value,
+         alternative: Value,
+-        atoms: impl IntoAtoms<'a>,
++        atoms: impl IntoAtoms,
+     ) -> Response {
+         let mut response = self.radio(*current_value == alternative, atoms);
+         if response.clicked() && *current_value != alternative {
+@@ -2218,7 +2218,7 @@ impl Ui {
+     ///
+     /// See also [`Button::selectable`] and [`Self::toggle_value`].
+     #[must_use = "You should check if the user clicked this with `if ui.selectable_label(…).clicked() { … } "]
+-    pub fn selectable_label<'a>(&mut self, checked: bool, text: impl IntoAtoms<'a>) -> Response {
++    pub fn selectable_label(&mut self, checked: bool, text: impl IntoAtoms) -> Response {
+         Button::selectable(checked, text).ui(self)
+     }
+ 
+@@ -2228,11 +2228,11 @@ impl Ui {
+     /// Example: `ui.selectable_value(&mut my_enum, Enum::Alternative, "Alternative")`.
+     ///
+     /// See also [`Button::selectable`] and [`Self::toggle_value`].
+-    pub fn selectable_value<'a, Value: PartialEq>(
++    pub fn selectable_value<Value: PartialEq>(
+         &mut self,
+         current_value: &mut Value,
+         selected_value: Value,
+-        text: impl IntoAtoms<'a>,
++        text: impl IntoAtoms,
+     ) -> Response {
+         let mut response = self.selectable_label(*current_value == selected_value, text);
+         if response.clicked() && *current_value != selected_value {
+@@ -2323,7 +2323,7 @@ impl Ui {
+     ///
+     /// See also [`crate::Image`], [`crate::ImageSource`].
+     #[inline]
+-    pub fn image<'a>(&mut self, source: impl Into<ImageSource<'a>>) -> Response {
++    pub fn image(&mut self, source: impl Into<ImageSource>) -> Response {
+         Image::new(source).ui(self)
+     }
+ }
+@@ -3123,9 +3123,9 @@ impl Ui {
+     /// ```
+     ///
+     /// See also: [`Self::close`] and [`Response::context_menu`].
+-    pub fn menu_button<'a, R>(
++    pub fn menu_button<R>(
+         &mut self,
+-        atoms: impl IntoAtoms<'a>,
++        atoms: impl IntoAtoms,
+         add_contents: impl FnOnce(&mut Ui) -> R,
+     ) -> InnerResponse<Option<R>> {
+         let (response, inner) = if menu::is_in_menu(self) {
+@@ -3157,9 +3157,9 @@ impl Ui {
+     ///
+     /// See also: [`Self::close`] and [`Response::context_menu`].
+     #[inline]
+-    pub fn menu_image_button<'a, R>(
++    pub fn menu_image_button<R>(
+         &mut self,
+-        image: impl Into<Image<'a>>,
++        image: impl Into<Image>,
+         add_contents: impl FnOnce(&mut Ui) -> R,
+     ) -> InnerResponse<Option<R>> {
+         let (response, inner) = if menu::is_in_menu(self) {
+@@ -3194,9 +3194,9 @@ impl Ui {
+     ///
+     /// See also: [`Self::close`] and [`Response::context_menu`].
+     #[inline]
+-    pub fn menu_image_text_button<'a, R>(
++    pub fn menu_image_text_button<R>(
+         &mut self,
+-        image: impl Into<Image<'a>>,
++        image: impl Into<Image>,
+         title: impl Into<WidgetText>,
+         add_contents: impl FnOnce(&mut Ui) -> R,
+     ) -> InnerResponse<Option<R>> {
+@@ -3218,7 +3218,6 @@ impl Ui {
+ /// # Debug stuff
+ impl Ui {
+     /// Shows where the next widget is going to be placed
+-    #[cfg(debug_assertions)]
+     pub fn debug_paint_cursor(&self) {
+         self.placer.debug_paint_cursor(&self.painter, "next");
+     }
+diff --git a/egui-rs/crates/egui/src/ui_builder.rs b/egui-rs/crates/egui/src/ui_builder.rs
+index 51b8ec8a..28f526f5 100644
+--- a/egui-rs/crates/egui/src/ui_builder.rs
++++ b/egui-rs/crates/egui/src/ui_builder.rs
+@@ -12,6 +12,7 @@ use crate::{Id, LayerId, Layout, Rect, Sense, Style, UiStackInfo};
+ /// the parent [`Ui::available_rect_before_wrap`].
+ #[must_use]
+ #[derive(Clone, Default)]
++#[cfg_attr(feature = "serde", derive(serde::Deserialize, serde::Serialize))]
+ pub struct UiBuilder {
+     pub id_salt: Option<Id>,
+     pub global_scope: bool,
+diff --git a/egui-rs/crates/egui/src/ui_stack.rs b/egui-rs/crates/egui/src/ui_stack.rs
+index 0122f568..d0c95674 100644
+--- a/egui-rs/crates/egui/src/ui_stack.rs
++++ b/egui-rs/crates/egui/src/ui_stack.rs
+@@ -5,6 +5,7 @@ use crate::{Direction, Frame, Id, Rect};
+ 
+ /// What kind is this [`crate::Ui`]?
+ #[derive(Clone, Copy, Debug, PartialEq, Eq)]
++#[cfg_attr(feature = "serde", derive(serde::Deserialize, serde::Serialize))]
+ pub enum UiKind {
+     /// A [`crate::Window`].
+     Window,
+@@ -102,9 +103,11 @@ impl UiKind {
+ 
+ /// Information about a [`crate::Ui`] to be included in the corresponding [`UiStack`].
+ #[derive(Clone, Default, Debug)]
++#[cfg_attr(feature = "serde", derive(serde::Deserialize, serde::Serialize))]
+ pub struct UiStackInfo {
+     pub kind: Option<UiKind>,
+     pub frame: Frame,
++    #[cfg_attr(feature = "serde", serde(skip))]
+     pub tags: UiTags,
+ }
+ 
+@@ -201,7 +204,8 @@ impl UiTags {
+ /// Note: since [`UiStack`] contains a reference to its parent, it is both a stack, and a node within
+ /// that stack. Most of its methods are about the specific node, but some methods walk up the
+ /// hierarchy to provide information about the entire stack.
+-#[derive(Debug)]
++#[derive(Clone, Debug)]
++#[cfg_attr(feature = "serde", derive(serde::Deserialize, serde::Serialize))]
+ pub struct UiStack {
+     // stuff that `Ui::child_ui` can deal with directly
+     pub id: Id,
+diff --git a/egui-rs/crates/egui/src/viewport.rs b/egui-rs/crates/egui/src/viewport.rs
+index 3d757e47..b6e32e0d 100644
+--- a/egui-rs/crates/egui/src/viewport.rs
++++ b/egui-rs/crates/egui/src/viewport.rs
+@@ -277,6 +277,7 @@ pub type ImmediateViewportRendererCallback = dyn for<'a> Fn(&Context, ImmediateV
+ /// The default values are implementation defined, so you may want to explicitly
+ /// configure the size of the window, and what buttons are shown.
+ #[derive(Clone, Debug, Default, Eq, PartialEq)]
++#[cfg_attr(feature = "serde", derive(serde::Deserialize, serde::Serialize))]
+ pub struct ViewportBuilder {
+     /// The title of the viewport.
+     /// `eframe` will use this as the title of the native window.
+@@ -1183,6 +1184,7 @@ impl ViewportCommand {
+ /// This is returned by [`crate::Context::run`] on each frame, and should be applied
+ /// by the integration.
+ #[derive(Clone)]
++#[cfg_attr(feature = "serde", derive(serde::Deserialize, serde::Serialize))]
+ pub struct ViewportOutput {
+     /// Id of our parent viewport.
+     pub parent: ViewportId,
+@@ -1203,6 +1205,7 @@ pub struct ViewportOutput {
+     /// The user-code that shows the GUI, used for deferred viewports.
+     ///
+     /// `None` for immediate viewports and the ROOT viewport.
++    #[cfg_attr(feature = "serde", serde(skip))]
+     pub viewport_ui_cb: Option<Arc<DeferredViewportUiCallback>>,
+ 
+     /// Commands to change the viewport, e.g. window title and size.
+diff --git a/egui-rs/crates/egui/src/widget_rect.rs b/egui-rs/crates/egui/src/widget_rect.rs
+index fa99c95d..1c5e19bb 100644
+--- a/egui-rs/crates/egui/src/widget_rect.rs
++++ b/egui-rs/crates/egui/src/widget_rect.rs
+@@ -6,6 +6,7 @@ use crate::{Id, IdMap, LayerId, Rect, Sense, WidgetInfo};
+ ///
+ /// Used to check which widget gets input when a user clicks somewhere.
+ #[derive(Clone, Copy, Debug, PartialEq, Eq)]
++#[cfg_attr(feature = "serde", derive(serde::Deserialize, serde::Serialize))]
+ pub struct WidgetRect {
+     /// The globally unique widget id.
+     ///
+@@ -68,6 +69,7 @@ impl WidgetRect {
+ /// All [`crate::Ui`]s have a [`WidgetRect`]. It is created in [`crate::Ui::new`] with [`Rect::NOTHING`]
+ /// and updated with the correct [`Rect`] when the [`crate::Ui`] is dropped.
+ #[derive(Default, Clone)]
++#[cfg_attr(feature = "serde", derive(serde::Deserialize, serde::Serialize))]
+ pub struct WidgetRects {
+     /// All widgets, in painting order.
+     by_layer: HashMap<LayerId, Vec<WidgetRect>>,
+diff --git a/egui-rs/crates/egui/src/widget_text.rs b/egui-rs/crates/egui/src/widget_text.rs
+index ef54d796..c5035dbd 100644
+--- a/egui-rs/crates/egui/src/widget_text.rs
++++ b/egui-rs/crates/egui/src/widget_text.rs
+@@ -24,6 +24,7 @@ use crate::{
+ /// RichText::new("Large and underlined").size(20.0).underline();
+ /// ```
+ #[derive(Clone, Debug, PartialEq)]
++#[cfg_attr(feature = "serde", derive(serde::Deserialize, serde::Serialize))]
+ pub struct RichText {
+     text: String,
+     size: Option<f32>,
+@@ -486,6 +487,7 @@ impl RichText {
+ /// You can color the text however you want, or use [`Color32::PLACEHOLDER`]
+ /// which will be replaced with a color chosen by the widget that paints the text.
+ #[derive(Clone)]
++#[cfg_attr(feature = "serde", derive(serde::Deserialize, serde::Serialize))]
+ pub enum WidgetText {
+     /// Plain unstyled text.
+     ///
+diff --git a/egui-rs/crates/egui/src/widgets/button.rs b/egui-rs/crates/egui/src/widgets/button.rs
+index af31b40a..6cd73281 100644
+--- a/egui-rs/crates/egui/src/widgets/button.rs
++++ b/egui-rs/crates/egui/src/widgets/button.rs
+@@ -23,8 +23,10 @@ use crate::{
+ /// # });
+ /// ```
+ #[must_use = "You should put this widget in a ui with `ui.add(widget);`"]
+-pub struct Button<'a> {
+-    layout: AtomLayout<'a>,
++#[derive(Clone)]
++#[cfg_attr(feature = "serde", derive(serde::Deserialize, serde::Serialize))]
++pub struct Button {
++    layout: AtomLayout,
+     fill: Option<Color32>,
+     stroke: Option<Stroke>,
+     small: bool,
+@@ -37,8 +39,8 @@ pub struct Button<'a> {
+     limit_image_size: bool,
+ }
+ 
+-impl<'a> Button<'a> {
+-    pub fn new(atoms: impl IntoAtoms<'a>) -> Self {
++impl Button {
++    pub fn new(atoms: impl IntoAtoms) -> Self {
+         Self {
+             layout: AtomLayout::new(atoms.into_atoms())
+                 .sense(Sense::click())
+@@ -70,7 +72,7 @@ impl<'a> Button<'a> {
+     /// See also:
+     ///   - [`Ui::selectable_value`]
+     ///   - [`Ui::selectable_label`]
+-    pub fn selectable(selected: bool, atoms: impl IntoAtoms<'a>) -> Self {
++    pub fn selectable(selected: bool, atoms: impl IntoAtoms) -> Self {
+         Self::new(atoms)
+             .selected(selected)
+             .frame_when_inactive(selected)
+@@ -81,7 +83,7 @@ impl<'a> Button<'a> {
+     ///
+     /// Note: In contrast to [`Button::new`], this limits the image size to the default font height
+     /// (using [`crate::AtomExt::atom_max_height_font_size`]).
+-    pub fn image(image: impl Into<Image<'a>>) -> Self {
++    pub fn image(image: impl Into<Image>) -> Self {
+         Self::opt_image_and_text(Some(image.into()), None)
+     }
+ 
+@@ -89,7 +91,7 @@ impl<'a> Button<'a> {
+     ///
+     /// Note: In contrast to [`Button::new`], this limits the image size to the default font height
+     /// (using [`crate::AtomExt::atom_max_height_font_size`]).
+-    pub fn image_and_text(image: impl Into<Image<'a>>, text: impl Into<WidgetText>) -> Self {
++    pub fn image_and_text(image: impl Into<Image>, text: impl Into<WidgetText>) -> Self {
+         Self::opt_image_and_text(Some(image.into()), Some(text.into()))
+     }
+ 
+@@ -97,7 +99,7 @@ impl<'a> Button<'a> {
+     ///
+     /// Note: In contrast to [`Button::new`], this limits the image size to the default font height
+     /// (using [`crate::AtomExt::atom_max_height_font_size`]).
+-    pub fn opt_image_and_text(image: Option<Image<'a>>, text: Option<WidgetText>) -> Self {
++    pub fn opt_image_and_text(image: Option<Image>, text: Option<WidgetText>) -> Self {
+         let mut button = Self::new(());
+         if let Some(image) = image {
+             button.layout.push_right(image);
+@@ -223,7 +225,7 @@ impl<'a> Button<'a> {
+     ///
+     /// See also [`Self::right_text`].
+     #[inline]
+-    pub fn shortcut_text(mut self, shortcut_text: impl Into<Atom<'a>>) -> Self {
++    pub fn shortcut_text(mut self, shortcut_text: impl Into<Atom>) -> Self {
+         let mut atom = shortcut_text.into();
+         atom.kind = match atom.kind {
+             AtomKind::Text(text) => AtomKind::Text(text.weak()),
+@@ -236,7 +238,7 @@ impl<'a> Button<'a> {
+ 
+     /// Show some text on the right side of the button.
+     #[inline]
+-    pub fn right_text(mut self, right_text: impl Into<Atom<'a>>) -> Self {
++    pub fn right_text(mut self, right_text: impl Into<Atom>) -> Self {
+         self.layout.push_right(Atom::grow());
+         self.layout.push_right(right_text.into());
+         self
+@@ -346,7 +348,7 @@ impl<'a> Button<'a> {
+     }
+ }
+ 
+-impl Widget for Button<'_> {
++impl Widget for Button {
+     fn ui(self, ui: &mut Ui) -> Response {
+         self.atom_ui(ui).response
+     }
+diff --git a/egui-rs/crates/egui/src/widgets/checkbox.rs b/egui-rs/crates/egui/src/widgets/checkbox.rs
+index c90cca29..d77841e0 100644
+--- a/egui-rs/crates/egui/src/widgets/checkbox.rs
++++ b/egui-rs/crates/egui/src/widgets/checkbox.rs
+@@ -19,12 +19,12 @@ use crate::{
+ #[must_use = "You should put this widget in a ui with `ui.add(widget);`"]
+ pub struct Checkbox<'a> {
+     checked: &'a mut bool,
+-    atoms: Atoms<'a>,
++    atoms: Atoms,
+     indeterminate: bool,
+ }
+ 
+ impl<'a> Checkbox<'a> {
+-    pub fn new(checked: &'a mut bool, atoms: impl IntoAtoms<'a>) -> Self {
++    pub fn new(checked: &'a mut bool, atoms: impl IntoAtoms) -> Self {
+         Checkbox {
+             checked,
+             atoms: atoms.into_atoms(),
+diff --git a/egui-rs/crates/egui/src/widgets/color_picker.rs b/egui-rs/crates/egui/src/widgets/color_picker.rs
+index 17d6b650..b2608043 100644
+--- a/egui-rs/crates/egui/src/widgets/color_picker.rs
++++ b/egui-rs/crates/egui/src/widgets/color_picker.rs
+@@ -242,6 +242,7 @@ fn is_additive_alpha(a: f32) -> bool {
+ 
+ /// What options to show for alpha
+ #[derive(Clone, Copy, PartialEq, Eq)]
++#[cfg_attr(feature = "serde", derive(serde::Deserialize, serde::Serialize))]
+ pub enum Alpha {
+     /// Set alpha to 1.0, and show no option for it.
+     Opaque,
+diff --git a/egui-rs/crates/egui/src/widgets/hyperlink.rs b/egui-rs/crates/egui/src/widgets/hyperlink.rs
+index 98964330..b65015da 100644
+--- a/egui-rs/crates/egui/src/widgets/hyperlink.rs
++++ b/egui-rs/crates/egui/src/widgets/hyperlink.rs
+@@ -24,6 +24,7 @@ use self::text_selection::LabelSelectionState;
+ /// # });
+ /// ```
+ #[must_use = "You should put this widget in a ui with `ui.add(widget);`"]
++#[cfg_attr(feature = "serde", derive(serde::Deserialize, serde::Serialize))]
+ pub struct Link {
+     text: WidgetText,
+ }
+@@ -89,6 +90,7 @@ impl Widget for Link {
+ /// # });
+ /// ```
+ #[must_use = "You should put this widget in a ui with `ui.add(widget);`"]
++#[cfg_attr(feature = "serde", derive(serde::Deserialize, serde::Serialize))]
+ pub struct Hyperlink {
+     url: String,
+     text: WidgetText,
+diff --git a/egui-rs/crates/egui/src/widgets/image.rs b/egui-rs/crates/egui/src/widgets/image.rs
+index 167920ad..1365af82 100644
+--- a/egui-rs/crates/egui/src/widgets/image.rs
++++ b/egui-rs/crates/egui/src/widgets/image.rs
+@@ -48,8 +48,9 @@ use crate::{
+ ///
+ #[must_use = "You should put this widget in a ui with `ui.add(widget);`"]
+ #[derive(Debug, Clone)]
+-pub struct Image<'a> {
+-    source: ImageSource<'a>,
++#[cfg_attr(feature = "serde", derive(serde::Deserialize, serde::Serialize))]
++pub struct Image {
++    source: ImageSource,
+     texture_options: TextureOptions,
+     image_options: ImageOptions,
+     sense: Sense,
+@@ -58,10 +59,10 @@ pub struct Image<'a> {
+     pub(crate) alt_text: Option<String>,
+ }
+ 
+-impl<'a> Image<'a> {
++impl Image {
+     /// Load the image from some source.
+-    pub fn new(source: impl Into<ImageSource<'a>>) -> Self {
+-        fn new_mono(source: ImageSource<'_>) -> Image<'_> {
++    pub fn new(source: impl Into<ImageSource>) -> Self {
++        fn new_mono(source: ImageSource) -> Image {
+             let size = if let ImageSource::Texture(tex) = &source {
+                 // User is probably expecting their texture to have
+                 // the exact size of the provided `SizedTexture`.
+@@ -91,8 +92,8 @@ impl<'a> Image<'a> {
+     /// Load the image from a URI.
+     ///
+     /// See [`ImageSource::Uri`].
+-    pub fn from_uri(uri: impl Into<Cow<'a, str>>) -> Self {
+-        Self::new(ImageSource::Uri(uri.into()))
++    pub fn from_uri<'a>(uri: impl Into<Cow<'a, str>>) -> Self {
++        Self::new(ImageSource::Uri(uri.into().into_owned().into()))
+     }
+ 
+     /// Load the image from an existing texture.
+@@ -287,13 +288,13 @@ impl<'a> Image<'a> {
+     }
+ }
+ 
+-impl<'a, T: Into<ImageSource<'a>>> From<T> for Image<'a> {
++impl<T: Into<ImageSource>> From<T> for Image {
+     fn from(value: T) -> Self {
+         Image::new(value)
+     }
+ }
+ 
+-impl<'a> Image<'a> {
++impl Image {
+     /// Returns the size the image will occupy in the final UI.
+     #[inline]
+     pub fn calc_size(&self, available_size: Vec2, image_source_size: Option<Vec2>) -> Vec2 {
+@@ -334,7 +335,7 @@ impl<'a> Image<'a> {
+     }
+ 
+     #[inline]
+-    pub fn source(&'a self, ctx: &Context) -> ImageSource<'a> {
++    pub fn source(&self, ctx: &Context) -> ImageSource {
+         match &self.source {
+             ImageSource::Uri(uri) if is_animated_image_uri(uri) => {
+                 let frame_uri =
+@@ -407,7 +408,7 @@ impl<'a> Image<'a> {
+     }
+ }
+ 
+-impl Widget for Image<'_> {
++impl Widget for Image {
+     fn ui(self, ui: &mut Ui) -> Response {
+         let tlr = self.load_for_size(ui.ctx(), ui.available_size());
+         let image_source_size = tlr.as_ref().ok().and_then(|t| t.size());
+@@ -436,6 +437,7 @@ impl Widget for Image<'_> {
+ /// This type determines the constraints on how
+ /// the size of an image should be calculated.
+ #[derive(Debug, Clone, Copy)]
++#[cfg_attr(feature = "serde", derive(serde::Deserialize, serde::Serialize))]
+ pub struct ImageSize {
+     /// Whether or not the final size should maintain the original aspect ratio.
+     ///
+@@ -579,7 +581,8 @@ impl Default for ImageSize {
+ ///
+ /// This is used by [`Image::new`] and [`Ui::image`].
+ #[derive(Clone)]
+-pub enum ImageSource<'a> {
++#[cfg_attr(feature = "serde", derive(serde::Deserialize, serde::Serialize))]
++pub enum ImageSource {
+     /// Load the image from a URI, e.g. `https://example.com/image.png`.
+     ///
+     /// This could be a `file://` path, `https://` url, `bytes://` identifier, or some other scheme.
+@@ -588,7 +591,7 @@ pub enum ImageSource<'a> {
+     /// up to the registered loaders to handle.
+     ///
+     /// See [`crate::load`] for more information.
+-    Uri(Cow<'a, str>),
++    Uri(Cow<'static, str>),
+ 
+     /// Load the image from an existing texture.
+     ///
+@@ -619,7 +622,7 @@ pub enum ImageSource<'a> {
+     },
+ }
+ 
+-impl std::fmt::Debug for ImageSource<'_> {
++impl std::fmt::Debug for ImageSource {
+     fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+         match self {
+             ImageSource::Bytes { uri, .. } | ImageSource::Uri(uri) => uri.as_ref().fmt(f),
+@@ -628,7 +631,7 @@ impl std::fmt::Debug for ImageSource<'_> {
+     }
+ }
+ 
+-impl ImageSource<'_> {
++impl ImageSource {
+     /// Size of the texture, if known.
+     #[inline]
+     pub fn texture_size(&self) -> Option<Vec2> {
+@@ -717,7 +720,7 @@ pub fn paint_texture_load_result(
+ 
+ /// Attach tooltips like "Loading…" or "Failed loading: …".
+ pub fn texture_load_result_response(
+-    source: &ImageSource<'_>,
++    source: &ImageSource,
+     tlr: &TextureLoadResult,
+     response: Response,
+ ) -> Response {
+@@ -734,41 +737,41 @@ pub fn texture_load_result_response(
+     }
+ }
+ 
+-impl<'a> From<&'a str> for ImageSource<'a> {
++impl<'a> From<&'a str> for ImageSource {
+     #[inline]
+     fn from(value: &'a str) -> Self {
+-        Self::Uri(value.into())
++        Self::Uri(value.to_owned().into())
+     }
+ }
+ 
+-impl<'a> From<&'a String> for ImageSource<'a> {
++impl<'a> From<&'a String> for ImageSource {
+     #[inline]
+     fn from(value: &'a String) -> Self {
+-        Self::Uri(value.as_str().into())
++        Self::Uri(value.to_owned().into())
+     }
+ }
+ 
+-impl From<String> for ImageSource<'static> {
++impl From<String> for ImageSource {
+     fn from(value: String) -> Self {
+         Self::Uri(value.into())
+     }
+ }
+ 
+-impl<'a> From<&'a Cow<'a, str>> for ImageSource<'a> {
++impl<'a> From<&'a Cow<'a, str>> for ImageSource {
+     #[inline]
+     fn from(value: &'a Cow<'a, str>) -> Self {
+-        Self::Uri(value.clone())
++        Self::Uri(value.clone().into_owned().into())
+     }
+ }
+ 
+-impl<'a> From<Cow<'a, str>> for ImageSource<'a> {
++impl<'a> From<Cow<'a, str>> for ImageSource {
+     #[inline]
+     fn from(value: Cow<'a, str>) -> Self {
+-        Self::Uri(value)
++        Self::Uri(value.into_owned().into())
+     }
+ }
+ 
+-impl<T: Into<Bytes>> From<(&'static str, T)> for ImageSource<'static> {
++impl<T: Into<Bytes>> From<(&'static str, T)> for ImageSource {
+     #[inline]
+     fn from((uri, bytes): (&'static str, T)) -> Self {
+         Self::Bytes {
+@@ -778,7 +781,7 @@ impl<T: Into<Bytes>> From<(&'static str, T)> for ImageSource<'static> {
+     }
+ }
+ 
+-impl<T: Into<Bytes>> From<(Cow<'static, str>, T)> for ImageSource<'static> {
++impl<T: Into<Bytes>> From<(Cow<'static, str>, T)> for ImageSource {
+     #[inline]
+     fn from((uri, bytes): (Cow<'static, str>, T)) -> Self {
+         Self::Bytes {
+@@ -788,7 +791,7 @@ impl<T: Into<Bytes>> From<(Cow<'static, str>, T)> for ImageSource<'static> {
+     }
+ }
+ 
+-impl<T: Into<Bytes>> From<(String, T)> for ImageSource<'static> {
++impl<T: Into<Bytes>> From<(String, T)> for ImageSource {
+     #[inline]
+     fn from((uri, bytes): (String, T)) -> Self {
+         Self::Bytes {
+@@ -798,7 +801,7 @@ impl<T: Into<Bytes>> From<(String, T)> for ImageSource<'static> {
+     }
+ }
+ 
+-impl<T: Into<SizedTexture>> From<T> for ImageSource<'static> {
++impl<T: Into<SizedTexture>> From<T> for ImageSource {
+     fn from(value: T) -> Self {
+         Self::Texture(value.into())
+     }
+@@ -886,6 +889,7 @@ pub fn paint_texture_at(
+ }
+ 
+ #[derive(Debug, Clone, PartialEq, Eq, Hash, Default)]
++#[cfg_attr(feature = "serde", derive(serde::Deserialize, serde::Serialize))]
+ /// Stores the durations between each frame of an animated image
+ pub struct FrameDurations(Arc<Vec<Duration>>);
+ 
+diff --git a/egui-rs/crates/egui/src/widgets/image_button.rs b/egui-rs/crates/egui/src/widgets/image_button.rs
+index 752980bb..476ea078 100644
+--- a/egui-rs/crates/egui/src/widgets/image_button.rs
++++ b/egui-rs/crates/egui/src/widgets/image_button.rs
+@@ -6,9 +6,10 @@ use crate::{
+ /// A clickable image within a frame.
+ #[must_use = "You should put this widget in a ui with `ui.add(widget);`"]
+ #[derive(Clone, Debug)]
++#[cfg_attr(feature = "serde", derive(serde::Deserialize, serde::Serialize))]
+ #[deprecated(since = "0.33.0", note = "Use egui::Button::image instead")]
+-pub struct ImageButton<'a> {
+-    pub(crate) image: Image<'a>,
++pub struct ImageButton {
++    pub(crate) image: Image,
+     sense: Sense,
+     frame: bool,
+     selected: bool,
+@@ -16,8 +17,8 @@ pub struct ImageButton<'a> {
+ }
+ 
+ #[expect(deprecated, reason = "Deprecated in egui 0.33.0")]
+-impl<'a> ImageButton<'a> {
+-    pub fn new(image: impl Into<Image<'a>>) -> Self {
++impl ImageButton {
++    pub fn new(image: impl Into<Image>) -> Self {
+         Self {
+             image: image.into(),
+             sense: Sense::click(),
+@@ -85,7 +86,7 @@ impl<'a> ImageButton<'a> {
+ }
+ 
+ #[expect(deprecated, reason = "Deprecated in egui 0.33.0")]
+-impl Widget for ImageButton<'_> {
++impl Widget for ImageButton {
+     fn ui(self, ui: &mut Ui) -> Response {
+         let padding = if self.frame {
+             // so we can see that it is a button:
+diff --git a/egui-rs/crates/egui/src/widgets/label.rs b/egui-rs/crates/egui/src/widgets/label.rs
+index 86259ab2..3a423605 100644
+--- a/egui-rs/crates/egui/src/widgets/label.rs
++++ b/egui-rs/crates/egui/src/widgets/label.rs
+@@ -22,6 +22,7 @@ use crate::{
+ /// For full control of the text you can use [`crate::text::LayoutJob`]
+ /// as argument to [`Self::new`].
+ #[must_use = "You should put this widget in a ui with `ui.add(widget);`"]
++#[cfg_attr(feature = "serde", derive(serde::Deserialize, serde::Serialize))]
+ pub struct Label {
+     text: WidgetText,
+     wrap_mode: Option<TextWrapMode>,
+diff --git a/egui-rs/crates/egui/src/widgets/mod.rs b/egui-rs/crates/egui/src/widgets/mod.rs
+index 9cdefb69..b5b10d9c 100644
+--- a/egui-rs/crates/egui/src/widgets/mod.rs
++++ b/egui-rs/crates/egui/src/widgets/mod.rs
+@@ -36,10 +36,10 @@ pub use self::{
+     },
+     image_button::ImageButton,
+     label::Label,
+-    progress_bar::ProgressBar,
++    progress_bar::{ProgressBar, ProgressBarText},
+     radio_button::RadioButton,
+     separator::Separator,
+-    slider::{Slider, SliderClamping, SliderOrientation},
++    slider::{Slider, SliderClamping, SliderOrientation, SliderSpec},
+     spinner::Spinner,
+     text_edit::{TextBuffer, TextEdit},
+ };
+diff --git a/egui-rs/crates/egui/src/widgets/progress_bar.rs b/egui-rs/crates/egui/src/widgets/progress_bar.rs
+index bba6be8e..b0979ccf 100644
+--- a/egui-rs/crates/egui/src/widgets/progress_bar.rs
++++ b/egui-rs/crates/egui/src/widgets/progress_bar.rs
+@@ -3,7 +3,8 @@ use crate::{
+     TextStyle, TextWrapMode, Ui, Vec2, Widget, WidgetInfo, WidgetText, WidgetType, lerp, vec2,
+ };
+ 
+-enum ProgressBarText {
++#[cfg_attr(feature = "serde", derive(serde::Deserialize, serde::Serialize))]
++pub enum ProgressBarText {
+     Custom(WidgetText),
+     Percentage,
+ }
+@@ -12,6 +13,7 @@ enum ProgressBarText {
+ ///
+ /// See also: [`crate::Spinner`].
+ #[must_use = "You should put this widget in a ui with `ui.add(widget);`"]
++#[cfg_attr(feature = "serde", derive(serde::Deserialize, serde::Serialize))]
+ pub struct ProgressBar {
+     progress: f32,
+     desired_width: Option<f32>,
+diff --git a/egui-rs/crates/egui/src/widgets/radio_button.rs b/egui-rs/crates/egui/src/widgets/radio_button.rs
+index 8b1f7cc4..e7adfb8c 100644
+--- a/egui-rs/crates/egui/src/widgets/radio_button.rs
++++ b/egui-rs/crates/egui/src/widgets/radio_button.rs
+@@ -23,13 +23,15 @@ use crate::{
+ /// # });
+ /// ```
+ #[must_use = "You should put this widget in a ui with `ui.add(widget);`"]
+-pub struct RadioButton<'a> {
++#[derive(Clone, Debug)]
++#[cfg_attr(feature = "serde", derive(serde::Deserialize, serde::Serialize))]
++pub struct RadioButton {
+     checked: bool,
+-    atoms: Atoms<'a>,
++    atoms: Atoms,
+ }
+ 
+-impl<'a> RadioButton<'a> {
+-    pub fn new(checked: bool, atoms: impl IntoAtoms<'a>) -> Self {
++impl RadioButton {
++    pub fn new(checked: bool, atoms: impl IntoAtoms) -> Self {
+         Self {
+             checked,
+             atoms: atoms.into_atoms(),
+@@ -37,7 +39,7 @@ impl<'a> RadioButton<'a> {
+     }
+ }
+ 
+-impl Widget for RadioButton<'_> {
++impl Widget for RadioButton {
+     fn ui(self, ui: &mut Ui) -> Response {
+         let Self { checked, mut atoms } = self;
+ 
+diff --git a/egui-rs/crates/egui/src/widgets/selected_label.rs b/egui-rs/crates/egui/src/widgets/selected_label.rs
+index 536ef43d..abcbfa8e 100644
+--- a/egui-rs/crates/egui/src/widgets/selected_label.rs
++++ b/egui-rs/crates/egui/src/widgets/selected_label.rs
+@@ -7,7 +7,7 @@ pub struct SelectableLabel {}
+ 
+ impl SelectableLabel {
+     #[deprecated = "Use `Button::selectable()` instead"]
+-    pub fn new(selected: bool, text: impl Into<WidgetText>) -> super::Button<'static> {
++    pub fn new(selected: bool, text: impl Into<WidgetText>) -> super::Button {
+         crate::Button::selectable(selected, text)
+     }
+ }
+diff --git a/egui-rs/crates/egui/src/widgets/separator.rs b/egui-rs/crates/egui/src/widgets/separator.rs
+index 6fdd03b9..338ea328 100644
+--- a/egui-rs/crates/egui/src/widgets/separator.rs
++++ b/egui-rs/crates/egui/src/widgets/separator.rs
+@@ -12,6 +12,7 @@ use crate::{Response, Sense, Ui, Vec2, Widget, vec2};
+ /// # });
+ /// ```
+ #[must_use = "You should put this widget in a ui with `ui.add(widget);`"]
++#[cfg_attr(feature = "serde", derive(serde::Deserialize, serde::Serialize))]
+ pub struct Separator {
+     spacing: f32,
+     grow: f32,
+diff --git a/egui-rs/crates/egui/src/widgets/slider.rs b/egui-rs/crates/egui/src/widgets/slider.rs
+index 7937e589..ff631084 100644
+--- a/egui-rs/crates/egui/src/widgets/slider.rs
++++ b/egui-rs/crates/egui/src/widgets/slider.rs
+@@ -32,7 +32,8 @@ fn set(get_set_value: &mut GetSetValue<'_>, value: f64) {
+ // ----------------------------------------------------------------------------
+ 
+ #[derive(Clone)]
+-struct SliderSpec {
++#[cfg_attr(feature = "serde", derive(serde::Deserialize, serde::Serialize))]
++pub struct SliderSpec {
+     logarithmic: bool,
+ 
+     /// For logarithmic sliders, the smallest positive value we are interested in.
+@@ -96,28 +97,28 @@ pub enum SliderClamping {
+ /// The default [`Slider`] size is set by [`crate::style::Spacing::slider_width`].
+ #[must_use = "You should put this widget in a ui with `ui.add(widget);`"]
+ pub struct Slider<'a> {
+-    get_set_value: GetSetValue<'a>,
+-    range: RangeInclusive<f64>,
+-    spec: SliderSpec,
+-    clamping: SliderClamping,
+-    smart_aim: bool,
+-    show_value: bool,
+-    orientation: SliderOrientation,
+-    prefix: String,
+-    suffix: String,
+-    text: WidgetText,
++    pub get_set_value: GetSetValue<'a>,
++    pub range: RangeInclusive<f64>,
++    pub spec: SliderSpec,
++    pub clamping: SliderClamping,
++    pub smart_aim: bool,
++    pub show_value: bool,
++    pub orientation: SliderOrientation,
++    pub prefix: String,
++    pub suffix: String,
++    pub text: WidgetText,
+ 
+     /// Sets the minimal step of the widget value
+-    step: Option<f64>,
+-
+-    drag_value_speed: Option<f64>,
+-    min_decimals: usize,
+-    max_decimals: Option<usize>,
+-    custom_formatter: Option<NumFormatter<'a>>,
+-    custom_parser: Option<NumParser<'a>>,
+-    trailing_fill: Option<bool>,
+-    handle_shape: Option<HandleShape>,
+-    update_while_editing: bool,
++    pub step: Option<f64>,
++
++    pub drag_value_speed: Option<f64>,
++    pub min_decimals: usize,
++    pub max_decimals: Option<usize>,
++    pub custom_formatter: Option<NumFormatter<'a>>,
++    pub custom_parser: Option<NumParser<'a>>,
++    pub trailing_fill: Option<bool>,
++    pub handle_shape: Option<HandleShape>,
++    pub update_while_editing: bool,
+ }
+ 
+ impl<'a> Slider<'a> {
+diff --git a/egui-rs/crates/egui/src/widgets/spinner.rs b/egui-rs/crates/egui/src/widgets/spinner.rs
+index 8b5ab5e2..c33d2332 100644
+--- a/egui-rs/crates/egui/src/widgets/spinner.rs
++++ b/egui-rs/crates/egui/src/widgets/spinner.rs
+@@ -7,6 +7,7 @@ use crate::{Response, Sense, Ui, Widget, WidgetInfo, WidgetType};
+ /// See also: [`crate::ProgressBar`].
+ #[must_use = "You should put this widget in a ui with `ui.add(widget);`"]
+ #[derive(Default)]
++#[cfg_attr(feature = "serde", derive(serde::Deserialize, serde::Serialize))]
+ pub struct Spinner {
+     /// Uses the style's `interact_size` if `None`.
+     size: Option<f32>,
+diff --git a/egui-rs/crates/egui/src/widgets/text_edit/builder.rs b/egui-rs/crates/egui/src/widgets/text_edit/builder.rs
+index c0364e7e..972c9260 100644
+--- a/egui-rs/crates/egui/src/widgets/text_edit/builder.rs
++++ b/egui-rs/crates/egui/src/widgets/text_edit/builder.rs
+@@ -66,29 +66,29 @@ type LayouterFn<'t> = &'t mut dyn FnMut(&Ui, &dyn TextBuffer, f32) -> Arc<Galley
+ /// The background color of a [`crate::TextEdit`] is [`crate::Visuals::text_edit_bg_color`] or can be set with [`crate::TextEdit::background_color`].
+ #[must_use = "You should put this widget in a ui with `ui.add(widget);`"]
+ pub struct TextEdit<'t> {
+-    text: &'t mut dyn TextBuffer,
+-    hint_text: WidgetText,
+-    hint_text_font: Option<FontSelection>,
+-    id: Option<Id>,
+-    id_salt: Option<Id>,
+-    font_selection: FontSelection,
+-    text_color: Option<Color32>,
+-    layouter: Option<LayouterFn<'t>>,
+-    password: bool,
+-    frame: bool,
+-    margin: Margin,
+-    multiline: bool,
+-    interactive: bool,
+-    desired_width: Option<f32>,
+-    desired_height_rows: usize,
+-    event_filter: EventFilter,
+-    cursor_at_end: bool,
+-    min_size: Vec2,
+-    align: Align2,
+-    clip_text: bool,
+-    char_limit: usize,
+-    return_key: Option<KeyboardShortcut>,
+-    background_color: Option<Color32>,
++    pub text: &'t mut dyn TextBuffer,
++    pub hint_text: WidgetText,
++    pub hint_text_font: Option<FontSelection>,
++    pub id: Option<Id>,
++    pub id_salt: Option<Id>,
++    pub font_selection: FontSelection,
++    pub text_color: Option<Color32>,
++    pub layouter: Option<LayouterFn<'t>>,
++    pub password: bool,
++    pub frame: bool,
++    pub margin: Margin,
++    pub multiline: bool,
++    pub interactive: bool,
++    pub desired_width: Option<f32>,
++    pub desired_height_rows: usize,
++    pub event_filter: EventFilter,
++    pub cursor_at_end: bool,
++    pub min_size: Vec2,
++    pub align: Align2,
++    pub clip_text: bool,
++    pub char_limit: usize,
++    pub return_key: Option<KeyboardShortcut>,
++    pub background_color: Option<Color32>,
+ }
+ 
+ impl WidgetWithState for TextEdit<'_> {
+diff --git a/egui-rs/crates/egui/src/widgets/text_edit/state.rs b/egui-rs/crates/egui/src/widgets/text_edit/state.rs
+index 5827aac4..78a1ff5c 100644
+--- a/egui-rs/crates/egui/src/widgets/text_edit/state.rs
++++ b/egui-rs/crates/egui/src/widgets/text_edit/state.rs
+@@ -42,21 +42,21 @@ pub struct TextEditState {
+     pub(crate) undoer: Arc<Mutex<TextEditUndoer>>,
+ 
+     // If IME candidate window is shown on this text edit.
+-    #[cfg_attr(feature = "serde", serde(skip))]
++    //#[cfg_attr(feature = "serde", serde(skip))]
+     pub(crate) ime_enabled: bool,
+ 
+     // cursor range for IME candidate.
+-    #[cfg_attr(feature = "serde", serde(skip))]
++    //#[cfg_attr(feature = "serde", serde(skip))]
+     pub(crate) ime_cursor_range: CCursorRange,
+ 
+     // Text offset within the widget area.
+     // Used for sensing and singleline text clipping.
+-    #[cfg_attr(feature = "serde", serde(skip))]
++    //#[cfg_attr(feature = "serde", serde(skip))]
+     pub(crate) text_offset: Vec2,
+ 
+     /// When did the user last press a key or click on the `TextEdit`.
+     /// Used to pause the cursor animation when typing.
+-    #[cfg_attr(feature = "serde", serde(skip))]
++    //#[cfg_attr(feature = "serde", serde(skip))]
+     pub(crate) last_interaction_time: f64,
+ }
+ 
+diff --git a/egui-rs/crates/emath/src/ordered_float.rs b/egui-rs/crates/emath/src/ordered_float.rs
+index 369541fe..15ed3a81 100644
+--- a/egui-rs/crates/emath/src/ordered_float.rs
++++ b/egui-rs/crates/emath/src/ordered_float.rs
+@@ -12,6 +12,7 @@ use std::hash::{Hash, Hasher};
+ ///
+ /// See also [`Float`].
+ #[derive(Clone, Copy)]
++#[cfg_attr(feature = "serde", derive(serde::Deserialize, serde::Serialize))]
+ pub struct OrderedFloat<T>(pub T);
+ 
+ impl<T: Float + Copy> OrderedFloat<T> {
+diff --git a/egui-rs/crates/epaint/src/lib.rs b/egui-rs/crates/epaint/src/lib.rs
+index 1bf0285b..11c4f3f3 100644
+--- a/egui-rs/crates/epaint/src/lib.rs
++++ b/egui-rs/crates/epaint/src/lib.rs
+@@ -118,6 +118,7 @@ impl Default for TextureId {
+ ///
+ /// Everything is using logical points.
+ #[derive(Clone, Debug, PartialEq)]
++#[cfg_attr(feature = "serde", derive(serde::Deserialize, serde::Serialize))]
+ pub struct ClippedShape {
+     /// Clip / scissor rectangle.
+     /// Only show the part of the [`Shape`] that falls within this.
+@@ -143,6 +144,7 @@ impl ClippedShape {
+ ///
+ /// Everything is using logical points.
+ #[derive(Clone, Debug)]
++#[cfg_attr(feature = "serde", derive(serde::Deserialize, serde::Serialize))]
+ pub struct ClippedPrimitive {
+     /// Clip / scissor rectangle.
+     /// Only show the part of the [`Mesh`] that falls within this.
+@@ -154,8 +156,10 @@ pub struct ClippedPrimitive {
+ 
+ /// A rendering primitive - either a [`Mesh`] or a [`PaintCallback`].
+ #[derive(Clone, Debug)]
++#[cfg_attr(feature = "serde", derive(serde::Deserialize, serde::Serialize))]
+ pub enum Primitive {
+     Mesh(Mesh),
++    #[cfg_attr(feature = "serde", serde(skip))]
+     Callback(PaintCallback),
+ }
+ 
+diff --git a/egui-rs/crates/epaint/src/mesh.rs b/egui-rs/crates/epaint/src/mesh.rs
+index 8a0a3949..d89bf18d 100644
+--- a/egui-rs/crates/epaint/src/mesh.rs
++++ b/egui-rs/crates/epaint/src/mesh.rs
+@@ -321,6 +321,8 @@ impl Mesh {
+ /// A version of [`Mesh`] that uses 16-bit indices.
+ ///
+ /// This is produced by [`Mesh::split_to_u16`] and is meant to be used for legacy render backends.
++#[derive(Clone, Debug, Default, PartialEq, Eq)]
++#[cfg_attr(feature = "serde", derive(serde::Deserialize, serde::Serialize))]
+ pub struct Mesh16 {
+     /// Draw as triangles (i.e. the length is always multiple of three).
+     ///
+diff --git a/egui-rs/crates/epaint/src/shapes/shape.rs b/egui-rs/crates/epaint/src/shapes/shape.rs
+index 8ee852c6..d003ced7 100644
+--- a/egui-rs/crates/epaint/src/shapes/shape.rs
++++ b/egui-rs/crates/epaint/src/shapes/shape.rs
+@@ -24,6 +24,7 @@ use super::{
+ /// and so must be recreated every time `pixels_per_point` changes.
+ #[must_use = "Add a Shape to a Painter"]
+ #[derive(Clone, Debug, PartialEq)]
++#[cfg_attr(feature = "serde", derive(serde::Deserialize, serde::Serialize))]
+ pub enum Shape {
+     /// Paint nothing. This can be useful as a placeholder.
+     Noop,
+@@ -67,6 +68,7 @@ pub enum Shape {
+     CubicBezier(CubicBezierShape),
+ 
+     /// Backend-specific painting.
++    #[cfg_attr(feature = "serde", serde(skip))]
+     Callback(PaintCallback),
+ }
+ 
+diff --git a/egui-rs/crates/epaint/src/text/fonts.rs b/egui-rs/crates/epaint/src/text/fonts.rs
+index 6bc7ccf8..30a6165d 100644
+--- a/egui-rs/crates/epaint/src/text/fonts.rs
++++ b/egui-rs/crates/epaint/src/text/fonts.rs
+@@ -261,6 +261,7 @@ pub struct FontDefinitions {
+ }
+ 
+ #[derive(Debug, Clone)]
++#[cfg_attr(feature = "serde", derive(serde::Deserialize, serde::Serialize))]
+ pub struct FontInsert {
+     /// Font name
+     pub name: String,
+@@ -273,6 +274,7 @@ pub struct FontInsert {
+ }
+ 
+ #[derive(Debug, Clone)]
++#[cfg_attr(feature = "serde", derive(serde::Deserialize, serde::Serialize))]
+ pub struct InsertFontFamily {
+     /// Font family
+     pub family: FontFamily,
+@@ -282,6 +284,7 @@ pub struct InsertFontFamily {
+ }
+ 
+ #[derive(Debug, Clone)]
++#[cfg_attr(feature = "serde", derive(serde::Deserialize, serde::Serialize))]
+ pub enum FontPriority {
+     /// Prefer this font before all existing ones.
+     ///
+diff --git a/egui-rs/rust-toolchain b/egui-rs/rust-toolchain
+deleted file mode 100644
+index 20a74465..00000000
+--- a/egui-rs/rust-toolchain
++++ /dev/null
+@@ -1,10 +0,0 @@
+-# If you see this, run "rustup self update" to get rustup 1.23 or newer.
+-
+-# NOTE: above comment is for older `rustup` (before TOML support was added),
+-# which will treat the first line as the toolchain name, and therefore show it
+-# to the user in the error, instead of "error: invalid channel name '[toolchain]'".
+-
+-[toolchain]
+-channel = "1.88.0"
+-components = ["rustfmt", "clippy"]
+-targets = ["wasm32-unknown-unknown"]
