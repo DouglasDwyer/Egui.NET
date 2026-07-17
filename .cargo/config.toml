@@ -1,6 +1,0 @@
-[alias]
-# Regenerates egui-rs-patched/ (staged copy of egui-rs/ with patches/egui_net.patch
-# applied) and the rustdoc JSON files under egui_net_bindgen/src/. Must be run
-# once after cloning, and again whenever egui-rs/ or patches/egui_net.patch change,
-# before `cargo build` will work.
-vendor-egui = "run --manifest-path xtask/Cargo.toml --"

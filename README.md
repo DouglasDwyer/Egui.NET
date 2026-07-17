@@ -79,19 +79,17 @@ The project is organized in the following way:
 
 - docs -  contains files for customizing the DocFX output
 - Egui - contains the C# project definition and manually-written C# bindings
-- egui-rs - a vendored [subtree](https://git-scm.com/book/en/v2/Git-Tools-Advanced-Merging#_subtree_merge) of upstream `egui`, kept pristine so it can be upgraded with a plain `git subtree pull`
+- egui-rs - a vendored [subtree](https://git-scm.com/book/en/v2/Git-Tools-Advanced-Merging#_subtree_merge) of `egui`, with the C# interop changes described below committed directly on top
 - egui_net - contains the runtime `egui` crate that is compiled to a `dylib` and loaded by C#.
   - progress_report.txt - describes what percentage of the API is complete, and identifies functions that have yet to be bound. Generated every time `cargo test` is run
-- egui_net_bindgen - helper crate that contains the autobinder. Leverages `rustdoc` and `serde-generate` to bind most of egui automatically. The bindings are written to `target/bindings` whenever `cargo build` is run
+- egui_net_bindgen - helper crate that contains the autobinder. Leverages `rustdoc` and `serde-generate` to bind most of egui automatically. Its build script regenerates rustdoc JSON straight from egui-rs/ on every build where egui-rs/ has changed, and the resulting bindings are written to `target/bindings` whenever `cargo build` is run
 - examples - example programs demonstrating how to use the library in C#
 - media - images and other media used in documentation
-- patches - contains `egui_net.patch`, the diff of C# interop changes carried on top of upstream `egui`
 - serde-generate - a fork of the `serde-generate` crate, with some customizations for the Egui.NET API
-- xtask - vendoring helper; regenerates `egui-rs-patched/` (egui-rs with `patches/egui_net.patch` applied) and the rustdoc JSON files used by the autobinder
 
-The project needs a small amount of `egui` code to be marked as serializable so that it can be shared with C#. Rather than hand-editing `egui-rs/`, those changes live in `patches/egui_net.patch` and are applied to a build-only copy. Run `cargo vendor-egui` after cloning, and again whenever `egui-rs/` or `patches/egui_net.patch` change, before building the rest of the workspace. See [xtask/src/main.rs](xtask/src/main.rs) for what it does.
+The project needs a small amount of `egui` code to be marked as serializable so that it can be shared with C#. Those changes are committed directly onto the `egui-rs` subtree rather than maintained as a separate patch file, so `cargo build` works right after cloning with no extra setup step.
 
-To pull in a newer `egui` release: `git subtree pull --prefix=egui-rs <egui remote> <tag> --squash`, resolve any conflicts, regenerate `patches/egui_net.patch` against the new base, then run `cargo vendor-egui` again.
+To pull in a newer `egui` release: `git subtree pull --prefix=egui-rs <egui remote> <tag> --squash`, then resolve any merge conflicts between the new upstream release and the existing C# interop changes.
 
 ### Supported platforms
 

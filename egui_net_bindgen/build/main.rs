@@ -1,6 +1,9 @@
 use rustdoc_types::*;
+use std::collections::HashMap;
 use std::fmt::Write;
-use std::path::*;
+use std::path::Path;
+use std::path::PathBuf;
+use std::process::Command;
 
 /// Types that should be ignored during generation.
 const EXCLUDE_TYPES: &[&str] = &[
@@ -9,6 +12,9 @@ const EXCLUDE_TYPES: &[&str] = &[
     "PointerState",
     "Undoer",
 ];
+
+/// Crates in the egui-rs subtree that rustdoc JSON is generated for.
+const DOC_CRATES: &[&str] = &["ecolor", "emath", "epaint", "egui"];
 
 /// Determines whether `x` implements the trait with `path`.
 fn impls_contains(krate: &Crate, impls: &[Id], path: &str) -> bool {
@@ -54,7 +60,7 @@ fn emit_tracer(name: &str, krate: &Crate, exclude_tys: &[&str]) -> String {
     let ids = gather_serde_tys(krate, exclude_tys);
 
     let mut result = String::new();
-    
+
     result.push_str("/// Registers all serializable `egui` types with the reflection system.\n");
     result.push_str("#[allow(warnings)]\n");
     result.push_str(&format!("fn trace_auto_{name}_types(tracer: &mut ::serde_reflection::Tracer) {{\n"));
@@ -68,15 +74,84 @@ fn emit_tracer(name: &str, krate: &Crate, exclude_tys: &[&str]) -> String {
     result
 }
 
+/// Runs `cargo rustdoc --output-format=json` against the egui-rs subtree for
+/// each of [`DOC_CRATES`], parses the results, and also copies the raw JSON
+/// into `out_dir` (as `<crate>.json`) so `src/lib.rs` can embed it via
+/// `include_str!(concat!(env!("OUT_DIR"), ...))`. Regenerating from egui-rs/
+/// directly (rather than reading committed JSON files) means the autobinder
+/// always reflects whatever C# interop changes currently live in egui-rs/,
+/// with no separate "did you remember to regenerate this" step.
+fn regenerate_json_docs(manifest_dir: &Path, egui_rs: &Path, out_dir: &Path) -> HashMap<&'static str, Crate> {
+    let cargo = std::env::var("CARGO").unwrap_or_else(|_| "cargo".to_string());
+    let mut docs = HashMap::new();
+
+    for &crate_name in DOC_CRATES {
+        let crate_manifest = egui_rs.join("crates").join(crate_name).join("Cargo.toml");
+
+        // Run with cwd = this crate's own directory so rustup resolves the
+        // toolchain from Egui.NET/rust-toolchain.toml (egui-rs has no
+        // toolchain file of its own; egui-rs/crates/egui/Cargo.toml is its
+        // own separate workspace, so this doesn't contend with the target/
+        // directory lock the outer `cargo build` invocation already holds).
+        let status = Command::new(&cargo)
+            .current_dir(manifest_dir)
+            .args([
+                "rustdoc",
+                "--manifest-path", crate_manifest.to_str().expect("non-UTF8 path"),
+                "--lib",
+                "--features", "serde",
+                "--",
+                "-Z", "unstable-options",
+                "--output-format=json",
+            ])
+            .status()
+            .unwrap_or_else(|e| panic!("Failed to run `{cargo} rustdoc` for `{crate_name}`: {e}"));
+
+        if !status.success() {
+            panic!("`cargo rustdoc` failed for crate `{crate_name}`");
+        }
+
+        let doc_path = egui_rs.join("target/doc").join(format!("{crate_name}.json"));
+        let contents = std::fs::read_to_string(&doc_path)
+            .unwrap_or_else(|e| panic!("Failed to read {}: {e}", doc_path.display()));
+
+        let embed_path = out_dir.join(format!("{crate_name}.json"));
+        std::fs::write(&embed_path, &contents)
+            .unwrap_or_else(|e| panic!("Failed to write {}: {e}", embed_path.display()));
+
+        let krate = serde_json::from_str(&contents)
+            .unwrap_or_else(|e| panic!("Failed to parse {}: {e}", doc_path.display()));
+
+        docs.insert(crate_name, krate);
+    }
+
+    docs
+}
+
 /// Autogenerates a function for performing reflection on `egui` types.
 fn main() {
-    let out_dir = std::env::var("OUT_DIR").expect("Failed to get output directory");
-    let out_file = PathBuf::from(out_dir).join("tracer.rs");
-    
-    let egui_tracer = emit_tracer("egui", &serde_json::from_str::<Crate>(include_str!("../src/egui.json")).expect("Failed to parse egui"), EXCLUDE_TYPES);
-    let emath_tracer = emit_tracer("epaint", &serde_json::from_str::<Crate>(include_str!("../src/emath.json")).expect("Failed to parse emath"), EXCLUDE_TYPES);
-    let epaint_tracer = emit_tracer("emath", &serde_json::from_str::<Crate>(include_str!("../src/epaint.json")).expect("Failed to parse epaint"), EXCLUDE_TYPES);
-    let ecolor_tracer = emit_tracer("ecolor", &serde_json::from_str::<Crate>(include_str!("../src/ecolor.json")).expect("Failed to parse ecolor"), EXCLUDE_TYPES);
-    
+    let manifest_dir = PathBuf::from(env!("CARGO_MANIFEST_DIR"));
+    let egui_rs = manifest_dir.join("../egui-rs");
+
+    // Watch egui-rs/crates and the root manifests specifically, not all of
+    // egui-rs/: `cargo rustdoc` below writes into egui-rs/target/, and
+    // watching that too would make every build see its own prior output as
+    // a change, triggering doc regeneration (and a rebuild of egui_net_bindgen
+    // and everything downstream) on every single `cargo build`.
+    println!("cargo::rerun-if-changed=build/main.rs");
+    println!("cargo::rerun-if-changed={}", egui_rs.join("crates").display());
+    println!("cargo::rerun-if-changed={}", egui_rs.join("Cargo.toml").display());
+    println!("cargo::rerun-if-changed={}", egui_rs.join("Cargo.lock").display());
+
+    let out_dir = PathBuf::from(std::env::var("OUT_DIR").expect("Failed to get output directory"));
+    let docs = regenerate_json_docs(&manifest_dir, &egui_rs, &out_dir);
+
+    let out_file = out_dir.join("tracer.rs");
+
+    let egui_tracer = emit_tracer("egui", &docs["egui"], EXCLUDE_TYPES);
+    let emath_tracer = emit_tracer("epaint", &docs["emath"], EXCLUDE_TYPES);
+    let epaint_tracer = emit_tracer("emath", &docs["epaint"], EXCLUDE_TYPES);
+    let ecolor_tracer = emit_tracer("ecolor", &docs["ecolor"], EXCLUDE_TYPES);
+
     std::fs::write(out_file, format!("{egui_tracer}\n{emath_tracer}\n{epaint_tracer}\n{ecolor_tracer}")).expect("Failed to write tracer bindings");
 }
