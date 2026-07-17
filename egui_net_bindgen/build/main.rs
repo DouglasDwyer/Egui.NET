@@ -1,8 +1,7 @@
 use rustdoc_types::*;
 use std::collections::HashMap;
 use std::fmt::Write;
-use std::path::Path;
-use std::path::PathBuf;
+use std::path::{Path, PathBuf};
 use std::process::Command;
 
 /// Types that should be ignored during generation.
@@ -14,7 +13,7 @@ const EXCLUDE_TYPES: &[&str] = &[
 ];
 
 /// Crates in the egui-rs subtree that rustdoc JSON is generated for.
-const DOC_CRATES: &[&str] = &["ecolor", "emath", "epaint", "egui"];
+const DOC_CRATES: &[&str] = &["ecolor", "egui", "emath", "epaint"];
 
 /// Determines whether `x` implements the trait with `path`.
 fn impls_contains(krate: &Crate, impls: &[Id], path: &str) -> bool {
@@ -85,8 +84,7 @@ fn regenerate_json_docs(manifest_dir: &Path, egui_rs: &Path, out_dir: &Path) -> 
     for &crate_name in DOC_CRATES {
         let crate_manifest = egui_rs.join("crates").join(crate_name).join("Cargo.toml");
 
-        // cwd = this crate's dir so rustup resolves the toolchain from
-        // Egui.NET/rust-toolchain.toml.
+        // cwd = manifest_dir so rustup resolves the toolchain from Egui.NET/rust-toolchain.toml.
         let status = Command::new(&cargo)
             .current_dir(manifest_dir)
             .args([

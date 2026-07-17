@@ -5,11 +5,8 @@ members = [
     "egui_net_ffi",
     "serde-generate",
 ]
-# egui-rs/ is its own separate Cargo workspace (it has its own `[workspace]`
-# table). Without excluding it here, Cargo treats the egui-rs/crates/egui
-# patch dependency below as inheriting `workspace.package` fields
-# (rust-version, version, license, ...) from this workspace instead of its
-# own, which breaks resolution.
+# egui-rs/ has its own [workspace]; excluding it stops Cargo from resolving
+# its patched crates' workspace-inherited fields against this workspace.
 exclude = [ "egui-rs" ]
 default-members = [ "egui_net" ]
 resolver = "2"
