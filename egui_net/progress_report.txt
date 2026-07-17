@@ -1,4 +1,4 @@
-1791 / 1914 (93%) bound
+1792 / 1914 (93%) bound
 egui_atomics_atom_kind_AtomKind_closure
 egui_atomics_atom_kind_AtomKind_into_sized
 egui_atomics_atom_layout_SizedAtomLayout_iter_images
@@ -78,7 +78,6 @@ egui_widget_rect_WidgetRects_insert
 egui_widget_rect_WidgetRects_layer_ids
 egui_widget_rect_WidgetRects_layers
 egui_widget_style_Classes_classes_mut
-egui_widget_text_RichText_variation
 egui_widget_text_RichText_variations
 egui_widgets_button_Button_classes_mut
 egui_widgets_checkbox_Checkbox_atoms
