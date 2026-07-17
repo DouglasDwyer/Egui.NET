@@ -4,7 +4,8 @@ use epaint::text::TextWrapMode;
 
 /// The different kinds of [`crate::Atom`]s.
 #[derive(Clone, Default, Debug)]
-pub enum AtomKind<'a> {
+#[cfg_attr(feature = "serde", derive(serde::Deserialize, serde::Serialize))]
+pub enum AtomKind {
     /// Empty, that can be used with [`crate::AtomExt::atom_grow`] to reserve space.
     #[default]
     Empty,
@@ -36,7 +37,7 @@ pub enum AtomKind<'a> {
     /// You can use [`crate::AtomExt::atom_max_size`] or [`crate::AtomExt::atom_size`] to customize the size.
     /// There is also a helper [`crate::AtomExt::atom_max_height_font_size`] to set the max height to the
     /// default font height, which is convenient for icons.
-    Image(Image<'a>),
+    Image(Image),
 
     /// For custom rendering.
     ///
@@ -60,12 +61,12 @@ pub enum AtomKind<'a> {
     Custom(Id),
 }
 
-impl<'a> AtomKind<'a> {
+impl AtomKind {
     pub fn text(text: impl Into<WidgetText>) -> Self {
         AtomKind::Text(text.into())
     }
 
-    pub fn image(image: impl Into<Image<'a>>) -> Self {
+    pub fn image(image: impl Into<Image>) -> Self {
         AtomKind::Image(image.into())
     }
 
@@ -79,7 +80,7 @@ impl<'a> AtomKind<'a> {
         available_size: Vec2,
         wrap_mode: Option<TextWrapMode>,
         fallback_font: FontSelection,
-    ) -> (Vec2, SizedAtomKind<'a>) {
+    ) -> (Vec2, SizedAtomKind) {
         match self {
             AtomKind::Text(text) => {
                 let wrap_mode = wrap_mode.unwrap_or(ui.wrap_mode());
@@ -97,19 +98,19 @@ impl<'a> AtomKind<'a> {
     }
 }
 
-impl<'a> From<ImageSource<'a>> for AtomKind<'a> {
-    fn from(value: ImageSource<'a>) -> Self {
+impl From<ImageSource> for AtomKind {
+    fn from(value: ImageSource) -> Self {
         AtomKind::Image(value.into())
     }
 }
 
-impl<'a> From<Image<'a>> for AtomKind<'a> {
-    fn from(value: Image<'a>) -> Self {
+impl From<Image> for AtomKind {
+    fn from(value: Image) -> Self {
         AtomKind::Image(value)
     }
 }
 
-impl<T> From<T> for AtomKind<'_>
+impl<T> From<T> for AtomKind
 where
     T: Into<WidgetText>,
 {

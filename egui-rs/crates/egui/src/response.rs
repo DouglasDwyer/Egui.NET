@@ -73,9 +73,92 @@ pub struct Response {
     pub flags: Flags,
 }
 
+#[cfg(feature = "serde")]
+impl serde::Serialize for Response {
+    fn serialize<S>(&self, serializer: S) -> Result<S::Ok, S::Error>
+    where
+        S: serde::Serializer,
+    {
+        unsafe {
+            response_serde_helper::Response {
+                ctx: std::mem::transmute::<_, usize>(self.ctx.clone()),
+                layer_id: self.layer_id,
+                id: self.id,
+                rect: self.rect,
+                interact_rect: self.interact_rect,
+                sense: self.sense,
+                interact_pointer_pos: self.interact_pointer_pos,
+                intrinsic_size: self.intrinsic_size,
+                flags: self.flags,
+            }
+            .serialize(serializer)
+        }
+    }
+}
+
+#[cfg(feature = "serde")]
+impl<'de> serde::Deserialize<'de> for Response {
+    fn deserialize<D>(deserializer: D) -> Result<Self, D::Error>
+    where
+        D: serde::Deserializer<'de>,
+    {
+        unsafe {
+            let inner = response_serde_helper::Response::deserialize(deserializer)?;
+
+            if inner.ctx < 8 {
+                Ok(Self {
+                    ctx: Context::default(),
+                    layer_id: inner.layer_id,
+                    id: inner.id,
+                    rect: inner.rect,
+                    interact_rect: inner.interact_rect,
+                    sense: inner.sense,
+                    interact_pointer_pos: inner.interact_pointer_pos,
+                    intrinsic_size: inner.intrinsic_size,
+                    flags: inner.flags,
+                })
+            } else {
+                Ok(Self {
+                    ctx: std::mem::transmute::<_, &Context>(&inner.ctx).clone(),
+                    layer_id: inner.layer_id,
+                    id: inner.id,
+                    rect: inner.rect,
+                    interact_rect: inner.interact_rect,
+                    sense: inner.sense,
+                    interact_pointer_pos: inner.interact_pointer_pos,
+                    intrinsic_size: inner.intrinsic_size,
+                    flags: inner.flags,
+                })
+            }
+        }
+    }
+}
+
+mod response_serde_helper {
+    use super::*;
+
+    /// The data to serialize for a [`Response`].
+    #[derive(Clone, Copy)]
+    #[cfg_attr(feature = "serde", derive(serde::Deserialize, serde::Serialize))]
+    pub struct Response {
+        pub ctx: usize,
+        pub layer_id: LayerId,
+        pub id: Id,
+        pub rect: Rect,
+        pub interact_rect: Rect,
+        pub sense: Sense,
+        #[doc(hidden)]
+        pub interact_pointer_pos: Option<Pos2>,
+        pub intrinsic_size: Option<Vec2>,
+        #[doc(hidden)]
+        pub flags: Flags,
+    }
+}
+
 /// A bit set for various boolean properties of `Response`.
 #[doc(hidden)]
 #[derive(Copy, Clone, Debug)]
+#[cfg_attr(feature = "serde", derive(serde::Deserialize, serde::Serialize))]
 pub struct Flags(u16);
 
 bitflags::bitflags! {

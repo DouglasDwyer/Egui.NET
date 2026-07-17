@@ -36,10 +36,10 @@ pub use self::{
     },
     image_button::ImageButton,
     label::Label,
-    progress_bar::ProgressBar,
+    progress_bar::{ProgressBar, ProgressBarText},
     radio_button::RadioButton,
     separator::Separator,
-    slider::{Slider, SliderClamping, SliderOrientation},
+    slider::{Slider, SliderClamping, SliderOrientation, SliderSpec},
     spinner::Spinner,
     text_edit::{TextBuffer, TextEdit},
 };

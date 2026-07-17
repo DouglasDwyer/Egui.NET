@@ -13,7 +13,8 @@ use epaint::text::TextWrapMode;
 /// let image_atom = Image::new("some_image_url").atom_size(Vec2::splat(20.0));
 /// ```
 #[derive(Clone, Debug)]
-pub struct Atom<'a> {
+#[cfg_attr(feature = "serde", derive(serde::Deserialize, serde::Serialize))]
+pub struct Atom {
     /// See [`crate::AtomExt::atom_size`]
     pub size: Option<Vec2>,
 
@@ -27,10 +28,10 @@ pub struct Atom<'a> {
     pub shrink: bool,
 
     /// The atom type
-    pub kind: AtomKind<'a>,
+    pub kind: AtomKind,
 }
 
-impl Default for Atom<'_> {
+impl Default for Atom {
     fn default() -> Self {
         Atom {
             size: None,
@@ -42,7 +43,7 @@ impl Default for Atom<'_> {
     }
 }
 
-impl<'a> Atom<'a> {
+impl Atom {
     /// Create an empty [`Atom`] marked as `grow`.
     ///
     /// This will expand in size, allowing all preceding atoms to be left-aligned,
@@ -70,7 +71,7 @@ impl<'a> Atom<'a> {
         mut available_size: Vec2,
         mut wrap_mode: Option<TextWrapMode>,
         fallback_font: FontSelection,
-    ) -> SizedAtom<'a> {
+    ) -> SizedAtom {
         if !self.shrink && self.max_size.x.is_infinite() {
             wrap_mode = Some(TextWrapMode::Extend);
         }
@@ -99,9 +100,9 @@ impl<'a> Atom<'a> {
     }
 }
 
-impl<'a, T> From<T> for Atom<'a>
+impl<T> From<T> for Atom
 where
-    T: Into<AtomKind<'a>>,
+    T: Into<AtomKind>,
 {
     fn from(value: T) -> Self {
         Atom {

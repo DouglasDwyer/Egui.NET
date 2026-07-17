@@ -242,6 +242,7 @@ fn is_additive_alpha(a: f32) -> bool {
 
 /// What options to show for alpha
 #[derive(Clone, Copy, PartialEq, Eq)]
+#[cfg_attr(feature = "serde", derive(serde::Deserialize, serde::Serialize))]
 pub enum Alpha {
     /// Set alpha to 1.0, and show no option for it.
     Opaque,

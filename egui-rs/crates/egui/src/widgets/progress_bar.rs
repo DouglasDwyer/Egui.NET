@@ -3,7 +3,8 @@ use crate::{
     TextStyle, TextWrapMode, Ui, Vec2, Widget, WidgetInfo, WidgetText, WidgetType, lerp, vec2,
 };
 
-enum ProgressBarText {
+#[cfg_attr(feature = "serde", derive(serde::Deserialize, serde::Serialize))]
+pub enum ProgressBarText {
     Custom(WidgetText),
     Percentage,
 }
@@ -12,6 +13,7 @@ enum ProgressBarText {
 ///
 /// See also: [`crate::Spinner`].
 #[must_use = "You should put this widget in a ui with `ui.add(widget);`"]
+#[cfg_attr(feature = "serde", derive(serde::Deserialize, serde::Serialize))]
 pub struct ProgressBar {
     progress: f32,
     desired_width: Option<f32>,

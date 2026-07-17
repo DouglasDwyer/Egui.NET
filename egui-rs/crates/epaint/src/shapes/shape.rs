@@ -24,6 +24,7 @@ use super::{
 /// and so must be recreated every time `pixels_per_point` changes.
 #[must_use = "Add a Shape to a Painter"]
 #[derive(Clone, Debug, PartialEq)]
+#[cfg_attr(feature = "serde", derive(serde::Deserialize, serde::Serialize))]
 pub enum Shape {
     /// Paint nothing. This can be useful as a placeholder.
     Noop,
@@ -67,6 +68,7 @@ pub enum Shape {
     CubicBezier(CubicBezierShape),
 
     /// Backend-specific painting.
+    #[cfg_attr(feature = "serde", serde(skip))]
     Callback(PaintCallback),
 }
 

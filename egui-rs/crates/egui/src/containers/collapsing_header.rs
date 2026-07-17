@@ -24,6 +24,7 @@ pub(crate) struct InnerState {
 ///
 /// See [`CollapsingState::show_header`] for how to show a collapsing header with a custom header.
 #[derive(Clone, Debug)]
+#[cfg_attr(feature = "serde", derive(serde::Deserialize, serde::Serialize))]
 pub struct CollapsingState {
     id: Id,
     state: InnerState,
@@ -289,10 +290,10 @@ impl CollapsingState {
 /// From [`CollapsingState::show_header`].
 #[must_use = "Remember to show the body"]
 pub struct HeaderResponse<'ui, HeaderRet> {
-    state: CollapsingState,
+    pub state: CollapsingState,
     ui: &'ui mut Ui,
-    toggle_button_response: Response,
-    header_response: InnerResponse<HeaderRet>,
+    pub toggle_button_response: Response,
+    pub header_response: InnerResponse<HeaderRet>,
 }
 
 impl<HeaderRet> HeaderResponse<'_, HeaderRet> {
@@ -389,6 +390,7 @@ pub type IconPainter = Box<dyn FnOnce(&mut Ui, f32, &Response)>;
 ///
 /// If you want to customize the header contents, see [`CollapsingState::show_header`].
 #[must_use = "You should call .show()"]
+#[cfg_attr(feature = "serde", derive(serde::Deserialize, serde::Serialize))]
 pub struct CollapsingHeader {
     text: WidgetText,
     default_open: bool,
@@ -398,6 +400,7 @@ pub struct CollapsingHeader {
     selectable: bool,
     selected: bool,
     show_background: bool,
+    #[cfg_attr(feature = "serde", serde(skip))]
     icon: Option<IconPainter>,
 }
 

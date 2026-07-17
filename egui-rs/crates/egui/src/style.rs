@@ -3,15 +3,14 @@
 #![allow(clippy::if_same_then_else)]
 
 use emath::Align;
-use epaint::{AlphaFromCoverage, CornerRadius, Shadow, Stroke, text::FontTweak};
+use epaint::{text::FontTweak, AlphaFromCoverage, CornerRadius, Shadow, Stroke};
 use std::{collections::BTreeMap, ops::RangeInclusive, sync::Arc};
 
 use crate::{
-    ComboBox, CursorIcon, FontFamily, FontId, Grid, Margin, Response, RichText, TextWrapMode,
-    WidgetText,
     ecolor::Color32,
-    emath::{Rangef, Rect, Vec2, pos2, vec2},
-    reset_button_with,
+    emath::{pos2, vec2, Rangef, Rect, Vec2},
+    reset_button_with, ComboBox, CursorIcon, FontFamily, FontId, Grid, Margin, Response, RichText,
+    TextWrapMode, WidgetText,
 };
 
 /// How to format numbers in e.g. a [`crate::DragValue`].
@@ -121,6 +120,7 @@ impl TextStyle {
 // ----------------------------------------------------------------------------
 
 /// A way to select [`FontId`], either by picking one directly or by using a [`TextStyle`].
+#[cfg_attr(feature = "serde", derive(serde::Deserialize, serde::Serialize))]
 #[derive(Debug, Clone)]
 pub enum FontSelection {
     /// Default text style - will use [`TextStyle::Body`], unless
@@ -329,7 +329,6 @@ pub struct Style {
     /// Options to help debug why egui behaves strangely.
     ///
     /// Only available in debug builds.
-    #[cfg(debug_assertions)]
     pub debug: DebugOptions,
 
     /// Show tooltips explaining [`DragValue`]:s etc when hovered.
@@ -1233,7 +1232,6 @@ impl WidgetVisuals {
 /// Options for help debug egui by adding extra visualization
 #[derive(Clone, Copy, Debug, PartialEq, Eq)]
 #[cfg_attr(feature = "serde", derive(serde::Deserialize, serde::Serialize))]
-#[cfg(debug_assertions)]
 pub struct DebugOptions {
     /// Always show callstack to ui on hover.
     ///
@@ -1242,7 +1240,6 @@ pub struct DebugOptions {
     /// Only works in debug builds.
     /// Requires the `callstack` feature.
     /// Does not work on web.
-    #[cfg(debug_assertions)]
     pub debug_on_hover: bool,
 
     /// Show callstack for the current widget on hover if all modifier keys are pressed down.
@@ -1254,11 +1251,9 @@ pub struct DebugOptions {
     /// Does not work on web.
     ///
     /// Default is `true` in debug builds, on native, if the `callstack` feature is enabled.
-    #[cfg(debug_assertions)]
     pub debug_on_hover_with_all_modifiers: bool,
 
     /// If we show the hover ui, include where the next widget is placed.
-    #[cfg(debug_assertions)]
     pub hover_shows_next: bool,
 
     /// Show which widgets make their parent wider
@@ -1281,7 +1276,6 @@ pub struct DebugOptions {
     pub show_unaligned: bool,
 }
 
-#[cfg(debug_assertions)]
 impl Default for DebugOptions {
     fn default() -> Self {
         Self {
@@ -1331,7 +1325,6 @@ impl Default for Style {
             interaction: Interaction::default(),
             visuals: Visuals::default(),
             animation_time: 6.0 / 60.0, // If we make this too slow, it will be too obvious that our panel animations look like shit :(
-            #[cfg(debug_assertions)]
             debug: Default::default(),
             explanation_tooltips: false,
             url_in_tooltip: false,
@@ -1619,8 +1612,8 @@ impl Default for Widgets {
 // ----------------------------------------------------------------------------
 
 use crate::{
+    widgets::{reset_button, DragValue, Slider, Widget},
     Ui,
-    widgets::{DragValue, Slider, Widget, reset_button},
 };
 
 impl Style {
@@ -1639,7 +1632,6 @@ impl Style {
             interaction,
             visuals,
             animation_time,
-            #[cfg(debug_assertions)]
             debug,
             explanation_tooltips,
             url_in_tooltip,
@@ -1748,7 +1740,6 @@ impl Style {
         ui.collapsing("🎨 Visuals", |ui| visuals.ui(ui));
         ui.collapsing("🔄 Scroll animation", |ui| scroll_animation.ui(ui));
 
-        #[cfg(debug_assertions)]
         ui.collapsing("🐛 Debug", |ui| debug.ui(ui));
 
         ui.checkbox(compact_menu_style, "Compact menu style");
@@ -2425,7 +2416,6 @@ impl TextCursorStyle {
     }
 }
 
-#[cfg(debug_assertions)]
 impl DebugOptions {
     pub fn ui(&mut self, ui: &mut crate::Ui) {
         let Self {

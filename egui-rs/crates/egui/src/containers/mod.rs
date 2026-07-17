@@ -32,7 +32,7 @@ pub use {
     resize::Resize,
     scene::{DragPanButtons, Scene},
     scroll_area::ScrollArea,
-    sides::Sides,
+    sides::{Sides, SidesKind},
     tooltip::*,
     window::Window,
 };

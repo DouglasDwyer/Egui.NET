@@ -6,9 +6,10 @@ use crate::{
 /// A clickable image within a frame.
 #[must_use = "You should put this widget in a ui with `ui.add(widget);`"]
 #[derive(Clone, Debug)]
+#[cfg_attr(feature = "serde", derive(serde::Deserialize, serde::Serialize))]
 #[deprecated(since = "0.33.0", note = "Use egui::Button::image instead")]
-pub struct ImageButton<'a> {
-    pub(crate) image: Image<'a>,
+pub struct ImageButton {
+    pub(crate) image: Image,
     sense: Sense,
     frame: bool,
     selected: bool,
@@ -16,8 +17,8 @@ pub struct ImageButton<'a> {
 }
 
 #[expect(deprecated, reason = "Deprecated in egui 0.33.0")]
-impl<'a> ImageButton<'a> {
-    pub fn new(image: impl Into<Image<'a>>) -> Self {
+impl ImageButton {
+    pub fn new(image: impl Into<Image>) -> Self {
         Self {
             image: image.into(),
             sense: Sense::click(),
@@ -85,7 +86,7 @@ impl<'a> ImageButton<'a> {
 }
 
 #[expect(deprecated, reason = "Deprecated in egui 0.33.0")]
-impl Widget for ImageButton<'_> {
+impl Widget for ImageButton {
     fn ui(self, ui: &mut Ui) -> Response {
         let padding = if self.frame {
             // so we can see that it is a button:

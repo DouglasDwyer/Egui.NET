@@ -42,7 +42,7 @@ impl serde::Serialize for UserData {
     where
         S: serde::Serializer,
     {
-        serializer.serialize_none() // can't serialize an `Any`
+        serializer.serialize_unit() // can't serialize an `Any`
     }
 }
 
@@ -61,7 +61,7 @@ impl<'de> serde::Deserialize<'de> for UserData {
                 formatter.write_str("a None value")
             }
 
-            fn visit_none<E>(self) -> Result<UserData, E>
+            fn visit_unit<E>(self) -> Result<UserData, E>
             where
                 E: serde::de::Error,
             {
@@ -69,6 +69,6 @@ impl<'de> serde::Deserialize<'de> for UserData {
             }
         }
 
-        deserializer.deserialize_option(UserDataVisitor)
+        deserializer.deserialize_unit(UserDataVisitor)
     }
 }

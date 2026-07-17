@@ -43,6 +43,7 @@ fn fit_to_rect_in_scene(
 /// * Has no limits on the scrolling
 #[derive(Clone, Debug)]
 #[must_use = "You should call .show()"]
+#[cfg_attr(feature = "serde", derive(serde::Deserialize, serde::Serialize))]
 pub struct Scene {
     zoom_range: Rangef,
     sense: Sense,
@@ -52,6 +53,7 @@ pub struct Scene {
 
 /// Specifies which pointer buttons can be used to pan the scene by dragging.
 #[derive(Clone, Copy, Debug, Default, Eq, PartialEq)]
+#[cfg_attr(feature = "serde", derive(serde::Deserialize, serde::Serialize))]
 pub struct DragPanButtons(u8);
 
 bitflags::bitflags! {

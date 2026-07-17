@@ -28,7 +28,8 @@ pub struct AreaState {
     /// so that a bad tooltip or menu size won't be remembered forever.
     /// A resizable [`crate::Window`] remembers the size the user picked using
     /// the state in the [`crate::Resize`] container.
-    #[cfg_attr(feature = "serde", serde(skip))]
+    //egui_net: need to save
+    //#[cfg_attr(feature = "serde", serde(skip))]
     pub size: Option<Vec2>,
 
     /// If false, clicks goes straight through to what is behind us. Useful for tooltips etc.
@@ -37,7 +38,8 @@ pub struct AreaState {
     /// At what time was this area first shown?
     ///
     /// Used to fade in the area.
-    #[cfg_attr(feature = "serde", serde(skip))]
+    //egui_net: need to save
+    //#[cfg_attr(feature = "serde", serde(skip))]
     pub last_became_visible_at: Option<f64>,
 }
 
@@ -104,6 +106,7 @@ impl AreaState {
 /// The previous rectangle used by this area can be obtained through [`crate::Memory::area_rect()`].
 #[must_use = "You should call .show()"]
 #[derive(Clone, Debug)]
+#[cfg_attr(feature = "serde", derive(serde::Deserialize, serde::Serialize))]
 pub struct Area {
     pub(crate) id: Id,
     info: UiStackInfo,

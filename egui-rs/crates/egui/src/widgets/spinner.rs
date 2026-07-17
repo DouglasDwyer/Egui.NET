@@ -7,6 +7,7 @@ use crate::{Response, Sense, Ui, Widget, WidgetInfo, WidgetType};
 /// See also: [`crate::ProgressBar`].
 #[must_use = "You should put this widget in a ui with `ui.add(widget);`"]
 #[derive(Default)]
+#[cfg_attr(feature = "serde", derive(serde::Deserialize, serde::Serialize))]
 pub struct Spinner {
     /// Uses the style's `interact_size` if `None`.
     size: Option<f32>,

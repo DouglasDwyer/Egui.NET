@@ -249,8 +249,11 @@ pub struct ViewportState {
 
 /// What called [`Context::request_repaint`] or [`Context::request_discard`]?
 #[derive(Clone, PartialEq, Eq, Hash)]
+#[cfg_attr(feature = "serde", derive(serde::Deserialize, serde::Serialize))]
+
 pub struct RepaintCause {
     /// What file had the call that requested the repaint?
+    #[cfg_attr(feature = "serde", serde(skip))]
     pub file: &'static str,
 
     /// What line number of the call that requested the repaint?
@@ -2970,13 +2973,11 @@ impl Context {
     // ---------------------------------------------------------------------
 
     /// Whether or not to debug widget layout on hover.
-    #[cfg(debug_assertions)]
     pub fn debug_on_hover(&self) -> bool {
         self.options(|opt| opt.style().debug.debug_on_hover)
     }
 
     /// Turn on/off whether or not to debug widget layout on hover.
-    #[cfg(debug_assertions)]
     pub fn set_debug_on_hover(&self, debug_on_hover: bool) {
         self.all_styles_mut(|style| style.debug.debug_on_hover = debug_on_hover);
     }

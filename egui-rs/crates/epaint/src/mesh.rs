@@ -321,6 +321,8 @@ impl Mesh {
 /// A version of [`Mesh`] that uses 16-bit indices.
 ///
 /// This is produced by [`Mesh::split_to_u16`] and is meant to be used for legacy render backends.
+#[derive(Clone, Debug, Default, PartialEq, Eq)]
+#[cfg_attr(feature = "serde", derive(serde::Deserialize, serde::Serialize))]
 pub struct Mesh16 {
     /// Draw as triangles (i.e. the length is always multiple of three).
     ///

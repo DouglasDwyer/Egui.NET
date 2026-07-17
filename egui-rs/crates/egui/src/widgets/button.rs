@@ -23,8 +23,10 @@ use crate::{
 /// # });
 /// ```
 #[must_use = "You should put this widget in a ui with `ui.add(widget);`"]
-pub struct Button<'a> {
-    layout: AtomLayout<'a>,
+#[derive(Clone)]
+#[cfg_attr(feature = "serde", derive(serde::Deserialize, serde::Serialize))]
+pub struct Button {
+    layout: AtomLayout,
     fill: Option<Color32>,
     stroke: Option<Stroke>,
     small: bool,
@@ -37,8 +39,8 @@ pub struct Button<'a> {
     limit_image_size: bool,
 }
 
-impl<'a> Button<'a> {
-    pub fn new(atoms: impl IntoAtoms<'a>) -> Self {
+impl Button {
+    pub fn new(atoms: impl IntoAtoms) -> Self {
         Self {
             layout: AtomLayout::new(atoms.into_atoms())
                 .sense(Sense::click())
@@ -70,7 +72,7 @@ impl<'a> Button<'a> {
     /// See also:
     ///   - [`Ui::selectable_value`]
     ///   - [`Ui::selectable_label`]
-    pub fn selectable(selected: bool, atoms: impl IntoAtoms<'a>) -> Self {
+    pub fn selectable(selected: bool, atoms: impl IntoAtoms) -> Self {
         Self::new(atoms)
             .selected(selected)
             .frame_when_inactive(selected)
@@ -81,7 +83,7 @@ impl<'a> Button<'a> {
     ///
     /// Note: In contrast to [`Button::new`], this limits the image size to the default font height
     /// (using [`crate::AtomExt::atom_max_height_font_size`]).
-    pub fn image(image: impl Into<Image<'a>>) -> Self {
+    pub fn image(image: impl Into<Image>) -> Self {
         Self::opt_image_and_text(Some(image.into()), None)
     }
 
@@ -89,7 +91,7 @@ impl<'a> Button<'a> {
     ///
     /// Note: In contrast to [`Button::new`], this limits the image size to the default font height
     /// (using [`crate::AtomExt::atom_max_height_font_size`]).
-    pub fn image_and_text(image: impl Into<Image<'a>>, text: impl Into<WidgetText>) -> Self {
+    pub fn image_and_text(image: impl Into<Image>, text: impl Into<WidgetText>) -> Self {
         Self::opt_image_and_text(Some(image.into()), Some(text.into()))
     }
 
@@ -97,7 +99,7 @@ impl<'a> Button<'a> {
     ///
     /// Note: In contrast to [`Button::new`], this limits the image size to the default font height
     /// (using [`crate::AtomExt::atom_max_height_font_size`]).
-    pub fn opt_image_and_text(image: Option<Image<'a>>, text: Option<WidgetText>) -> Self {
+    pub fn opt_image_and_text(image: Option<Image>, text: Option<WidgetText>) -> Self {
         let mut button = Self::new(());
         if let Some(image) = image {
             button.layout.push_right(image);
@@ -223,7 +225,7 @@ impl<'a> Button<'a> {
     ///
     /// See also [`Self::right_text`].
     #[inline]
-    pub fn shortcut_text(mut self, shortcut_text: impl Into<Atom<'a>>) -> Self {
+    pub fn shortcut_text(mut self, shortcut_text: impl Into<Atom>) -> Self {
         let mut atom = shortcut_text.into();
         atom.kind = match atom.kind {
             AtomKind::Text(text) => AtomKind::Text(text.weak()),
@@ -236,7 +238,7 @@ impl<'a> Button<'a> {
 
     /// Show some text on the right side of the button.
     #[inline]
-    pub fn right_text(mut self, right_text: impl Into<Atom<'a>>) -> Self {
+    pub fn right_text(mut self, right_text: impl Into<Atom>) -> Self {
         self.layout.push_right(Atom::grow());
         self.layout.push_right(right_text.into());
         self
@@ -346,7 +348,7 @@ impl<'a> Button<'a> {
     }
 }
 
-impl Widget for Button<'_> {
+impl Widget for Button {
     fn ui(self, ui: &mut Ui) -> Response {
         self.atom_ui(ui).response
     }

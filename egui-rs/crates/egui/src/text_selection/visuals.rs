@@ -5,6 +5,7 @@ use crate::{Galley, Painter, Rect, Ui, Visuals, pos2, vec2};
 use super::CCursorRange;
 
 #[derive(Clone, Debug)]
+#[cfg_attr(feature = "serde", derive(serde::Deserialize, serde::Serialize))]
 pub struct RowVertexIndices {
     pub row: usize,
     pub vertex_indices: [u32; 6],

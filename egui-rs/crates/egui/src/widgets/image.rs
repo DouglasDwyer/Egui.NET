@@ -48,8 +48,9 @@ use crate::{
 ///
 #[must_use = "You should put this widget in a ui with `ui.add(widget);`"]
 #[derive(Debug, Clone)]
-pub struct Image<'a> {
-    source: ImageSource<'a>,
+#[cfg_attr(feature = "serde", derive(serde::Deserialize, serde::Serialize))]
+pub struct Image {
+    source: ImageSource,
     texture_options: TextureOptions,
     image_options: ImageOptions,
     sense: Sense,
@@ -58,10 +59,10 @@ pub struct Image<'a> {
     pub(crate) alt_text: Option<String>,
 }
 
-impl<'a> Image<'a> {
+impl Image {
     /// Load the image from some source.
-    pub fn new(source: impl Into<ImageSource<'a>>) -> Self {
-        fn new_mono(source: ImageSource<'_>) -> Image<'_> {
+    pub fn new(source: impl Into<ImageSource>) -> Self {
+        fn new_mono(source: ImageSource) -> Image {
             let size = if let ImageSource::Texture(tex) = &source {
                 // User is probably expecting their texture to have
                 // the exact size of the provided `SizedTexture`.
@@ -91,8 +92,8 @@ impl<'a> Image<'a> {
     /// Load the image from a URI.
     ///
     /// See [`ImageSource::Uri`].
-    pub fn from_uri(uri: impl Into<Cow<'a, str>>) -> Self {
-        Self::new(ImageSource::Uri(uri.into()))
+    pub fn from_uri<'a>(uri: impl Into<Cow<'a, str>>) -> Self {
+        Self::new(ImageSource::Uri(uri.into().into_owned().into()))
     }
 
     /// Load the image from an existing texture.
@@ -287,13 +288,13 @@ impl<'a> Image<'a> {
     }
 }
 
-impl<'a, T: Into<ImageSource<'a>>> From<T> for Image<'a> {
+impl<T: Into<ImageSource>> From<T> for Image {
     fn from(value: T) -> Self {
         Image::new(value)
     }
 }
 
-impl<'a> Image<'a> {
+impl Image {
     /// Returns the size the image will occupy in the final UI.
     #[inline]
     pub fn calc_size(&self, available_size: Vec2, image_source_size: Option<Vec2>) -> Vec2 {
@@ -334,7 +335,7 @@ impl<'a> Image<'a> {
     }
 
     #[inline]
-    pub fn source(&'a self, ctx: &Context) -> ImageSource<'a> {
+    pub fn source(&self, ctx: &Context) -> ImageSource {
         match &self.source {
             ImageSource::Uri(uri) if is_animated_image_uri(uri) => {
                 let frame_uri =
@@ -407,7 +408,7 @@ impl<'a> Image<'a> {
     }
 }
 
-impl Widget for Image<'_> {
+impl Widget for Image {
     fn ui(self, ui: &mut Ui) -> Response {
         let tlr = self.load_for_size(ui.ctx(), ui.available_size());
         let image_source_size = tlr.as_ref().ok().and_then(|t| t.size());
@@ -436,6 +437,7 @@ impl Widget for Image<'_> {
 /// This type determines the constraints on how
 /// the size of an image should be calculated.
 #[derive(Debug, Clone, Copy)]
+#[cfg_attr(feature = "serde", derive(serde::Deserialize, serde::Serialize))]
 pub struct ImageSize {
     /// Whether or not the final size should maintain the original aspect ratio.
     ///
@@ -579,7 +581,8 @@ impl Default for ImageSize {
 ///
 /// This is used by [`Image::new`] and [`Ui::image`].
 #[derive(Clone)]
-pub enum ImageSource<'a> {
+#[cfg_attr(feature = "serde", derive(serde::Deserialize, serde::Serialize))]
+pub enum ImageSource {
     /// Load the image from a URI, e.g. `https://example.com/image.png`.
     ///
     /// This could be a `file://` path, `https://` url, `bytes://` identifier, or some other scheme.
@@ -588,7 +591,7 @@ pub enum ImageSource<'a> {
     /// up to the registered loaders to handle.
     ///
     /// See [`crate::load`] for more information.
-    Uri(Cow<'a, str>),
+    Uri(Cow<'static, str>),
 
     /// Load the image from an existing texture.
     ///
@@ -619,7 +622,7 @@ pub enum ImageSource<'a> {
     },
 }
 
-impl std::fmt::Debug for ImageSource<'_> {
+impl std::fmt::Debug for ImageSource {
     fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
         match self {
             ImageSource::Bytes { uri, .. } | ImageSource::Uri(uri) => uri.as_ref().fmt(f),
@@ -628,7 +631,7 @@ impl std::fmt::Debug for ImageSource<'_> {
     }
 }
 
-impl ImageSource<'_> {
+impl ImageSource {
     /// Size of the texture, if known.
     #[inline]
     pub fn texture_size(&self) -> Option<Vec2> {
@@ -717,7 +720,7 @@ pub fn paint_texture_load_result(
 
 /// Attach tooltips like "Loading…" or "Failed loading: …".
 pub fn texture_load_result_response(
-    source: &ImageSource<'_>,
+    source: &ImageSource,
     tlr: &TextureLoadResult,
     response: Response,
 ) -> Response {
@@ -734,41 +737,41 @@ pub fn texture_load_result_response(
     }
 }
 
-impl<'a> From<&'a str> for ImageSource<'a> {
+impl<'a> From<&'a str> for ImageSource {
     #[inline]
     fn from(value: &'a str) -> Self {
-        Self::Uri(value.into())
+        Self::Uri(value.to_owned().into())
     }
 }
 
-impl<'a> From<&'a String> for ImageSource<'a> {
+impl<'a> From<&'a String> for ImageSource {
     #[inline]
     fn from(value: &'a String) -> Self {
-        Self::Uri(value.as_str().into())
+        Self::Uri(value.to_owned().into())
     }
 }
 
-impl From<String> for ImageSource<'static> {
+impl From<String> for ImageSource {
     fn from(value: String) -> Self {
         Self::Uri(value.into())
     }
 }
 
-impl<'a> From<&'a Cow<'a, str>> for ImageSource<'a> {
+impl<'a> From<&'a Cow<'a, str>> for ImageSource {
     #[inline]
     fn from(value: &'a Cow<'a, str>) -> Self {
-        Self::Uri(value.clone())
+        Self::Uri(value.clone().into_owned().into())
     }
 }
 
-impl<'a> From<Cow<'a, str>> for ImageSource<'a> {
+impl<'a> From<Cow<'a, str>> for ImageSource {
     #[inline]
     fn from(value: Cow<'a, str>) -> Self {
-        Self::Uri(value)
+        Self::Uri(value.into_owned().into())
     }
 }
 
-impl<T: Into<Bytes>> From<(&'static str, T)> for ImageSource<'static> {
+impl<T: Into<Bytes>> From<(&'static str, T)> for ImageSource {
     #[inline]
     fn from((uri, bytes): (&'static str, T)) -> Self {
         Self::Bytes {
@@ -778,7 +781,7 @@ impl<T: Into<Bytes>> From<(&'static str, T)> for ImageSource<'static> {
     }
 }
 
-impl<T: Into<Bytes>> From<(Cow<'static, str>, T)> for ImageSource<'static> {
+impl<T: Into<Bytes>> From<(Cow<'static, str>, T)> for ImageSource {
     #[inline]
     fn from((uri, bytes): (Cow<'static, str>, T)) -> Self {
         Self::Bytes {
@@ -788,7 +791,7 @@ impl<T: Into<Bytes>> From<(Cow<'static, str>, T)> for ImageSource<'static> {
     }
 }
 
-impl<T: Into<Bytes>> From<(String, T)> for ImageSource<'static> {
+impl<T: Into<Bytes>> From<(String, T)> for ImageSource {
     #[inline]
     fn from((uri, bytes): (String, T)) -> Self {
         Self::Bytes {
@@ -798,7 +801,7 @@ impl<T: Into<Bytes>> From<(String, T)> for ImageSource<'static> {
     }
 }
 
-impl<T: Into<SizedTexture>> From<T> for ImageSource<'static> {
+impl<T: Into<SizedTexture>> From<T> for ImageSource {
     fn from(value: T) -> Self {
         Self::Texture(value.into())
     }
@@ -886,6 +889,7 @@ pub fn paint_texture_at(
 }
 
 #[derive(Debug, Clone, PartialEq, Eq, Hash, Default)]
+#[cfg_attr(feature = "serde", derive(serde::Deserialize, serde::Serialize))]
 /// Stores the durations between each frame of an animated image
 pub struct FrameDurations(Arc<Vec<Duration>>);
 

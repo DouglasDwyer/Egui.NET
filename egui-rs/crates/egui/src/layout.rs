@@ -128,7 +128,7 @@ impl Direction {
 /// # });
 /// ```
 #[derive(Clone, Copy, Debug, PartialEq, Eq)]
-// #[cfg_attr(feature = "serde", derive(serde::Deserialize, serde::Serialize))]
+#[cfg_attr(feature = "serde", derive(serde::Deserialize, serde::Serialize))]
 pub struct Layout {
     /// Main axis direction
     pub main_dir: Direction,
@@ -819,7 +819,6 @@ impl Layout {
 /// ## Debug stuff
 impl Layout {
     /// Shows where the next widget is going to be placed
-    #[cfg(debug_assertions)]
     pub(crate) fn paint_text_at_cursor(
         &self,
         painter: &crate::Painter,

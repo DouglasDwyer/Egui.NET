@@ -24,6 +24,7 @@ use crate::{
 /// RichText::new("Large and underlined").size(20.0).underline();
 /// ```
 #[derive(Clone, Debug, PartialEq)]
+#[cfg_attr(feature = "serde", derive(serde::Deserialize, serde::Serialize))]
 pub struct RichText {
     text: String,
     size: Option<f32>,
@@ -486,6 +487,7 @@ impl RichText {
 /// You can color the text however you want, or use [`Color32::PLACEHOLDER`]
 /// which will be replaced with a color chosen by the widget that paints the text.
 #[derive(Clone)]
+#[cfg_attr(feature = "serde", derive(serde::Deserialize, serde::Serialize))]
 pub enum WidgetText {
     /// Plain unstyled text.
     ///

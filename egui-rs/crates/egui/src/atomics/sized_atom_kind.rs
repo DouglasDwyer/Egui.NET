@@ -5,15 +5,16 @@ use std::sync::Arc;
 
 /// A sized [`crate::AtomKind`].
 #[derive(Clone, Default, Debug)]
-pub enum SizedAtomKind<'a> {
+#[cfg_attr(feature = "serde", derive(serde::Deserialize, serde::Serialize))]
+pub enum SizedAtomKind {
     #[default]
     Empty,
     Text(Arc<Galley>),
-    Image(Image<'a>, Vec2),
+    Image(Image, Vec2),
     Custom(Id),
 }
 
-impl SizedAtomKind<'_> {
+impl SizedAtomKind {
     /// Get the calculated size.
     pub fn size(&self) -> Vec2 {
         match self {

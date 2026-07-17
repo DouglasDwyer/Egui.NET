@@ -3,7 +3,8 @@ use emath::Vec2;
 
 /// A [`crate::Atom`] which has been sized.
 #[derive(Clone, Debug)]
-pub struct SizedAtom<'a> {
+#[cfg_attr(feature = "serde", derive(serde::Deserialize, serde::Serialize))]
+pub struct SizedAtom {
     pub(crate) grow: bool,
 
     /// The size of the atom.
@@ -15,10 +16,10 @@ pub struct SizedAtom<'a> {
     /// Intrinsic size of the atom. This is used to calculate `Response::intrinsic_size`.
     pub intrinsic_size: Vec2,
 
-    pub kind: SizedAtomKind<'a>,
+    pub kind: SizedAtomKind,
 }
 
-impl SizedAtom<'_> {
+impl SizedAtom {
     /// Was this [`crate::Atom`] marked as `grow`?
     pub fn is_grow(&self) -> bool {
         self.grow

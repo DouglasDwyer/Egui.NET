@@ -70,7 +70,7 @@ pub fn zoom_out(ctx: &Context) {
 ///
 /// This is meant to be called from within a menu (See [`Ui::menu_button`]).
 pub fn zoom_menu_buttons(ui: &mut Ui) {
-    fn button(ctx: &Context, text: &str, shortcut: &KeyboardShortcut) -> Button<'static> {
+    fn button(ctx: &Context, text: &str, shortcut: &KeyboardShortcut) -> Button {
         let btn = Button::new(text);
         let zoom_with_keyboard = ctx.options(|o| o.zoom_with_keyboard);
         if zoom_with_keyboard {

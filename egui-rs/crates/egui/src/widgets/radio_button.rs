@@ -23,13 +23,15 @@ use crate::{
 /// # });
 /// ```
 #[must_use = "You should put this widget in a ui with `ui.add(widget);`"]
-pub struct RadioButton<'a> {
+#[derive(Clone, Debug)]
+#[cfg_attr(feature = "serde", derive(serde::Deserialize, serde::Serialize))]
+pub struct RadioButton {
     checked: bool,
-    atoms: Atoms<'a>,
+    atoms: Atoms,
 }
 
-impl<'a> RadioButton<'a> {
-    pub fn new(checked: bool, atoms: impl IntoAtoms<'a>) -> Self {
+impl RadioButton {
+    pub fn new(checked: bool, atoms: impl IntoAtoms) -> Self {
         Self {
             checked,
             atoms: atoms.into_atoms(),
@@ -37,7 +39,7 @@ impl<'a> RadioButton<'a> {
     }
 }
 
-impl Widget for RadioButton<'_> {
+impl Widget for RadioButton {
     fn ui(self, ui: &mut Ui) -> Response {
         let Self { checked, mut atoms } = self;
 

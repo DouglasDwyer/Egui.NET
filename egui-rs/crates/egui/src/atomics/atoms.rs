@@ -9,20 +9,21 @@ pub(crate) const ATOMS_SMALL_VEC_SIZE: usize = 2;
 
 /// A list of [`Atom`]s.
 #[derive(Clone, Debug, Default)]
-pub struct Atoms<'a>(SmallVec<[Atom<'a>; ATOMS_SMALL_VEC_SIZE]>);
+#[cfg_attr(feature = "serde", derive(serde::Deserialize, serde::Serialize))]
+pub struct Atoms(SmallVec<[Atom; ATOMS_SMALL_VEC_SIZE]>);
 
-impl<'a> Atoms<'a> {
-    pub fn new(atoms: impl IntoAtoms<'a>) -> Self {
+impl Atoms {
+    pub fn new(atoms: impl IntoAtoms) -> Self {
         atoms.into_atoms()
     }
 
     /// Insert a new [`Atom`] at the end of the list (right side).
-    pub fn push_right(&mut self, atom: impl Into<Atom<'a>>) {
+    pub fn push_right(&mut self, atom: impl Into<Atom>) {
         self.0.push(atom.into());
     }
 
     /// Insert a new [`Atom`] at the beginning of the list (left side).
-    pub fn push_left(&mut self, atom: impl Into<Atom<'a>>) {
+    pub fn push_left(&mut self, atom: impl Into<Atom>) {
         self.0.insert(0, atom.into());
     }
 
@@ -54,15 +55,15 @@ impl<'a> Atoms<'a> {
         string
     }
 
-    pub fn iter_kinds(&self) -> impl Iterator<Item = &AtomKind<'a>> {
+    pub fn iter_kinds(&self) -> impl Iterator<Item = &AtomKind> {
         self.0.iter().map(|atom| &atom.kind)
     }
 
-    pub fn iter_kinds_mut(&mut self) -> impl Iterator<Item = &mut AtomKind<'a>> {
+    pub fn iter_kinds_mut(&mut self) -> impl Iterator<Item = &mut AtomKind> {
         self.0.iter_mut().map(|atom| &mut atom.kind)
     }
 
-    pub fn iter_images(&self) -> impl Iterator<Item = &Image<'a>> {
+    pub fn iter_images(&self) -> impl Iterator<Item = &Image> {
         self.iter_kinds().filter_map(|kind| {
             if let AtomKind::Image(image) = kind {
                 Some(image)
@@ -72,7 +73,7 @@ impl<'a> Atoms<'a> {
         })
     }
 
-    pub fn iter_images_mut(&mut self) -> impl Iterator<Item = &mut Image<'a>> {
+    pub fn iter_images_mut(&mut self) -> impl Iterator<Item = &mut Image> {
         self.iter_kinds_mut().filter_map(|kind| {
             if let AtomKind::Image(image) = kind {
                 Some(image)
@@ -82,7 +83,7 @@ impl<'a> Atoms<'a> {
         })
     }
 
-    pub fn iter_texts(&self) -> impl Iterator<Item = &WidgetText> + use<'_, 'a> {
+    pub fn iter_texts(&self) -> impl Iterator<Item = &WidgetText> + use<'_> {
         self.iter_kinds().filter_map(|kind| {
             if let AtomKind::Text(text) = kind {
                 Some(text)
@@ -92,7 +93,7 @@ impl<'a> Atoms<'a> {
         })
     }
 
-    pub fn iter_texts_mut(&mut self) -> impl Iterator<Item = &mut WidgetText> + use<'a, '_> {
+    pub fn iter_texts_mut(&mut self) -> impl Iterator<Item = &mut WidgetText> + use<'_> {
         self.iter_kinds_mut().filter_map(|kind| {
             if let AtomKind::Text(text) = kind {
                 Some(text)
@@ -102,14 +103,14 @@ impl<'a> Atoms<'a> {
         })
     }
 
-    pub fn map_atoms(&mut self, mut f: impl FnMut(Atom<'a>) -> Atom<'a>) {
+    pub fn map_atoms(&mut self, mut f: impl FnMut(Atom) -> Atom) {
         self.iter_mut()
             .for_each(|atom| *atom = f(std::mem::take(atom)));
     }
 
     pub fn map_kind<F>(&mut self, mut f: F)
     where
-        F: FnMut(AtomKind<'a>) -> AtomKind<'a>,
+        F: FnMut(AtomKind) -> AtomKind,
     {
         for kind in self.iter_kinds_mut() {
             *kind = f(std::mem::take(kind));
@@ -118,7 +119,7 @@ impl<'a> Atoms<'a> {
 
     pub fn map_images<F>(&mut self, mut f: F)
     where
-        F: FnMut(Image<'a>) -> Image<'a>,
+        F: FnMut(Image) -> Image,
     {
         self.map_kind(|kind| {
             if let AtomKind::Image(image) = kind {
@@ -143,9 +144,9 @@ impl<'a> Atoms<'a> {
     }
 }
 
-impl<'a> IntoIterator for Atoms<'a> {
-    type Item = Atom<'a>;
-    type IntoIter = smallvec::IntoIter<[Atom<'a>; ATOMS_SMALL_VEC_SIZE]>;
+impl IntoIterator for Atoms {
+    type Item = Atom;
+    type IntoIter = smallvec::IntoIter<[Atom; ATOMS_SMALL_VEC_SIZE]>;
 
     fn into_iter(self) -> Self::IntoIter {
         self.0.into_iter()
@@ -162,20 +163,20 @@ impl<'a> IntoIterator for Atoms<'a> {
 ///     Image::new("some_image_url"),
 /// ).into_atoms();
 /// ```
-impl<'a, T> IntoAtoms<'a> for T
+impl<T> IntoAtoms for T
 where
-    T: Into<Atom<'a>>,
+    T: Into<Atom>,
 {
-    fn collect(self, atoms: &mut Atoms<'a>) {
+    fn collect(self, atoms: &mut Atoms) {
         atoms.push_right(self);
     }
 }
 
 /// Trait for turning a tuple of [`Atom`]s into [`Atoms`].
-pub trait IntoAtoms<'a> {
-    fn collect(self, atoms: &mut Atoms<'a>);
+pub trait IntoAtoms {
+    fn collect(self, atoms: &mut Atoms);
 
-    fn into_atoms(self) -> Atoms<'a>
+    fn into_atoms(self) -> Atoms
     where
         Self: Sized,
     {
@@ -185,7 +186,7 @@ pub trait IntoAtoms<'a> {
     }
 }
 
-impl<'a> IntoAtoms<'a> for Atoms<'a> {
+impl IntoAtoms for Atoms {
     fn collect(self, atoms: &mut Self) {
         atoms.0.extend(self.0);
     }
@@ -193,11 +194,11 @@ impl<'a> IntoAtoms<'a> for Atoms<'a> {
 
 macro_rules! all_the_atoms {
     ($($T:ident),*) => {
-        impl<'a, $($T),*> IntoAtoms<'a> for ($($T),*)
+        impl<$($T),*> IntoAtoms for ($($T),*)
         where
-            $($T: IntoAtoms<'a>),*
+            $($T: IntoAtoms),*
         {
-            fn collect(self, _atoms: &mut Atoms<'a>) {
+            fn collect(self, _atoms: &mut Atoms) {
                 #[allow(clippy::allow_attributes)]
                 #[allow(non_snake_case)]
                 let ($($T),*) = self;
@@ -214,33 +215,33 @@ all_the_atoms!(T0, T1, T2, T3);
 all_the_atoms!(T0, T1, T2, T3, T4);
 all_the_atoms!(T0, T1, T2, T3, T4, T5);
 
-impl<'a> Deref for Atoms<'a> {
-    type Target = [Atom<'a>];
+impl Deref for Atoms {
+    type Target = [Atom];
 
     fn deref(&self) -> &Self::Target {
         &self.0
     }
 }
 
-impl DerefMut for Atoms<'_> {
+impl DerefMut for Atoms {
     fn deref_mut(&mut self) -> &mut Self::Target {
         &mut self.0
     }
 }
 
-impl<'a, T: Into<Atom<'a>>> From<Vec<T>> for Atoms<'a> {
+impl<T: Into<Atom>> From<Vec<T>> for Atoms {
     fn from(vec: Vec<T>) -> Self {
         Atoms(vec.into_iter().map(Into::into).collect())
     }
 }
 
-impl<'a, T: Into<Atom<'a>> + Clone> From<&[T]> for Atoms<'a> {
+impl<T: Into<Atom> + Clone> From<&[T]> for Atoms {
     fn from(slice: &[T]) -> Self {
         Atoms(slice.iter().cloned().map(Into::into).collect())
     }
 }
 
-impl<'a, Item: Into<Atom<'a>>> FromIterator<Item> for Atoms<'a> {
+impl<Item: Into<Atom>> FromIterator<Item> for Atoms {
     fn from_iter<T: IntoIterator<Item = Item>>(iter: T) -> Self {
         Atoms(iter.into_iter().map(Into::into).collect())
     }
@@ -252,7 +253,7 @@ mod tests {
 
     #[test]
     fn collect_atoms() {
-        let _: Atoms<'_> = ["Hello", "World"].into_iter().collect();
+        let _: Atoms = ["Hello", "World"].into_iter().collect();
         let _ = Atoms::from(vec!["Hi"]);
         let _ = Atoms::from(["Hi"].as_slice());
     }

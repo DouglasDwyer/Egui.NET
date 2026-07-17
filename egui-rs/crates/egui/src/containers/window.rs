@@ -34,16 +34,16 @@ use super::{Area, Frame, Resize, ScrollArea, area, resize};
 /// To create a new native OS window, use [`crate::Context::show_viewport_deferred`].
 #[must_use = "You should call .show()"]
 pub struct Window<'open> {
-    title: WidgetText,
-    open: Option<&'open mut bool>,
-    area: Area,
-    frame: Option<Frame>,
-    resize: Resize,
-    scroll: ScrollArea,
-    collapsible: bool,
-    default_open: bool,
-    with_title_bar: bool,
-    fade_out: bool,
+    pub title: WidgetText,
+    pub open: Option<&'open mut bool>,
+    pub area: Area,
+    pub frame: Option<Frame>,
+    pub resize: Resize,
+    pub scroll: ScrollArea,
+    pub collapsible: bool,
+    pub default_open: bool,
+    pub with_title_bar: bool,
+    pub fade_out: bool,
 }
 
 impl<'open> Window<'open> {

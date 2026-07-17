@@ -12,6 +12,7 @@ use crate::{Id, LayerId, Layout, Rect, Sense, Style, UiStackInfo};
 /// the parent [`Ui::available_rect_before_wrap`].
 #[must_use]
 #[derive(Clone, Default)]
+#[cfg_attr(feature = "serde", derive(serde::Deserialize, serde::Serialize))]
 pub struct UiBuilder {
     pub id_salt: Option<Id>,
     pub global_scope: bool,

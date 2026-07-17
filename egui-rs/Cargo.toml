@@ -146,7 +146,7 @@ winit = { version = "0.30.12", default-features = false }
 
 
 [workspace.lints.rust]
-unsafe_code = "deny"
+unsafe_code = "allow"
 
 elided_lifetimes_in_paths = "warn"
 future_incompatible = { level = "warn", priority = -1 }

@@ -9,10 +9,10 @@ pub struct Tooltip<'a> {
     pub popup: Popup<'a>,
 
     /// The layer of the parent widget.
-    parent_layer: LayerId,
+    pub parent_layer: LayerId,
 
     /// The id of the widget that owns this tooltip.
-    parent_widget: Id,
+    pub parent_widget: Id,
 }
 
 impl Tooltip<'_> {

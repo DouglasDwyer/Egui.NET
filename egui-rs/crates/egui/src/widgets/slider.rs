@@ -32,7 +32,8 @@ fn set(get_set_value: &mut GetSetValue<'_>, value: f64) {
 // ----------------------------------------------------------------------------
 
 #[derive(Clone)]
-struct SliderSpec {
+#[cfg_attr(feature = "serde", derive(serde::Deserialize, serde::Serialize))]
+pub struct SliderSpec {
     logarithmic: bool,
 
     /// For logarithmic sliders, the smallest positive value we are interested in.
@@ -96,28 +97,28 @@ pub enum SliderClamping {
 /// The default [`Slider`] size is set by [`crate::style::Spacing::slider_width`].
 #[must_use = "You should put this widget in a ui with `ui.add(widget);`"]
 pub struct Slider<'a> {
-    get_set_value: GetSetValue<'a>,
-    range: RangeInclusive<f64>,
-    spec: SliderSpec,
-    clamping: SliderClamping,
-    smart_aim: bool,
-    show_value: bool,
-    orientation: SliderOrientation,
-    prefix: String,
-    suffix: String,
-    text: WidgetText,
+    pub get_set_value: GetSetValue<'a>,
+    pub range: RangeInclusive<f64>,
+    pub spec: SliderSpec,
+    pub clamping: SliderClamping,
+    pub smart_aim: bool,
+    pub show_value: bool,
+    pub orientation: SliderOrientation,
+    pub prefix: String,
+    pub suffix: String,
+    pub text: WidgetText,
 
     /// Sets the minimal step of the widget value
-    step: Option<f64>,
+    pub step: Option<f64>,
 
-    drag_value_speed: Option<f64>,
-    min_decimals: usize,
-    max_decimals: Option<usize>,
-    custom_formatter: Option<NumFormatter<'a>>,
-    custom_parser: Option<NumParser<'a>>,
-    trailing_fill: Option<bool>,
-    handle_shape: Option<HandleShape>,
-    update_while_editing: bool,
+    pub drag_value_speed: Option<f64>,
+    pub min_decimals: usize,
+    pub max_decimals: Option<usize>,
+    pub custom_formatter: Option<NumFormatter<'a>>,
+    pub custom_parser: Option<NumParser<'a>>,
+    pub trailing_fill: Option<bool>,
+    pub handle_shape: Option<HandleShape>,
+    pub update_while_editing: bool,
 }
 
 impl<'a> Slider<'a> {

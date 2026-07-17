@@ -42,21 +42,21 @@ pub struct TextEditState {
     pub(crate) undoer: Arc<Mutex<TextEditUndoer>>,
 
     // If IME candidate window is shown on this text edit.
-    #[cfg_attr(feature = "serde", serde(skip))]
+    //#[cfg_attr(feature = "serde", serde(skip))]
     pub(crate) ime_enabled: bool,
 
     // cursor range for IME candidate.
-    #[cfg_attr(feature = "serde", serde(skip))]
+    //#[cfg_attr(feature = "serde", serde(skip))]
     pub(crate) ime_cursor_range: CCursorRange,
 
     // Text offset within the widget area.
     // Used for sensing and singleline text clipping.
-    #[cfg_attr(feature = "serde", serde(skip))]
+    //#[cfg_attr(feature = "serde", serde(skip))]
     pub(crate) text_offset: Vec2,
 
     /// When did the user last press a key or click on the `TextEdit`.
     /// Used to pause the cursor animation when typing.
-    #[cfg_attr(feature = "serde", serde(skip))]
+    //#[cfg_attr(feature = "serde", serde(skip))]
     pub(crate) last_interaction_time: f64,
 }
 

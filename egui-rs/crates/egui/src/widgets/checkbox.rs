@@ -19,12 +19,12 @@ use crate::{
 #[must_use = "You should put this widget in a ui with `ui.add(widget);`"]
 pub struct Checkbox<'a> {
     checked: &'a mut bool,
-    atoms: Atoms<'a>,
+    atoms: Atoms,
     indeterminate: bool,
 }
 
 impl<'a> Checkbox<'a> {
-    pub fn new(checked: &'a mut bool, atoms: impl IntoAtoms<'a>) -> Self {
+    pub fn new(checked: &'a mut bool, atoms: impl IntoAtoms) -> Self {
         Checkbox {
             checked,
             atoms: atoms.into_atoms(),

@@ -62,6 +62,7 @@ pub fn is_in_menu(ui: &Ui) -> bool {
 
 /// Configuration and style for menus.
 #[derive(Clone, Debug)]
+#[cfg_attr(feature = "serde", derive(serde::Deserialize, serde::Serialize))]
 pub struct MenuConfig {
     /// Is this a menu bar?
     bar: bool,
@@ -72,6 +73,7 @@ pub struct MenuConfig {
     /// Override the menu style.
     ///
     /// Default is [`menu_style`].
+    #[cfg_attr(feature = "serde", serde(skip))]
     pub style: StyleModifier,
 }
 
@@ -133,6 +135,7 @@ impl MenuConfig {
 
 /// Holds the state of the menu.
 #[derive(Clone)]
+#[cfg_attr(feature = "serde", derive(serde::Deserialize, serde::Serialize))]
 pub struct MenuState {
     /// The currently open sub menu in this menu.
     pub open_item: Option<Id>,
@@ -215,8 +218,10 @@ impl MenuState {
 /// # });
 /// ```
 #[derive(Clone, Debug)]
+#[cfg_attr(feature = "serde", derive(serde::Deserialize, serde::Serialize))]
 pub struct MenuBar {
     config: MenuConfig,
+    #[cfg_attr(feature = "serde", serde(skip))]
     style: StyleModifier,
 }
 
@@ -291,13 +296,15 @@ impl MenuBar {
 /// The only thing this does is search for the current menu config (if set via [`MenuBar`]).
 /// If your menu button is not in a [`MenuBar`] it's fine to use [`Ui::button`] and [`Popup::menu`]
 /// directly.
-pub struct MenuButton<'a> {
-    pub button: Button<'a>,
+#[derive(Clone)]
+#[cfg_attr(feature = "serde", derive(serde::Deserialize, serde::Serialize))]
+pub struct MenuButton {
+    pub button: Button,
     pub config: Option<MenuConfig>,
 }
 
-impl<'a> MenuButton<'a> {
-    pub fn new(atoms: impl IntoAtoms<'a>) -> Self {
+impl MenuButton {
+    pub fn new(atoms: impl IntoAtoms) -> Self {
         Self::from_button(Button::new(atoms.into_atoms()))
     }
 
@@ -310,7 +317,7 @@ impl<'a> MenuButton<'a> {
 
     /// Create a new menu button from a [`Button`].
     #[inline]
-    pub fn from_button(button: Button<'a>) -> Self {
+    pub fn from_button(button: Button) -> Self {
         Self {
             button,
             config: None,
@@ -338,16 +345,18 @@ impl<'a> MenuButton<'a> {
 }
 
 /// A submenu button that shows a [`SubMenu`] if a [`Button`] is hovered.
-pub struct SubMenuButton<'a> {
-    pub button: Button<'a>,
+#[derive(Clone)]
+#[cfg_attr(feature = "serde", derive(serde::Deserialize, serde::Serialize))]
+pub struct SubMenuButton {
+    pub button: Button,
     pub sub_menu: SubMenu,
 }
 
-impl<'a> SubMenuButton<'a> {
+impl SubMenuButton {
     /// The default right arrow symbol: `"⏵"`
     pub const RIGHT_ARROW: &'static str = "⏵";
 
-    pub fn new(atoms: impl IntoAtoms<'a>) -> Self {
+    pub fn new(atoms: impl IntoAtoms) -> Self {
         Self::from_button(Button::new(atoms.into_atoms()).right_text("⏵"))
     }
 
@@ -355,7 +364,7 @@ impl<'a> SubMenuButton<'a> {
     ///
     /// Use [`Button::right_text`] and [`SubMenuButton::RIGHT_ARROW`] to add the default right
     /// arrow symbol.
-    pub fn from_button(button: Button<'a>) -> Self {
+    pub fn from_button(button: Button) -> Self {
         Self {
             button,
             sub_menu: SubMenu::default(),
@@ -400,6 +409,7 @@ impl<'a> SubMenuButton<'a> {
 /// Useful if you want to make custom menu buttons.
 /// Usually, just use [`MenuButton`] or [`SubMenuButton`] instead.
 #[derive(Clone, Debug, Default)]
+#[cfg_attr(feature = "serde", derive(serde::Deserialize, serde::Serialize))]
 pub struct SubMenu {
     config: Option<MenuConfig>,
 }

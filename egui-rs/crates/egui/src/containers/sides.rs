@@ -42,6 +42,7 @@ use crate::{Layout, Ui, UiBuilder};
 /// ```
 #[must_use = "You should call sides.show()"]
 #[derive(Clone, Copy, Debug, Default)]
+#[cfg_attr(feature = "serde", derive(serde::Deserialize, serde::Serialize))]
 pub struct Sides {
     height: Option<f32>,
     spacing: Option<f32>,
@@ -50,7 +51,8 @@ pub struct Sides {
 }
 
 #[derive(Clone, Copy, Debug, Default)]
-enum SidesKind {
+#[cfg_attr(feature = "serde", derive(serde::Deserialize, serde::Serialize))]
+pub enum SidesKind {
     #[default]
     Extend,
     ShrinkLeft,

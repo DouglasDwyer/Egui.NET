@@ -12,6 +12,7 @@ use crate::{Response, Sense, Ui, Vec2, Widget, vec2};
 /// # });
 /// ```
 #[must_use = "You should put this widget in a ui with `ui.add(widget);`"]
+#[cfg_attr(feature = "serde", derive(serde::Deserialize, serde::Serialize))]
 pub struct Separator {
     spacing: f32,
     grow: f32,

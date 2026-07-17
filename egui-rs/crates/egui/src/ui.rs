@@ -2137,7 +2137,7 @@ impl Ui {
     /// ```
     #[must_use = "You should check if the user clicked this with `if ui.button(…).clicked() { … } "]
     #[inline]
-    pub fn button<'a>(&mut self, atoms: impl IntoAtoms<'a>) -> Response {
+    pub fn button(&mut self, atoms: impl IntoAtoms) -> Response {
         Button::new(atoms).ui(self)
     }
 
@@ -2155,7 +2155,7 @@ impl Ui {
     ///
     /// See also [`Self::toggle_value`].
     #[inline]
-    pub fn checkbox<'a>(&mut self, checked: &'a mut bool, atoms: impl IntoAtoms<'a>) -> Response {
+    pub fn checkbox<'a>(&mut self, checked: &'a mut bool, atoms: impl IntoAtoms) -> Response {
         Checkbox::new(checked, atoms).ui(self)
     }
 
@@ -2164,7 +2164,7 @@ impl Ui {
     /// Click to toggle to bool.
     ///
     /// See also [`Self::checkbox`].
-    pub fn toggle_value<'a>(&mut self, selected: &mut bool, atoms: impl IntoAtoms<'a>) -> Response {
+    pub fn toggle_value(&mut self, selected: &mut bool, atoms: impl IntoAtoms) -> Response {
         let mut response = self.selectable_label(*selected, atoms);
         if response.clicked() {
             *selected = !*selected;
@@ -2177,7 +2177,7 @@ impl Ui {
     /// Often you want to use [`Self::radio_value`] instead.
     #[must_use = "You should check if the user clicked this with `if ui.radio(…).clicked() { … } "]
     #[inline]
-    pub fn radio<'a>(&mut self, selected: bool, atoms: impl IntoAtoms<'a>) -> Response {
+    pub fn radio(&mut self, selected: bool, atoms: impl IntoAtoms) -> Response {
         RadioButton::new(selected, atoms).ui(self)
     }
 
@@ -2200,11 +2200,11 @@ impl Ui {
     /// }
     /// # });
     /// ```
-    pub fn radio_value<'a, Value: PartialEq>(
+    pub fn radio_value<Value: PartialEq>(
         &mut self,
         current_value: &mut Value,
         alternative: Value,
-        atoms: impl IntoAtoms<'a>,
+        atoms: impl IntoAtoms,
     ) -> Response {
         let mut response = self.radio(*current_value == alternative, atoms);
         if response.clicked() && *current_value != alternative {
@@ -2218,7 +2218,7 @@ impl Ui {
     ///
     /// See also [`Button::selectable`] and [`Self::toggle_value`].
     #[must_use = "You should check if the user clicked this with `if ui.selectable_label(…).clicked() { … } "]
-    pub fn selectable_label<'a>(&mut self, checked: bool, text: impl IntoAtoms<'a>) -> Response {
+    pub fn selectable_label(&mut self, checked: bool, text: impl IntoAtoms) -> Response {
         Button::selectable(checked, text).ui(self)
     }
 
@@ -2228,11 +2228,11 @@ impl Ui {
     /// Example: `ui.selectable_value(&mut my_enum, Enum::Alternative, "Alternative")`.
     ///
     /// See also [`Button::selectable`] and [`Self::toggle_value`].
-    pub fn selectable_value<'a, Value: PartialEq>(
+    pub fn selectable_value<Value: PartialEq>(
         &mut self,
         current_value: &mut Value,
         selected_value: Value,
-        text: impl IntoAtoms<'a>,
+        text: impl IntoAtoms,
     ) -> Response {
         let mut response = self.selectable_label(*current_value == selected_value, text);
         if response.clicked() && *current_value != selected_value {
@@ -2323,7 +2323,7 @@ impl Ui {
     ///
     /// See also [`crate::Image`], [`crate::ImageSource`].
     #[inline]
-    pub fn image<'a>(&mut self, source: impl Into<ImageSource<'a>>) -> Response {
+    pub fn image(&mut self, source: impl Into<ImageSource>) -> Response {
         Image::new(source).ui(self)
     }
 }
@@ -3123,9 +3123,9 @@ impl Ui {
     /// ```
     ///
     /// See also: [`Self::close`] and [`Response::context_menu`].
-    pub fn menu_button<'a, R>(
+    pub fn menu_button<R>(
         &mut self,
-        atoms: impl IntoAtoms<'a>,
+        atoms: impl IntoAtoms,
         add_contents: impl FnOnce(&mut Ui) -> R,
     ) -> InnerResponse<Option<R>> {
         let (response, inner) = if menu::is_in_menu(self) {
@@ -3157,9 +3157,9 @@ impl Ui {
     ///
     /// See also: [`Self::close`] and [`Response::context_menu`].
     #[inline]
-    pub fn menu_image_button<'a, R>(
+    pub fn menu_image_button<R>(
         &mut self,
-        image: impl Into<Image<'a>>,
+        image: impl Into<Image>,
         add_contents: impl FnOnce(&mut Ui) -> R,
     ) -> InnerResponse<Option<R>> {
         let (response, inner) = if menu::is_in_menu(self) {
@@ -3194,9 +3194,9 @@ impl Ui {
     ///
     /// See also: [`Self::close`] and [`Response::context_menu`].
     #[inline]
-    pub fn menu_image_text_button<'a, R>(
+    pub fn menu_image_text_button<R>(
         &mut self,
-        image: impl Into<Image<'a>>,
+        image: impl Into<Image>,
         title: impl Into<WidgetText>,
         add_contents: impl FnOnce(&mut Ui) -> R,
     ) -> InnerResponse<Option<R>> {
@@ -3218,7 +3218,6 @@ impl Ui {
 /// # Debug stuff
 impl Ui {
     /// Shows where the next widget is going to be placed
-    #[cfg(debug_assertions)]
     pub fn debug_paint_cursor(&self) {
         self.placer.debug_paint_cursor(&self.painter, "next");
     }

@@ -29,9 +29,11 @@ use std::sync::Arc;
 ///
 /// You can use this to first allocate a response and then modify, e.g., the [`Frame`] on the
 /// [`AllocatedAtomLayout`] for interaction styling.
-pub struct AtomLayout<'a> {
+#[derive(Clone)]
+#[cfg_attr(feature = "serde", derive(serde::Deserialize, serde::Serialize))]
+pub struct AtomLayout {
     id: Option<Id>,
-    pub atoms: Atoms<'a>,
+    pub atoms: Atoms,
     gap: Option<f32>,
     pub(crate) frame: Frame,
     pub(crate) sense: Sense,
@@ -42,14 +44,14 @@ pub struct AtomLayout<'a> {
     align2: Option<Align2>,
 }
 
-impl Default for AtomLayout<'_> {
+impl Default for AtomLayout {
     fn default() -> Self {
         Self::new(())
     }
 }
 
-impl<'a> AtomLayout<'a> {
-    pub fn new(atoms: impl IntoAtoms<'a>) -> Self {
+impl AtomLayout {
+    pub fn new(atoms: impl IntoAtoms) -> Self {
         Self {
             id: None,
             atoms: atoms.into_atoms(),
@@ -152,7 +154,7 @@ impl<'a> AtomLayout<'a> {
     /// Calculate sizes, create [`Galley`]s and allocate a [`Response`].
     ///
     /// Use the returned [`AllocatedAtomLayout`] for painting.
-    pub fn allocate(self, ui: &mut Ui) -> AllocatedAtomLayout<'a> {
+    pub fn allocate(self, ui: &mut Ui) -> AllocatedAtomLayout {
         let Self {
             id,
             mut atoms,
@@ -298,8 +300,9 @@ impl<'a> AtomLayout<'a> {
 
 /// Instructions for painting an [`AtomLayout`].
 #[derive(Clone, Debug)]
-pub struct AllocatedAtomLayout<'a> {
-    pub sized_atoms: SmallVec<[SizedAtom<'a>; ATOMS_SMALL_VEC_SIZE]>,
+#[cfg_attr(feature = "serde", derive(serde::Deserialize, serde::Serialize))]
+pub struct AllocatedAtomLayout {
+    pub sized_atoms: SmallVec<[SizedAtom; ATOMS_SMALL_VEC_SIZE]>,
     pub frame: Frame,
     pub fallback_text_color: Color32,
     pub response: Response,
@@ -310,16 +313,16 @@ pub struct AllocatedAtomLayout<'a> {
     gap: f32,
 }
 
-impl<'atom> AllocatedAtomLayout<'atom> {
-    pub fn iter_kinds(&self) -> impl Iterator<Item = &SizedAtomKind<'atom>> {
+impl AllocatedAtomLayout {
+    pub fn iter_kinds(&self) -> impl Iterator<Item = &SizedAtomKind> {
         self.sized_atoms.iter().map(|atom| &atom.kind)
     }
 
-    pub fn iter_kinds_mut(&mut self) -> impl Iterator<Item = &mut SizedAtomKind<'atom>> {
+    pub fn iter_kinds_mut(&mut self) -> impl Iterator<Item = &mut SizedAtomKind> {
         self.sized_atoms.iter_mut().map(|atom| &mut atom.kind)
     }
 
-    pub fn iter_images(&self) -> impl Iterator<Item = &Image<'atom>> {
+    pub fn iter_images(&self) -> impl Iterator<Item = &Image> {
         self.iter_kinds().filter_map(|kind| {
             if let SizedAtomKind::Image(image, _) = kind {
                 Some(image)
@@ -329,7 +332,7 @@ impl<'atom> AllocatedAtomLayout<'atom> {
         })
     }
 
-    pub fn iter_images_mut(&mut self) -> impl Iterator<Item = &mut Image<'atom>> {
+    pub fn iter_images_mut(&mut self) -> impl Iterator<Item = &mut Image> {
         self.iter_kinds_mut().filter_map(|kind| {
             if let SizedAtomKind::Image(image, _) = kind {
                 Some(image)
@@ -339,7 +342,7 @@ impl<'atom> AllocatedAtomLayout<'atom> {
         })
     }
 
-    pub fn iter_texts(&self) -> impl Iterator<Item = &Arc<Galley>> + use<'atom, '_> {
+    pub fn iter_texts(&self) -> impl Iterator<Item = &Arc<Galley>> + use<'_> {
         self.iter_kinds().filter_map(|kind| {
             if let SizedAtomKind::Text(text) = kind {
                 Some(text)
@@ -349,7 +352,7 @@ impl<'atom> AllocatedAtomLayout<'atom> {
         })
     }
 
-    pub fn iter_texts_mut(&mut self) -> impl Iterator<Item = &mut Arc<Galley>> + use<'atom, '_> {
+    pub fn iter_texts_mut(&mut self) -> impl Iterator<Item = &mut Arc<Galley>> + use<'_> {
         self.iter_kinds_mut().filter_map(|kind| {
             if let SizedAtomKind::Text(text) = kind {
                 Some(text)
@@ -361,7 +364,7 @@ impl<'atom> AllocatedAtomLayout<'atom> {
 
     pub fn map_kind<F>(&mut self, mut f: F)
     where
-        F: FnMut(SizedAtomKind<'atom>) -> SizedAtomKind<'atom>,
+        F: FnMut(SizedAtomKind) -> SizedAtomKind,
     {
         for kind in self.iter_kinds_mut() {
             *kind = f(std::mem::take(kind));
@@ -370,7 +373,7 @@ impl<'atom> AllocatedAtomLayout<'atom> {
 
     pub fn map_images<F>(&mut self, mut f: F)
     where
-        F: FnMut(Image<'atom>) -> Image<'atom>,
+        F: FnMut(Image) -> Image,
     {
         self.map_kind(|kind| {
             if let SizedAtomKind::Image(image, size) = kind {
@@ -452,6 +455,7 @@ impl<'atom> AllocatedAtomLayout<'atom> {
 ///
 /// Use [`AtomLayoutResponse::rect`] to get the response rects from [`AtomKind::Custom`].
 #[derive(Clone, Debug)]
+#[cfg_attr(feature = "serde", derive(serde::Deserialize, serde::Serialize))]
 pub struct AtomLayoutResponse {
     pub response: Response,
     // There should rarely be more than one custom rect.
@@ -480,35 +484,35 @@ impl AtomLayoutResponse {
     }
 }
 
-impl Widget for AtomLayout<'_> {
+impl Widget for AtomLayout {
     fn ui(self, ui: &mut Ui) -> Response {
         self.show(ui).response
     }
 }
 
-impl<'a> Deref for AtomLayout<'a> {
-    type Target = Atoms<'a>;
+impl Deref for AtomLayout {
+    type Target = Atoms;
 
     fn deref(&self) -> &Self::Target {
         &self.atoms
     }
 }
 
-impl DerefMut for AtomLayout<'_> {
+impl DerefMut for AtomLayout {
     fn deref_mut(&mut self) -> &mut Self::Target {
         &mut self.atoms
     }
 }
 
-impl<'a> Deref for AllocatedAtomLayout<'a> {
-    type Target = [SizedAtom<'a>];
+impl Deref for AllocatedAtomLayout {
+    type Target = [SizedAtom];
 
     fn deref(&self) -> &Self::Target {
         &self.sized_atoms
     }
 }
 
-impl DerefMut for AllocatedAtomLayout<'_> {
+impl DerefMut for AllocatedAtomLayout {
     fn deref_mut(&mut self) -> &mut Self::Target {
         &mut self.sized_atoms
     }

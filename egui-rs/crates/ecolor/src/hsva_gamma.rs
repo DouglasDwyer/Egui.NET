@@ -3,6 +3,7 @@ use crate::{Color32, Hsva, Rgba, gamma_from_linear, linear_from_gamma};
 /// Like Hsva but with the `v` value (brightness) being gamma corrected
 /// so that it is somewhat perceptually even.
 #[derive(Clone, Copy, Debug, Default, PartialEq)]
+#[cfg_attr(feature = "serde", derive(serde::Deserialize, serde::Serialize))]
 pub struct HsvaGamma {
     /// hue 0-1
     pub h: f32,

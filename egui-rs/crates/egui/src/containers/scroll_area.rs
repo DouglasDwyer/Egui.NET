@@ -277,6 +277,7 @@ impl AddAssign for ScrollSource {
 /// If you want to allow zooming, use [`crate::Scene`].
 #[derive(Clone, Debug)]
 #[must_use = "You should call .show()"]
+#[cfg_attr(feature = "serde", derive(serde::Deserialize, serde::Serialize))]
 pub struct ScrollArea {
     /// Do we have horizontal/vertical scrolling enabled?
     direction_enabled: Vec2b,

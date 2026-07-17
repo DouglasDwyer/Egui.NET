@@ -309,6 +309,7 @@ impl GridLayout {
 /// # });
 /// ```
 #[must_use = "You should call .show()"]
+#[cfg_attr(feature = "serde", derive(serde::Deserialize, serde::Serialize))]
 pub struct Grid {
     id_salt: Id,
     num_columns: Option<usize>,
@@ -317,6 +318,7 @@ pub struct Grid {
     max_cell_size: Vec2,
     spacing: Option<Vec2>,
     start_row: usize,
+    #[cfg_attr(feature = "serde", serde(skip))]
     color_picker: Option<ColorPickerFn>,
 }
 

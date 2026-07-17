@@ -32,6 +32,7 @@ impl State {
 /// A region that can be resized by dragging the bottom right corner.
 #[derive(Clone, Copy, Debug)]
 #[must_use = "You should call .show()"]
+#[cfg_attr(feature = "serde", derive(serde::Deserialize, serde::Serialize))]
 pub struct Resize {
     id: Option<Id>,
     id_salt: Option<Id>,

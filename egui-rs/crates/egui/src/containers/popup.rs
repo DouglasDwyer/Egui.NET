@@ -23,6 +23,7 @@ use crate::{
 /// The rect should be in global coordinates. `PopupAnchor::from(&response)` will automatically
 /// do this conversion.
 #[derive(Clone, Copy, Debug, PartialEq, Eq)]
+#[cfg_attr(feature = "serde", derive(serde::Deserialize, serde::Serialize))]
 pub enum PopupAnchor {
     /// Show the popup relative to some parent [`Rect`].
     ParentRect(Rect),
@@ -76,6 +77,7 @@ impl PopupAnchor {
 
 /// Determines popup's close behavior
 #[derive(Clone, Copy, PartialEq, Eq, Default, Debug)]
+#[cfg_attr(feature = "serde", derive(serde::Deserialize, serde::Serialize))]
 pub enum PopupCloseBehavior {
     /// Popup will be closed on click anywhere, inside or outside the popup.
     ///
@@ -93,6 +95,7 @@ pub enum PopupCloseBehavior {
 }
 
 #[derive(Clone, Copy, Debug, PartialEq, Eq)]
+#[cfg_attr(feature = "serde", derive(serde::Deserialize, serde::Serialize))]
 pub enum SetOpenCommand {
     /// Set the open state to the given value
     Bool(bool),
@@ -108,7 +111,7 @@ impl From<bool> for SetOpenCommand {
 }
 
 /// How do we determine if the popup should be open or closed
-enum OpenKind<'a> {
+pub enum OpenKind<'a> {
     /// Always open
     Open,
 
@@ -136,6 +139,7 @@ impl OpenKind<'_> {
 
 /// Is the popup a popup, tooltip or menu?
 #[derive(Clone, Copy, Debug, PartialEq, Eq)]
+#[cfg_attr(feature = "serde", derive(serde::Deserialize, serde::Serialize))]
 pub enum PopupKind {
     Popup,
     Tooltip,
@@ -165,26 +169,26 @@ impl From<PopupKind> for UiKind {
 /// A popup container.
 #[must_use = "Call `.show()` to actually display the popup"]
 pub struct Popup<'a> {
-    id: Id,
-    ctx: Context,
-    anchor: PopupAnchor,
-    rect_align: RectAlign,
-    alternative_aligns: Option<&'a [RectAlign]>,
-    layer_id: LayerId,
-    open_kind: OpenKind<'a>,
-    close_behavior: PopupCloseBehavior,
-    info: Option<UiStackInfo>,
-    kind: PopupKind,
+    pub id: Id,
+    pub ctx: Context,
+    pub anchor: PopupAnchor,
+    pub rect_align: RectAlign,
+    pub alternative_aligns: Option<&'a [RectAlign]>,
+    pub layer_id: LayerId,
+    pub open_kind: OpenKind<'a>,
+    pub close_behavior: PopupCloseBehavior,
+    pub info: Option<UiStackInfo>,
+    pub kind: PopupKind,
 
     /// Gap between the anchor and the popup
-    gap: f32,
+    pub gap: f32,
 
     /// Default width passed to the Area
-    width: Option<f32>,
-    sense: Sense,
-    layout: Layout,
-    frame: Option<Frame>,
-    style: StyleModifier,
+    pub width: Option<f32>,
+    pub sense: Sense,
+    pub layout: Layout,
+    pub frame: Option<Frame>,
+    pub style: StyleModifier,
 }
 
 impl<'a> Popup<'a> {

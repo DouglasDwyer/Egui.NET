@@ -112,10 +112,12 @@ impl std::fmt::Debug for LayerId {
 /// A unique identifier of a specific [`Shape`] in a [`PaintList`].
 
 #[derive(Clone, Copy, Debug, PartialEq, Eq)]
+#[cfg_attr(feature = "serde", derive(serde::Deserialize, serde::Serialize))]
 pub struct ShapeIdx(pub usize);
 
 /// A list of [`Shape`]s paired with a clip rectangle.
 #[derive(Clone, Default)]
+#[cfg_attr(feature = "serde", derive(serde::Deserialize, serde::Serialize))]
 pub struct PaintList(Vec<ClippedShape>);
 
 impl PaintList {
@@ -196,6 +198,7 @@ impl PaintList {
 
 /// This is where painted [`Shape`]s end up during a frame.
 #[derive(Clone, Default)]
+#[cfg_attr(feature = "serde", derive(serde::Deserialize, serde::Serialize))]
 pub struct GraphicLayers([IdMap<PaintList>; Order::COUNT]);
 
 impl GraphicLayers {

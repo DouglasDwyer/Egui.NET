@@ -5,6 +5,7 @@ use crate::{Direction, Frame, Id, Rect};
 
 /// What kind is this [`crate::Ui`]?
 #[derive(Clone, Copy, Debug, PartialEq, Eq)]
+#[cfg_attr(feature = "serde", derive(serde::Deserialize, serde::Serialize))]
 pub enum UiKind {
     /// A [`crate::Window`].
     Window,
@@ -102,9 +103,11 @@ impl UiKind {
 
 /// Information about a [`crate::Ui`] to be included in the corresponding [`UiStack`].
 #[derive(Clone, Default, Debug)]
+#[cfg_attr(feature = "serde", derive(serde::Deserialize, serde::Serialize))]
 pub struct UiStackInfo {
     pub kind: Option<UiKind>,
     pub frame: Frame,
+    #[cfg_attr(feature = "serde", serde(skip))]
     pub tags: UiTags,
 }
 
@@ -201,7 +204,8 @@ impl UiTags {
 /// Note: since [`UiStack`] contains a reference to its parent, it is both a stack, and a node within
 /// that stack. Most of its methods are about the specific node, but some methods walk up the
 /// hierarchy to provide information about the entire stack.
-#[derive(Debug)]
+#[derive(Clone, Debug)]
+#[cfg_attr(feature = "serde", derive(serde::Deserialize, serde::Serialize))]
 pub struct UiStack {
     // stuff that `Ui::child_ui` can deal with directly
     pub id: Id,

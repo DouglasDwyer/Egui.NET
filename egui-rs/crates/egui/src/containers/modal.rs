@@ -13,6 +13,7 @@ use crate::{
 /// the most recently shown one.
 /// If multiple modals are newly shown in the same frame, the order of the modals is undefined
 /// (either first or second could be top).
+#[cfg_attr(feature = "serde", derive(serde::Deserialize, serde::Serialize))]
 pub struct Modal {
     pub area: Area,
     pub backdrop_color: Color32,

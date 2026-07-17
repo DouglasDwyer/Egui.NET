@@ -1,6 +1,5 @@
 use crate::{Layout, Painter, Pos2, Rect, Region, Vec2, grid, vec2};
 
-#[cfg(debug_assertions)]
 use crate::{Align2, Color32, Stroke};
 
 pub(crate) struct Placer {
@@ -280,7 +279,6 @@ impl Placer {
 }
 
 impl Placer {
-    #[cfg(debug_assertions)]
     pub(crate) fn debug_paint_cursor(&self, painter: &crate::Painter, text: impl ToString) {
         let stroke = Stroke::new(1.0, Color32::DEBUG_COLOR);
 

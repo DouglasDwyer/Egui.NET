@@ -22,6 +22,7 @@ use crate::{
 /// For full control of the text you can use [`crate::text::LayoutJob`]
 /// as argument to [`Self::new`].
 #[must_use = "You should put this widget in a ui with `ui.add(widget);`"]
+#[cfg_attr(feature = "serde", derive(serde::Deserialize, serde::Serialize))]
 pub struct Label {
     text: WidgetText,
     wrap_mode: Option<TextWrapMode>,

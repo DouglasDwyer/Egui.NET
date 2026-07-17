@@ -12,6 +12,7 @@ use std::hash::{Hash, Hasher};
 ///
 /// See also [`Float`].
 #[derive(Clone, Copy)]
+#[cfg_attr(feature = "serde", derive(serde::Deserialize, serde::Serialize))]
 pub struct OrderedFloat<T>(pub T);
 
 impl<T: Float + Copy> OrderedFloat<T> {

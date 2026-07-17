@@ -8,6 +8,7 @@ use crate::{
 
 /// All you probably need to know about a multi-touch gesture.
 #[derive(Clone, Copy, Debug, PartialEq)]
+#[cfg_attr(feature = "serde", derive(serde::Deserialize, serde::Serialize))]
 pub struct MultiTouchInfo {
     /// Point in time when the gesture started.
     pub start_time: f64,
@@ -68,10 +69,10 @@ pub struct MultiTouchInfo {
 /// The current state (for a specific touch device) of touch events and gestures.
 #[derive(Clone)]
 #[cfg_attr(feature = "serde", derive(serde::Deserialize, serde::Serialize))]
-pub(crate) struct TouchState {
+pub struct TouchState {
     /// Technical identifier of the touch device. This is used to identify relevant touch events
     /// for this [`TouchState`] instance.
-    device_id: TouchDeviceId,
+    pub device_id: TouchDeviceId,
 
     /// Active touches, if any.
     ///
@@ -79,45 +80,45 @@ pub(crate) struct TouchState {
     /// next touch will receive a new unique ID.
     ///
     /// Refer to [`ActiveTouch`].
-    active_touches: BTreeMap<TouchId, ActiveTouch>,
+    pub active_touches: BTreeMap<TouchId, ActiveTouch>,
 
     /// If a gesture has been recognized (i.e. when exactly two fingers touch the surface), this
     /// holds state information
-    gesture_state: Option<GestureState>,
+    pub gesture_state: Option<GestureState>,
 }
 
 #[derive(Clone, Debug)]
 #[cfg_attr(feature = "serde", derive(serde::Deserialize, serde::Serialize))]
-struct GestureState {
-    start_time: f64,
-    start_pointer_pos: Pos2,
-    pinch_type: PinchType,
-    previous: Option<DynGestureState>,
-    current: DynGestureState,
+pub struct GestureState {
+    pub start_time: f64,
+    pub start_pointer_pos: Pos2,
+    pub pinch_type: PinchType,
+    pub previous: Option<DynGestureState>,
+    pub current: DynGestureState,
 }
 
 /// Gesture data that can change over time
 #[derive(Clone, Copy, Debug)]
 #[cfg_attr(feature = "serde", derive(serde::Deserialize, serde::Serialize))]
-struct DynGestureState {
+pub struct DynGestureState {
     /// used for proportional zooming
-    avg_distance: f32,
+    pub avg_distance: f32,
 
     /// used for non-proportional zooming
-    avg_abs_distance2: Vec2,
+    pub avg_abs_distance2: Vec2,
 
-    avg_pos: Pos2,
+    pub avg_pos: Pos2,
 
-    avg_force: f32,
+    pub avg_force: f32,
 
-    heading: f32,
+    pub heading: f32,
 }
 
 /// Describes an individual touch (finger or digitizer) on the touch surface. Instances exist as
 /// long as the finger/pen touches the surface.
 #[derive(Clone, Copy, Debug)]
 #[cfg_attr(feature = "serde", derive(serde::Deserialize, serde::Serialize))]
-struct ActiveTouch {
+pub struct ActiveTouch {
     /// Current position of this touch, in device coordinates (not necessarily screen position)
     pos: Pos2,
 
@@ -315,7 +316,7 @@ impl Debug for TouchState {
 
 #[derive(Clone, Debug)]
 #[cfg_attr(feature = "serde", derive(serde::Deserialize, serde::Serialize))]
-enum PinchType {
+pub enum PinchType {
     Horizontal,
     Vertical,
     Proportional,

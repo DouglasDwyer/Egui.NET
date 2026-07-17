@@ -1,6 +1,7 @@
 /// An `enum` of common operating systems.
 #[expect(clippy::upper_case_acronyms)] // `Ios` looks too ugly
 #[derive(Clone, Copy, Debug, PartialEq, Eq, Hash)]
+#[cfg_attr(feature = "serde", derive(serde::Deserialize, serde::Serialize))]
 pub enum OperatingSystem {
     /// Unknown OS - could be wasm
     Unknown,

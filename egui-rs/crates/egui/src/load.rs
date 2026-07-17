@@ -145,6 +145,7 @@ pub type Result<T, E = LoadError> = std::result::Result<T, E>;
 /// Used mostly for rendering SVG:s to a good size.
 /// The [`SizeHint`] determines at what resolution the image should be rasterized.
 #[derive(Clone, Copy, Debug, PartialEq, Eq, PartialOrd, Ord, Hash)]
+#[cfg_attr(feature = "serde", derive(serde::Deserialize, serde::Serialize))]
 pub enum SizeHint {
     /// Scale original size by some factor, keeping the original aspect ratio.
     ///
@@ -206,6 +207,40 @@ impl Default for SizeHint {
 pub enum Bytes {
     Static(&'static [u8]),
     Shared(Arc<[u8]>),
+}
+
+#[cfg(feature = "serde")]
+impl serde::Serialize for Bytes {
+    fn serialize<S>(&self, serializer: S) -> std::result::Result<S::Ok, S::Error>
+    where
+        S: serde::Serializer,
+    {
+        egui_net_patch_helper::Bytes(self.as_ref().into()).serialize(serializer)
+    }
+}
+
+#[cfg(feature = "serde")]
+impl<'a> serde::Deserialize<'a> for Bytes {
+    fn deserialize<D>(deserializer: D) -> std::result::Result<Self, D::Error>
+    where
+        D: serde::Deserializer<'a>,
+    {
+        Ok(Self::Shared(
+            egui_net_patch_helper::Bytes::deserialize(deserializer)?.0,
+        ))
+    }
+}
+
+#[cfg(feature = "serde")]
+mod egui_net_patch_helper {
+    use super::*;
+
+    /// Represents a byte buffer.
+    ///
+    /// This is essentially `Cow<'static, [u8]>` but with the `Owned` variant being an `Arc`.
+    #[derive(Clone)]
+    #[cfg_attr(feature = "serde", derive(serde::Deserialize, serde::Serialize))]
+    pub struct Bytes(pub Arc<[u8]>);
 }
 
 impl Debug for Bytes {
@@ -270,6 +305,7 @@ impl Deref for Bytes {
 /// contains an optional `size`, which may be used during layout to
 /// pre-allocate space the image.
 #[derive(Clone)]
+#[cfg_attr(feature = "serde", derive(serde::Deserialize, serde::Serialize))]
 pub enum BytesPoll {
     /// Bytes are being loaded.
     Pending {
@@ -441,6 +477,7 @@ pub trait ImageLoader: std::any::Any {
 
 /// A texture with a known size.
 #[derive(Clone, Copy, Debug, PartialEq, Eq)]
+#[cfg_attr(feature = "serde", derive(serde::Deserialize, serde::Serialize))]
 pub struct SizedTexture {
     pub id: TextureId,
 
@@ -487,6 +524,7 @@ impl<'a> From<&'a TextureHandle> for SizedTexture {
 /// contains an optional `size`, which may be used during layout to
 /// pre-allocate space the image.
 #[derive(Clone, Copy)]
+#[cfg_attr(feature = "serde", derive(serde::Deserialize, serde::Serialize))]
 pub enum TexturePoll {
     /// Texture is loading.
     Pending {

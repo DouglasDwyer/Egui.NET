@@ -7,7 +7,7 @@ pub struct SelectableLabel {}
 
 impl SelectableLabel {
     #[deprecated = "Use `Button::selectable()` instead"]
-    pub fn new(selected: bool, text: impl Into<WidgetText>) -> super::Button<'static> {
+    pub fn new(selected: bool, text: impl Into<WidgetText>) -> super::Button {
         crate::Button::selectable(selected, text)
     }
 }

@@ -186,11 +186,11 @@ impl FocusDirection {
 #[cfg_attr(feature = "serde", serde(default))]
 pub struct Options {
     /// The default style for new [`Ui`](crate::Ui):s in dark mode.
-    #[cfg_attr(feature = "serde", serde(skip))]
+    //#[cfg_attr(feature = "serde", serde(skip))]
     pub dark_style: std::sync::Arc<Style>,
 
     /// The default style for new [`Ui`](crate::Ui):s in light mode.
-    #[cfg_attr(feature = "serde", serde(skip))]
+    //#[cfg_attr(feature = "serde", serde(skip))]
     pub light_style: std::sync::Arc<Style>,
 
     /// Preference for selection between dark and light [`crate::Context::style`]
@@ -207,7 +207,7 @@ pub struct Options {
 
     /// The current system theme, used to choose between
     /// dark and light style in case [`Self::theme_preference`] is [`ThemePreference::System`].
-    #[cfg_attr(feature = "serde", serde(skip))]
+    //#[cfg_attr(feature = "serde", serde(skip))]
     pub(crate) system_theme: Option<Theme>,
 
     /// Global zoom factor of the UI.
@@ -231,7 +231,7 @@ pub struct Options {
     /// which will change the `native_pixels_per_point` (`devicePixelRatio`).
     /// You can still zoom egui independently by calling [`crate::Context::set_zoom_factor`],
     /// which will be applied on top of the browsers global zoom.
-    #[cfg_attr(feature = "serde", serde(skip))]
+    //#[cfg_attr(feature = "serde", serde(skip))]
     pub zoom_with_keyboard: bool,
 
     /// Controls the tessellator.

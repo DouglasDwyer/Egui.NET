@@ -24,6 +24,7 @@ use self::text_selection::LabelSelectionState;
 /// # });
 /// ```
 #[must_use = "You should put this widget in a ui with `ui.add(widget);`"]
+#[cfg_attr(feature = "serde", derive(serde::Deserialize, serde::Serialize))]
 pub struct Link {
     text: WidgetText,
 }
@@ -89,6 +90,7 @@ impl Widget for Link {
 /// # });
 /// ```
 #[must_use = "You should put this widget in a ui with `ui.add(widget);`"]
+#[cfg_attr(feature = "serde", derive(serde::Deserialize, serde::Serialize))]
 pub struct Hyperlink {
     url: String,
     text: WidgetText,

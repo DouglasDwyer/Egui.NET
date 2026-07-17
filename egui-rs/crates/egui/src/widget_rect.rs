@@ -6,6 +6,7 @@ use crate::{Id, IdMap, LayerId, Rect, Sense, WidgetInfo};
 ///
 /// Used to check which widget gets input when a user clicks somewhere.
 #[derive(Clone, Copy, Debug, PartialEq, Eq)]
+#[cfg_attr(feature = "serde", derive(serde::Deserialize, serde::Serialize))]
 pub struct WidgetRect {
     /// The globally unique widget id.
     ///
@@ -68,6 +69,7 @@ impl WidgetRect {
 /// All [`crate::Ui`]s have a [`WidgetRect`]. It is created in [`crate::Ui::new`] with [`Rect::NOTHING`]
 /// and updated with the correct [`Rect`] when the [`crate::Ui`] is dropped.
 #[derive(Default, Clone)]
+#[cfg_attr(feature = "serde", derive(serde::Deserialize, serde::Serialize))]
 pub struct WidgetRects {
     /// All widgets, in painting order.
     by_layer: HashMap<LayerId, Vec<WidgetRect>>,

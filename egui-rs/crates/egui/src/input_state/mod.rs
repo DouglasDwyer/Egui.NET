@@ -15,7 +15,7 @@ use std::{
 };
 
 pub use crate::Key;
-pub use touch_state::MultiTouchInfo;
+pub use touch_state::{MultiTouchInfo, PinchType};
 use touch_state::TouchState;
 
 #[derive(Clone, Copy, Debug, Default, PartialEq, Eq)]
@@ -992,7 +992,7 @@ impl InputState {
 /// A pointer (mouse or touch) click.
 #[derive(Clone, Debug, PartialEq)]
 #[cfg_attr(feature = "serde", derive(serde::Deserialize, serde::Serialize))]
-pub(crate) struct Click {
+pub struct Click {
     pub pos: Pos2,
 
     /// 1 or 2 (double-click) or 3 (triple-click)
@@ -1014,7 +1014,7 @@ impl Click {
 
 #[derive(Clone, Debug, PartialEq)]
 #[cfg_attr(feature = "serde", derive(serde::Deserialize, serde::Serialize))]
-pub(crate) enum PointerEvent {
+pub enum PointerEvent {
     Moved(Pos2),
     Pressed {
         position: Pos2,
