@@ -5,6 +5,12 @@ members = [
     "egui_net_ffi",
     "serde-generate",
 ]
+# egui-rs/ and egui-rs-patched/ are their own separate Cargo workspaces (each
+# has its own `[workspace]` table). Without excluding them here, Cargo treats
+# the egui-rs-patched/crates/egui patch dependency below as inheriting
+# `workspace.package` fields (rust-version, version, license, ...) from this
+# workspace instead of its own, which breaks resolution.
+exclude = [ "egui-rs", "egui-rs-patched" ]
 default-members = [ "egui_net" ]
 resolver = "2"
 
@@ -48,7 +54,10 @@ x86_64-apple-darwin = { image = "i18nsite/x86_64-apple-darwin-cross@sha256:86049
 aarch64-apple-darwin = { image = "i18nsite/aarch64-apple-darwin-cross@sha256:737bd24b8bc893de2bec133277e4f69c33db725ef02d13c8f1277fe92098ba0d" }
 
 [patch.crates-io]
-#egui = { path = "../egui/crates/egui" }
-egui = { git = "https://github.com/DouglasDwyer/egui", rev = "5ab970625cb89175ffffffe937ad397ddb3e32b3" }
-#egui_extras = { path = "../egui/crates/egui_extras" }
-egui_extras = { git = "https://github.com/DouglasDwyer/egui", rev = "5ab970625cb89175ffffffe937ad397ddb3e32b3" }
+# Points at the output of `cargo vendor-egui` (see xtask/), not at egui-rs/
+# directly: egui-rs/ is a pristine, unmodified subtree of upstream egui so
+# that `git subtree pull` stays conflict-free, and patches/egui_net.patch
+# holds the C# interop changes on top of it. Run `cargo vendor-egui` after
+# cloning and whenever egui-rs/ or patches/egui_net.patch change.
+egui = { path = "egui-rs-patched/crates/egui" }
+egui_extras = { path = "egui-rs-patched/crates/egui_extras" }

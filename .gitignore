@@ -6,3 +6,4 @@
 **/target
 api/**
 _site/**
+/egui-rs-patched
