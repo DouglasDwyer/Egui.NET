@@ -1,18 +1,18 @@
-#![doc = include_str!("../README.md")]
+#![cfg_attr(doc, doc = include_str!("../README.md"))]
 //!
 //! ## Feature flags
 #![cfg_attr(feature = "document-features", doc = document_features::document_features!())]
+#![expect(clippy::unwrap_used)] // TODO(emilk): avoid unwraps
 
 mod builder;
 #[cfg(feature = "snapshot")]
 mod snapshot;
 
 #[cfg(feature = "snapshot")]
-pub use snapshot::*;
-use std::fmt::{Debug, Display, Formatter};
-use std::time::Duration;
+pub use crate::snapshot::*;
 
 mod app_kind;
+mod config;
 mod node;
 mod renderer;
 #[cfg(feature = "wgpu")]
@@ -20,18 +20,25 @@ mod texture_to_image;
 #[cfg(feature = "wgpu")]
 pub mod wgpu;
 
-pub use kittest;
+// re-exports:
+pub use {
+    self::{builder::*, node::*, renderer::*},
+    kittest,
+};
+
+use std::{
+    fmt::{Debug, Display, Formatter},
+    time::Duration,
+};
+
+use egui::{
+    Color32, Key, Modifiers, PointerButton, Pos2, Rect, RepaintCause, Shape, Vec2, ViewportId,
+    epaint::{ClippedShape, RectShape},
+    style::ScrollAnimation,
+};
+use kittest::Queryable;
 
 use crate::app_kind::AppKind;
-
-pub use builder::*;
-pub use node::*;
-pub use renderer::*;
-
-use egui::epaint::{ClippedShape, RectShape};
-use egui::style::ScrollAnimation;
-use egui::{Color32, Key, Modifiers, Pos2, Rect, RepaintCause, Shape, Vec2, ViewportId};
-use kittest::Queryable;
 
 #[derive(Debug, Clone)]
 pub struct ExceededMaxStepsError {
@@ -53,7 +60,7 @@ impl Display for ExceededMaxStepsError {
 
 /// The test Harness. This contains everything needed to run the test.
 ///
-/// Create a new Harness using [`Harness::new`] or [`Harness::builder`].
+/// Create a new Harness using [`Harness::new_ui`] or [`Harness::builder`].
 ///
 /// The [Harness] has a optional generic state that can be used to pass data to the app / ui closure.
 /// In _most cases_ it should be fine to just store the state in the closure itself.
@@ -78,6 +85,8 @@ pub struct Harness<'a, State = ()> {
 
     #[cfg(feature = "snapshot")]
     default_snapshot_options: SnapshotOptions,
+    #[cfg(feature = "snapshot")]
+    snapshot_results: SnapshotResults,
 }
 
 impl<State> Debug for Harness<'_, State> {
@@ -87,6 +96,7 @@ impl<State> Debug for Harness<'_, State> {
 }
 
 impl<'a, State> Harness<'a, State> {
+    #[track_caller]
     pub(crate) fn from_builder(
         builder: HarnessBuilder<State>,
         mut app: AppKind<'a, State>,
@@ -106,6 +116,11 @@ impl<'a, State> Harness<'a, State> {
 
             #[cfg(feature = "snapshot")]
             default_snapshot_options,
+
+            // rustfmt adds this weird indentation below.
+            // See: https://github.com/rust-lang/rustfmt/issues/5920
+            #[cfg(feature = "wgpu")]
+                render_options: _,
         } = builder;
         let ctx = ctx.unwrap_or_default();
         ctx.set_theme(theme);
@@ -128,8 +143,8 @@ impl<'a, State> Harness<'a, State> {
 
         // We need to run egui for a single frame so that the AccessKit state can be initialized
         // and users can immediately start querying for widgets.
-        let mut output = ctx.run(input.clone(), |ctx| {
-            response = app.run(ctx, &mut state, false);
+        let mut output = ctx.run_ui(input.clone(), |ui| {
+            response = app.run(ui, &mut state, false);
         });
 
         renderer.handle_delta(&output.textures_delta);
@@ -156,7 +171,15 @@ impl<'a, State> Harness<'a, State> {
 
             #[cfg(feature = "snapshot")]
             default_snapshot_options,
+
+            #[cfg(feature = "snapshot")]
+            snapshot_results: SnapshotResults::default(),
         };
+        // Fulfill any screenshot requested during the initial frame above (which didn't go
+        // through `_step`).
+        #[cfg(any(feature = "wgpu", feature = "snapshot"))]
+        harness.handle_screenshots();
+
         // Run the harness until it is stable, ensuring that all Areas are shown and animations are done
         harness.run_ok();
         harness
@@ -167,39 +190,9 @@ impl<'a, State> Harness<'a, State> {
         HarnessBuilder::default()
     }
 
-    /// Create a new Harness with the given app closure and a state.
-    ///
-    /// The app closure will immediately be called once to create the initial ui.
-    ///
-    /// If you don't need to create Windows / Panels, you can use [`Harness::new_ui`] instead.
-    ///
-    /// If you e.g. want to customize the size of the window, you can use [`Harness::builder`].
-    ///
-    /// # Example
-    /// ```rust
-    /// # use egui::CentralPanel;
-    /// # use egui_kittest::{Harness, kittest::Queryable};
-    /// let mut checked = false;
-    /// let mut harness = Harness::new_state(|ctx, checked| {
-    ///     CentralPanel::default().show(ctx, |ui| {
-    ///         ui.checkbox(checked, "Check me!");
-    ///     });
-    /// }, checked);
-    ///
-    /// harness.get_by_label("Check me!").click();
-    /// harness.run();
-    ///
-    /// assert_eq!(*harness.state(), true);
-    /// ```
-    pub fn new_state(app: impl FnMut(&egui::Context, &mut State) + 'a, state: State) -> Self {
-        Self::builder().build_state(app, state)
-    }
-
     /// Create a new Harness with the given ui closure and a state.
     ///
     /// The ui closure will immediately be called once to create the initial ui.
-    ///
-    /// If you need to create Windows / Panels, you can use [`Harness::new`] instead.
     ///
     /// If you e.g. want to customize the size of the ui, you can use [`Harness::builder`].
     ///
@@ -216,15 +209,17 @@ impl<'a, State> Harness<'a, State> {
     ///
     /// assert_eq!(*harness.state(), true);
     /// ```
+    #[track_caller]
     pub fn new_ui_state(app: impl FnMut(&mut egui::Ui, &mut State) + 'a, state: State) -> Self {
         Self::builder().build_ui_state(app, state)
     }
 
     /// Create a new [Harness] from the given eframe creation closure.
     #[cfg(feature = "eframe")]
+    #[track_caller]
     pub fn new_eframe(builder: impl FnOnce(&mut eframe::CreationContext<'a>) -> State) -> Self
     where
-        State: eframe::App,
+        State: eframe::App + 'static,
     {
         Self::builder().build_eframe(builder)
     }
@@ -272,8 +267,8 @@ impl<'a, State> Harness<'a, State> {
     fn _step(&mut self, sizing_pass: bool) {
         self.input.predicted_dt = self.step_dt;
 
-        let mut output = self.ctx.run(self.input.take(), |ctx| {
-            self.response = self.app.run(ctx, &mut self.state, sizing_pass);
+        let mut output = self.ctx.run_ui(self.input.take(), |ui| {
+            self.response = self.app.run(ui, &mut self.state, sizing_pass);
         });
         self.kittest.update(
             output
@@ -284,16 +279,15 @@ impl<'a, State> Harness<'a, State> {
         );
         self.renderer.handle_delta(&output.textures_delta);
         self.output = output;
+
+        #[cfg(any(feature = "wgpu", feature = "snapshot"))]
+        self.handle_screenshots();
     }
 
     /// Calculate the rect that includes all popups and tooltips.
     fn compute_total_rect_with_popups(&self) -> Option<Rect> {
         // Start with the standard response rect
-        let mut used = if let Some(response) = self.response.as_ref() {
-            response.rect
-        } else {
-            return None;
-        };
+        let mut used = self.response.as_ref()?.rect;
 
         // Add all visible areas from other orders (popups, tooltips, etc.)
         self.ctx.memory(|mem| {
@@ -470,6 +464,11 @@ impl<'a, State> Harness<'a, State> {
         &mut self.state
     }
 
+    /// Consume the harness and return the state.
+    pub fn into_state(self) -> State {
+        self.state
+    }
+
     /// Queue an event to be processed in the next frame.
     pub fn event(&self, event: egui::Event) {
         self.queued_events.lock().push(EventType::Event(event));
@@ -598,6 +597,32 @@ impl<'a, State> Harness<'a, State> {
         self.key_combination_modifiers(modifiers, &[key]);
     }
 
+    /// Move mouse cursor to this position.
+    pub fn hover_at(&self, pos: egui::Pos2) {
+        self.event(egui::Event::PointerMoved(pos));
+    }
+
+    /// Start dragging from a position.
+    pub fn drag_at(&self, pos: egui::Pos2) {
+        self.event(egui::Event::PointerButton {
+            pos,
+            button: PointerButton::Primary,
+            pressed: true,
+            modifiers: Modifiers::NONE,
+        });
+    }
+
+    /// Stop dragging and remove cursor.
+    pub fn drop_at(&self, pos: egui::Pos2) {
+        self.event(egui::Event::PointerButton {
+            pos,
+            button: PointerButton::Primary,
+            pressed: false,
+            modifiers: Modifiers::NONE,
+        });
+        self.remove_cursor();
+    }
+
     /// Remove the cursor from the screen.
     ///
     /// Will fire a [`egui::Event::PointerGone`] event.
@@ -626,7 +651,78 @@ impl<'a, State> Harness<'a, State> {
     /// Returns an error if the rendering fails.
     #[cfg(any(feature = "wgpu", feature = "snapshot"))]
     pub fn render(&mut self) -> Result<image::RgbaImage, String> {
-        self.renderer.render(&self.ctx, &self.output)
+        let mut output = self.output.clone();
+
+        if let Some(mouse_pos) = self.ctx.input(|i| i.pointer.hover_pos()) {
+            // Paint a mouse cursor:
+            let triangle = vec![
+                mouse_pos,
+                mouse_pos + egui::vec2(16.0, 8.0),
+                mouse_pos + egui::vec2(8.0, 16.0),
+            ];
+
+            output.shapes.push(ClippedShape {
+                clip_rect: self.ctx.content_rect(),
+                shape: egui::epaint::PathShape::convex_polygon(
+                    triangle,
+                    Color32::WHITE,
+                    egui::Stroke::new(1.0, Color32::BLACK),
+                )
+                .into(),
+            });
+        }
+
+        self.renderer.render(&self.ctx, &output)
+    }
+
+    /// Fulfill any [`egui::ViewportCommand::Screenshot`] requests made by the app during the
+    /// last frame.
+    ///
+    /// If a screenshot was requested and no renderer is available, an error will be logged.
+    #[cfg(any(feature = "wgpu", feature = "snapshot"))]
+    fn handle_screenshots(&mut self) {
+        // Collect all screenshot requests from this frame's viewport output.
+        let requests: Vec<(ViewportId, egui::UserData)> = self
+            .output
+            .viewport_output
+            .iter()
+            .flat_map(|(id, viewport)| {
+                viewport.commands.iter().filter_map(move |command| {
+                    if let egui::ViewportCommand::Screenshot(user_data) = command {
+                        Some((*id, user_data.clone()))
+                    } else {
+                        None
+                    }
+                })
+            })
+            .collect();
+
+        if requests.is_empty() {
+            return;
+        }
+
+        // Render the frame once and reuse it for every request. We render without the synthetic
+        // mouse cursor since a real screenshot wouldn't include the OS cursor either.
+        let image = match self.renderer.render(&self.ctx, &self.output) {
+            Ok(image) => image,
+            Err(err) => {
+                log::error!("Failed to render screenshot requested via ViewportCommand: {err}");
+                return;
+            }
+        };
+        let image = std::sync::Arc::new(rgba_image_to_color_image(&image));
+
+        for (viewport_id, user_data) in requests {
+            self.input.events.push(egui::Event::Screenshot {
+                viewport_id,
+                user_data,
+                image: std::sync::Arc::clone(&image),
+            });
+        }
+
+        // Make sure the run loop runs at least one more frame so the app actually receives the
+        // queued screenshot event.
+        self.ctx.request_repaint();
     }
 
     /// Get the root viewport output
@@ -645,43 +741,117 @@ impl<'a, State> Harness<'a, State> {
         }
     }
 
-    #[deprecated = "Use `Harness::root` instead."]
-    pub fn node(&self) -> Node<'_> {
-        self.root()
+    /// Spawn a real native eframe window running this harness's app, reusing its [`egui::Context`].
+    ///
+    /// Blocks until the window is closed.
+    ///
+    /// Useful for interactively debugging a failing test: add a call to this before the failing
+    /// assertion to poke at the UI yourself.
+    ///
+    /// # macOS: must be called on the main thread
+    /// `AppKit` requires UI work to happen on the main thread, but by default cargo's test harness
+    /// runs each test on a spawned worker thread, so this function will panic on macOS unless
+    /// you opt out of the default harness.
+    ///
+    /// To fix this, disable the default libtest harness for your test target and run tests on
+    /// the main thread yourself. In `Cargo.toml`:
+    ///
+    /// ```toml
+    /// [[test]]
+    /// name = "your_test"
+    /// harness = false
+    /// ```
+    ///
+    /// Then write a `fn main()` in the test file that invokes your test directly.
+    ///
+    /// See also: <https://doc.rust-lang.org/cargo/reference/cargo-targets.html#the-harness-field>
+    #[cfg(all(feature = "eframe", not(target_arch = "wasm32")))]
+    #[deprecated = "Only for debugging, don't commit this."]
+    pub fn spawn_eframe_app(self)
+    where
+        'a: 'static,
+        State: 'static,
+    {
+        #[cfg(target_os = "macos")]
+        {
+            // AppKit requires UI work to happen on the main thread, but by default cargo's
+            // test harness runs each test on a spawned worker thread.
+            #[expect(unsafe_code)]
+            // SAFETY: `pthread_main_np` is a thread-safe libc query with no arguments.
+            let is_main_thread = unsafe {
+                unsafe extern "C" {
+                    fn pthread_main_np() -> std::ffi::c_int;
+                }
+                pthread_main_np() != 0
+            };
+            assert!(
+                is_main_thread,
+                "spawn_eframe_app must be called on the main thread on macOS, \
+                 but the default `cargo test` harness runs each test on a worker thread.\n\
+                 \n\
+                 To fix this, disable the default libtest harness for your test target and run \
+                 tests on the main thread yourself. In Cargo.toml:\n\
+                 \n\
+                     [[test]]\n\
+                     name = \"your_test\"\n\
+                     harness = false\n\
+                 \n\
+                 Then write a `fn main()` in the test file that invokes your test directly.\n\
+                 \n\
+                 See: https://doc.rust-lang.org/cargo/reference/cargo-targets.html#the-harness-field"
+            );
+        }
+
+        struct UiApp {
+            f: Box<dyn FnMut(&mut egui::Ui)>,
+        }
+
+        impl eframe::App for UiApp {
+            fn ui(&mut self, ui: &mut egui::Ui, _frame: &mut eframe::Frame) {
+                (self.f)(ui);
+            }
+        }
+
+        struct UiStateApp<State> {
+            f: Box<dyn FnMut(&mut egui::Ui, &mut State)>,
+            state: State,
+        }
+
+        impl<State: 'static> eframe::App for UiStateApp<State> {
+            fn ui(&mut self, ui: &mut egui::Ui, _frame: &mut eframe::Frame) {
+                let Self { f, state } = self;
+                f(ui, state);
+            }
+        }
+
+        use crate::app_kind::AppKindEframe;
+
+        let Self {
+            ctx, state, app, ..
+        } = self;
+
+        let eframe_app: Box<dyn eframe::App> = match app {
+            AppKind::Ui(f) => Box::new(UiApp { f }),
+            AppKind::UiState(f) => Box::new(UiStateApp { f, state }),
+            AppKind::Eframe(AppKindEframe { take_app, .. }) => take_app(state),
+        };
+
+        eframe::run_native_ext(
+            "egui_kittest",
+            eframe::NativeOptions::default(),
+            Some(ctx),
+            Box::new(|_cc| Ok(eframe_app)),
+        )
+        .unwrap();
     }
 }
 
 /// Utilities for stateless harnesses.
 impl<'a> Harness<'a> {
-    /// Create a new Harness with the given app closure.
-    /// Use the [`Harness::run`], [`Harness::step`], etc... methods to run the app.
-    ///
-    /// The app closure will immediately be called once to create the initial ui.
-    ///
-    /// If you don't need to create Windows / Panels, you can use [`Harness::new_ui`] instead.
-    ///
-    /// If you e.g. want to customize the size of the window, you can use [`Harness::builder`].
-    ///
-    /// # Example
-    /// ```rust
-    /// # use egui::CentralPanel;
-    /// # use egui_kittest::Harness;
-    /// let mut harness = Harness::new(|ctx| {
-    ///     CentralPanel::default().show(ctx, |ui| {
-    ///         ui.label("Hello, world!");
-    ///     });
-    /// });
-    /// ```
-    pub fn new(app: impl FnMut(&egui::Context) + 'a) -> Self {
-        Self::builder().build(app)
-    }
-
     /// Create a new Harness with the given ui closure.
     /// Use the [`Harness::run`], [`Harness::step`], etc... methods to run the app.
     ///
     /// The ui closure will immediately be called once to create the initial ui.
-    ///
-    /// If you need to create Windows / Panels, you can use [`Harness::new`] instead.
     ///
     /// If you e.g. want to customize the size of the ui, you can use [`Harness::builder`].
     ///
@@ -692,9 +862,22 @@ impl<'a> Harness<'a> {
     ///     ui.label("Hello, world!");
     /// });
     /// ```
+    #[track_caller]
     pub fn new_ui(app: impl FnMut(&mut egui::Ui) + 'a) -> Self {
         Self::builder().build_ui(app)
     }
+}
+
+/// Convert a rendered [`image::RgbaImage`] (premultiplied alpha, as produced by the renderer)
+/// into an [`egui::ColorImage`] suitable for [`egui::Event::Screenshot`].
+#[cfg(any(feature = "wgpu", feature = "snapshot"))]
+fn rgba_image_to_color_image(image: &image::RgbaImage) -> egui::ColorImage {
+    let size = [image.width() as usize, image.height() as usize];
+    let pixels = image
+        .pixels()
+        .map(|p| Color32::from_rgba_unmultiplied(p[0], p[1], p[2], p[3]))
+        .collect();
+    egui::ColorImage::new(size, pixels)
 }
 
 impl<'tree, 'node, State> Queryable<'tree, 'node, Node<'tree>> for Harness<'_, State>

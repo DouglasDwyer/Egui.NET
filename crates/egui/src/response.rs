@@ -14,7 +14,7 @@ use crate::{
 /// It also lets you easily show a tooltip on hover.
 ///
 /// Whenever something gets added to a [`Ui`], a [`Response`] object is returned.
-/// [`ui.add`] returns a [`Response`], as does [`ui.button`], and all similar shortcuts.
+/// [`Ui::add`] returns a [`Response`], as does [`Ui::button`], and all similar shortcuts.
 ///
 /// ⚠️ The `Response` contains a clone of [`Context`], and many methods lock the `Context`.
 /// It can therefore be a deadlock to use `Context` from within a context-locking closures,
@@ -55,7 +55,7 @@ pub struct Response {
     /// Where the pointer (mouse/touch) were when this widget was clicked or dragged.
     /// `None` if the widget is not being interacted with.
     #[doc(hidden)]
-    pub interact_pointer_pos: Option<Pos2>,
+    pub interact_pointer_pos_or_nan: Pos2,
 
     /// The intrinsic / desired size of the widget.
     ///
@@ -67,10 +67,20 @@ pub struct Response {
     /// At the time of writing, this is only used by external crates
     /// for improved layouting.
     /// See for instance [`egui_flex`](https://github.com/lucasmerlin/hello_egui/tree/main/crates/egui_flex).
-    pub intrinsic_size: Option<Vec2>,
+    #[doc(hidden)]
+    pub intrinsic_size_or_nan: Vec2,
 
     #[doc(hidden)]
     pub flags: Flags,
+}
+
+#[test]
+fn test_response_size() {
+    assert_eq!(
+        std::mem::size_of::<Response>(),
+        88,
+        "Keep Response small, because we create them often, and we want to keep it lean and fast"
+    );
 }
 
 /// A bit set for various boolean properties of `Response`.
@@ -141,6 +151,22 @@ bitflags::bitflags! {
 }
 
 impl Response {
+    /// The [`Id`] of the parent [`crate::Ui`] that hosts this widget.
+    ///
+    /// Looks up the [`WidgetRect`] from the current (or previous) pass.
+    pub fn parent_id(&self) -> Id {
+        let id = self.ctx.viewport(|viewport| {
+            viewport
+                .this_pass
+                .widgets
+                .get(self.id)
+                .or_else(|| viewport.prev_pass.widgets.get(self.id))
+                .map(|w| w.parent_id)
+        });
+        debug_assert!(id.is_some(), "WidgetRect for Response not found!");
+        id.unwrap_or(Id::NULL)
+    }
+
     /// Returns true if this widget was clicked this frame by the primary button.
     ///
     /// A click is registered when the mouse or touch is released within
@@ -173,6 +199,12 @@ impl Response {
 
     /// Returns true if this widget was clicked this frame by the secondary mouse button (e.g. the right mouse button).
     ///
+    /// A click is registered when the mouse or touch is released within
+    /// a certain amount of time and distance from when and where it was pressed.
+    ///
+    /// Note that the widget must be sensing clicks with [`Sense::click`].
+    /// [`crate::Button`] senses clicks; [`crate::Label`] does not (unless you call [`crate::Label::sense`]).
+    ///
     /// This also returns true if the widget was pressed-and-held on a touch screen.
     #[inline]
     pub fn secondary_clicked(&self) -> bool {
@@ -188,6 +220,12 @@ impl Response {
     }
 
     /// Returns true if this widget was clicked this frame by the middle mouse button.
+    ///
+    /// A click is registered when the mouse or touch is released within
+    /// a certain amount of time and distance from when and where it was pressed.
+    ///
+    /// Note that the widget must be sensing clicks with [`Sense::click`].
+    /// [`crate::Button`] senses clicks; [`crate::Label`] does not (unless you call [`crate::Label::sense`]).
     #[inline]
     pub fn middle_clicked(&self) -> bool {
         self.clicked_by(PointerButton::Middle)
@@ -246,10 +284,10 @@ impl Response {
                 false
             } else if let Some(pos) = pointer_interact_pos {
                 let layer_under_pointer = self.ctx.layer_id_at(pos);
-                if layer_under_pointer != Some(self.layer_id) {
-                    true
-                } else {
+                if layer_under_pointer == Some(self.layer_id) {
                     !self.interact_rect.contains(pos)
+                } else {
+                    true
                 }
             } else {
                 false // clicked without a pointer, weird
@@ -433,7 +471,7 @@ impl Response {
     pub fn drag_motion(&self) -> Vec2 {
         if self.dragged() {
             self.ctx
-                .input(|i| i.pointer.motion().unwrap_or(i.pointer.delta()))
+                .input(|i| i.pointer.motion().unwrap_or_else(|| i.pointer.delta()))
         } else {
             Vec2::ZERO
         }
@@ -472,7 +510,7 @@ impl Response {
     ///
     /// Only returns something if [`Self::contains_pointer`] is true,
     /// the user is drag-dropping something of this type,
-    /// and they released it this frame
+    /// and they released it this frame.
     #[doc(alias = "drag and drop")]
     pub fn dnd_release_payload<Payload: Any + Send + Sync>(&self) -> Option<Arc<Payload>> {
         // NOTE: we use `response.contains_pointer` here instead of `hovered`, because
@@ -489,7 +527,26 @@ impl Response {
     /// `None` if the widget is not being interacted with.
     #[inline]
     pub fn interact_pointer_pos(&self) -> Option<Pos2> {
-        self.interact_pointer_pos
+        let pos = self.interact_pointer_pos_or_nan;
+        if pos.any_nan() { None } else { Some(pos) }
+    }
+
+    /// The intrinsic / desired size of the widget.
+    ///
+    /// This is the size that a non-wrapped, non-truncated, non-justified version of the widget
+    /// would have.
+    ///
+    /// If this is `None`, use [`Self::rect`] instead.
+    #[inline]
+    pub fn intrinsic_size(&self) -> Option<Vec2> {
+        let size = self.intrinsic_size_or_nan;
+        if size.any_nan() { None } else { Some(size) }
+    }
+
+    /// Set the intrinsic / desired size of the widget.
+    #[inline]
+    pub fn set_intrinsic_size(&mut self, size: Vec2) {
+        self.intrinsic_size_or_nan = size;
     }
 
     /// If it is a good idea to show a tooltip, where is pointer?
@@ -732,12 +789,14 @@ impl Response {
             WidgetRect {
                 layer_id: self.layer_id,
                 id: self.id,
+                parent_id: self.parent_id(),
                 rect: self.rect,
                 interact_rect: self.interact_rect,
                 sense: self.sense | sense,
                 enabled: self.enabled(),
             },
             true,
+            Default::default(),
         )
     }
 
@@ -761,7 +820,7 @@ impl Response {
     /// # });
     /// ```
     pub fn scroll_to_me(&self, align: Option<Align>) {
-        self.scroll_to_me_animation(align, self.ctx.style().scroll_animation);
+        self.scroll_to_me_animation(align, self.ctx.global_style().scroll_animation);
     }
 
     /// Like [`Self::scroll_to_me`], but allows you to specify the [`crate::style::ScrollAnimation`].
@@ -807,7 +866,6 @@ impl Response {
         if let Some(event) = event {
             self.output_event(event);
         } else {
-            #[cfg(feature = "accesskit")]
             self.ctx.accesskit_node_builder(self.id, |builder| {
                 self.fill_accesskit_node_from_widget_info(builder, make_info());
             });
@@ -817,7 +875,6 @@ impl Response {
     }
 
     pub fn output_event(&self, event: crate::output::OutputEvent) {
-        #[cfg(feature = "accesskit")]
         self.ctx.accesskit_node_builder(self.id, |builder| {
             self.fill_accesskit_node_from_widget_info(builder, event.widget_info().clone());
         });
@@ -828,7 +885,6 @@ impl Response {
         self.ctx.output_mut(|o| o.events.push(event));
     }
 
-    #[cfg(feature = "accesskit")]
     pub(crate) fn fill_accesskit_node_common(&self, builder: &mut accesskit::Node) {
         if !self.enabled() {
             builder.set_disabled();
@@ -847,7 +903,6 @@ impl Response {
         }
     }
 
-    #[cfg(feature = "accesskit")]
     fn fill_accesskit_node_from_widget_info(
         &self,
         builder: &mut accesskit::Node,
@@ -875,6 +930,10 @@ impl Response {
             WidgetType::Panel => Role::Pane,
             WidgetType::ProgressIndicator => Role::ProgressIndicator,
             WidgetType::Window => Role::Window,
+
+            WidgetType::ResizeHandle => Role::Splitter,
+            WidgetType::ScrollBar => Role::ScrollBar,
+
             WidgetType::Other => Role::Unknown,
         });
         if !info.enabled {
@@ -922,14 +981,9 @@ impl Response {
     /// # });
     /// ```
     pub fn labelled_by(self, id: Id) -> Self {
-        #[cfg(feature = "accesskit")]
         self.ctx.accesskit_node_builder(self.id, |builder| {
             builder.push_labelled_by(id.accesskit_id());
         });
-        #[cfg(not(feature = "accesskit"))]
-        {
-            let _ = id;
-        }
 
         self
     }
@@ -1011,8 +1065,10 @@ impl Response {
             interact_rect: self.interact_rect.union(other.interact_rect),
             sense: self.sense.union(other.sense),
             flags: self.flags | other.flags,
-            interact_pointer_pos: self.interact_pointer_pos.or(other.interact_pointer_pos),
-            intrinsic_size: None,
+            interact_pointer_pos_or_nan: self
+                .interact_pointer_pos()
+                .unwrap_or(other.interact_pointer_pos_or_nan),
+            intrinsic_size_or_nan: Vec2::NAN,
         }
     }
 }
