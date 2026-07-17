@@ -1,6 +1,9 @@
 use std::sync::Arc;
 use std::{any::Any, iter::FusedIterator};
 
+use crate::widget_style::Classes;
+use epaint::Color32;
+
 use crate::{Direction, Frame, Id, Rect};
 
 /// What kind is this [`crate::Ui`]?
@@ -13,16 +16,16 @@ pub enum UiKind {
     /// A [`crate::CentralPanel`].
     CentralPanel,
 
-    /// A left [`crate::SidePanel`].
+    /// A left [`crate::Panel`].
     LeftPanel,
 
-    /// A right [`crate::SidePanel`].
+    /// A right [`crate::Panel`].
     RightPanel,
 
-    /// A top [`crate::TopBottomPanel`].
+    /// A top [`crate::Panel`].
     TopPanel,
 
-    /// A bottom [`crate::TopBottomPanel`].
+    /// A bottom [`crate::Panel`].
     BottomPanel,
 
     /// A modal [`crate::Modal`].
@@ -213,7 +216,8 @@ pub struct UiStack {
     pub layout_direction: Direction,
     pub min_rect: Rect,
     pub max_rect: Rect,
-    pub parent: Option<Arc<UiStack>>,
+    pub parent: Option<Arc<Self>>,
+    pub classes: Classes,
 }
 
 // these methods act on this specific node
@@ -256,6 +260,25 @@ impl UiStack {
     #[inline]
     pub fn has_visible_frame(&self) -> bool {
         !self.info.frame.stroke.is_empty()
+    }
+
+    /// The background color of this [`crate::Ui`].
+    ///
+    /// This blend together all [`Frame::fill`] colors
+    /// up to the root.
+    #[inline]
+    pub fn bg_color(&self) -> Color32 {
+        let mut total = Color32::TRANSPARENT;
+        for node in self.iter() {
+            let fill = node.frame().fill;
+            if fill != Color32::TRANSPARENT {
+                total = fill.blend(total);
+                if total.is_opaque() {
+                    break;
+                }
+            }
+        }
+        total
     }
 }
 

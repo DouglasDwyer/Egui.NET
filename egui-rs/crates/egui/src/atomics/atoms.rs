@@ -1,16 +1,20 @@
 use crate::{Atom, AtomKind, Image, WidgetText};
-use smallvec::SmallVec;
 use std::borrow::Cow;
 use std::ops::{Deref, DerefMut};
 
-// Rarely there should be more than 2 atoms in one Widget.
-// I guess it could happen in a menu button with Image and right text...
-pub(crate) const ATOMS_SMALL_VEC_SIZE: usize = 2;
-
 /// A list of [`Atom`]s.
+///
+/// Many widgets take an `impl` [`IntoAtoms`] parameter,
+/// which allows you to easily create atoms from tuples of text, images, and other atoms:
+/// ```
+/// # use egui::{AtomExt, AtomKind, Atom, Image, Id, Vec2};
+/// # egui::__run_test_ui(|ui| {
+/// let image = egui::include_image!("../../../eframe/data/icon.png");
+/// ui.button((image, "Click me!"));
+/// # });
 #[derive(Clone, Debug, Default)]
 #[cfg_attr(feature = "serde", derive(serde::Deserialize, serde::Serialize))]
-pub struct Atoms(SmallVec<[Atom; ATOMS_SMALL_VEC_SIZE]>);
+pub struct Atoms(Vec<Atom>);
 
 impl Atoms {
     pub fn new(atoms: impl IntoAtoms) -> Self {
@@ -22,9 +26,24 @@ impl Atoms {
         self.0.push(atom.into());
     }
 
+    /// Extend the list of atoms by appending more atoms to the right side.
+    ///
+    /// If you have weird lifetime issues with this, use [`Self::push_right`] in a loop instead.
+    pub fn extend_right(&mut self, atoms: Self) {
+        self.0.extend(atoms.0);
+    }
+
     /// Insert a new [`Atom`] at the beginning of the list (left side).
     pub fn push_left(&mut self, atom: impl Into<Atom>) {
         self.0.insert(0, atom.into());
+    }
+
+    /// Extend the list of atoms by prepending more atoms to the left side.
+    ///
+    /// If you have weird lifetime issues with this, use [`Self::push_left`] in a loop instead.
+    pub fn extend_left(&mut self, mut atoms: Self) {
+        std::mem::swap(&mut atoms.0, &mut self.0);
+        self.0.extend(atoms.0);
     }
 
     /// Concatenate and return the text contents.
@@ -53,6 +72,11 @@ impl Atoms {
         }
 
         string
+    }
+
+    /// Do any of the atoms have shrink set to `true`?
+    pub fn any_shrink(&self) -> bool {
+        self.iter().any(|a| a.shrink)
     }
 
     pub fn iter_kinds(&self) -> impl Iterator<Item = &AtomKind> {
@@ -146,7 +170,7 @@ impl Atoms {
 
 impl IntoIterator for Atoms {
     type Item = Atom;
-    type IntoIter = smallvec::IntoIter<[Atom; ATOMS_SMALL_VEC_SIZE]>;
+    type IntoIter = std::vec::IntoIter<Atom>;
 
     fn into_iter(self) -> Self::IntoIter {
         self.0.into_iter()
@@ -173,6 +197,16 @@ where
 }
 
 /// Trait for turning a tuple of [`Atom`]s into [`Atoms`].
+///
+/// Many widgets take an `impl` [`IntoAtoms`] parameter,
+/// which allows you to easily create atoms from tuples of text, images, and other atoms:
+/// ```
+/// # use egui::{AtomExt, AtomKind, Atom, Image, Id, Vec2};
+/// # egui::__run_test_ui(|ui| {
+/// let image = egui::include_image!("../../../eframe/data/icon.png");
+/// ui.button((image, "Click me!"));
+/// # });
+/// ```
 pub trait IntoAtoms {
     fn collect(self, atoms: &mut Atoms);
 
@@ -199,8 +233,7 @@ macro_rules! all_the_atoms {
             $($T: IntoAtoms),*
         {
             fn collect(self, _atoms: &mut Atoms) {
-                #[allow(clippy::allow_attributes)]
-                #[allow(non_snake_case)]
+                #[allow(clippy::allow_attributes, non_snake_case)]
                 let ($($T),*) = self;
                 $($T.collect(_atoms);)*
             }

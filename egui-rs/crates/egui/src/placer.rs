@@ -1,4 +1,5 @@
 use crate::{Layout, Painter, Pos2, Rect, Region, Vec2, grid, vec2};
+use emath::GuiRounding as _;
 
 use crate::{Align2, Color32, Stroke};
 
@@ -91,6 +92,7 @@ impl Placer {
         } else {
             self.layout.available_rect_before_wrap(&self.region)
         }
+        .round_ui()
     }
 
     /// Amount of space available for a widget.
