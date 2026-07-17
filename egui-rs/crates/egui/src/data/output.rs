@@ -149,6 +149,11 @@ pub struct PlatformOutput {
     /// The difference in the widget tree since last frame.
     ///
     /// NOTE: this needs to be per-viewport.
+    ///
+    /// Accessibility/accesskit support is not exposed to C# (see README); skipped from serde
+    /// because `accesskit::TreeUpdate` embeds a `Uuid`, which can't round-trip through the
+    /// reflection-based bincode serialization used for FFI.
+    #[cfg_attr(feature = "serde", serde(skip))]
     pub accesskit_update: Option<accesskit::TreeUpdate>,
 
     /// How many ui passes is this the sum of?

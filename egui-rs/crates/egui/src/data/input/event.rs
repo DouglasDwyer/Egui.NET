@@ -172,6 +172,10 @@ pub enum Event {
     WindowFocused(bool),
 
     /// An assistive technology (e.g. screen reader) requested an action.
+    // Accessibility/accesskit support is not exposed to C# (see README); skipping this
+    // variant also avoids needing `accesskit::ActionRequest` (which embeds a `Uuid`) to
+    // round-trip through the reflection-based bincode serialization used for FFI.
+    #[cfg_attr(feature = "serde", serde(skip))]
     AccessKitActionRequest(accesskit::ActionRequest),
 
     /// The reply of a screenshot requested with [`crate::ViewportCommand::Screenshot`].

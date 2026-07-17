@@ -17,7 +17,6 @@ use egui::layers::*;
 use egui::load::*;
 use egui::os::*;
 use egui::output::*;
-use egui::panel::*;
 use egui::scroll_area::*;
 use egui::style::*;
 use egui::text::*;
@@ -25,6 +24,7 @@ use egui::text_edit::*;
 use egui::text_selection::*;
 use egui::text_selection::visuals::*;
 use egui::util::undoer::*;
+use egui::widget_style::*;
 use rustdoc_types::*;
 use rustdoc_types::Id as RdId;
 use rustdoc_types::Path as RdPath;
@@ -51,6 +51,9 @@ const BINDING_EXCLUDE_FNS: &[&str] = &[
     "egui_ui_Ui_stack",
 
     // These functions have weird parameter types or generics
+    // Takes a destructuring array pattern (`[from, to]: [Color32; 2]`) as a parameter, which the
+    // autobinder can't turn into a valid wrapper closure parameter name.
+    "epaint_shapes_shape_Shape_gradient_rect",
     "epaint_image_ColorImage_region_by_pixels",
     "epaint_shapes_bezier_shape_CubicBezierShape_split_range",
     "egui_data_output_WidgetInfo_text_selection_changed",
@@ -2110,8 +2113,8 @@ impl BindingsGenerator {
             .record_samples_for_newtype_structs(true)
             .record_samples_for_tuple_structs(true)
             .record_samples_for_structs(true));
-        
-        tracer.trace_type::<AlphaFromCoverage>(&samples).expect("Failed to trace AlphaFromCoverage");
+
+        tracer.trace_type::<FontColorTransferFunction>(&samples).expect("Failed to trace FontColorTransferFunction");
         tracer.trace_type::<TextureId>(&samples).expect("Failed to trace AlphaFromCoverage");
         tracer.trace_simple_type::<Align>().expect("Failed to trace Align");
         tracer.trace_simple_type::<FontFamily>().expect("Failed to trace FontFamily");

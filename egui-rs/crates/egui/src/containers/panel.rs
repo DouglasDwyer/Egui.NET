@@ -34,7 +34,10 @@ pub struct PanelState {
     ///
     /// When animating, this will be a shifted in the animation direction,
     /// so it is really only the size that you can count on.
-    #[cfg_attr(feature = "serde", serde(alias = "rect"))]
+    ///
+    /// The `#[serde(alias = "rect")]` upstream uses here (for migrating pre-0.35 persisted
+    /// state files) is dropped in this fork: it isn't meaningful for the FFI serialization used
+    /// to cross the C# boundary, and confuses the reflection-based tracer used to generate bindings.
     pub outer_rect: Rect,
 }
 
@@ -59,7 +62,7 @@ impl PanelState {
 /// Which side of a [`Ui`] or screen the panel is attached to.
 #[derive(Clone, Copy, Debug, PartialEq, Eq)]
 #[cfg_attr(feature = "serde", derive(serde::Deserialize, serde::Serialize))]
-enum PanelSide {
+pub enum PanelSide {
     Left,
     Right,
     Top,
