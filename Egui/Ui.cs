@@ -723,13 +723,13 @@ public readonly ref partial struct Ui
     /// </summary>
     public readonly InnerResponse PushId(Id idSalt, Action<Ui> addContents)
     {
-        return ScopeBuilder(new UiBuilder().WithIdSalt(idSalt), addContents);
+        return ScopeBuilder(new UiBuilder().IdSalt(idSalt), addContents);
     }
 
     /// <inheritdoc cref="PushId"/>
     public readonly InnerResponse<R> PushId<R>(Id idSalt, Func<Ui, R> addContents)
     {
-        return ScopeBuilder(new UiBuilder().WithIdSalt(idSalt), addContents);
+        return ScopeBuilder(new UiBuilder().IdSalt(idSalt), addContents);
     }
 
     /// <summary>

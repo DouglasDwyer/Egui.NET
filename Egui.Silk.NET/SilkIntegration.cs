@@ -169,7 +169,7 @@ public abstract class SilkIntegration : IDisposable
     /// and handles platform output.
     /// </summary>
     /// <param name="contextAction">All <see cref="Ui"/>-drawing code should execute in this closure.</param>
-    public void Run(Action<Context> contextAction)
+    public void Run(Action<Ui> contextAction)
     {
         _rawInput.ViewportId = ViewportId.Root;
         _rawInput.Focused = _focused;

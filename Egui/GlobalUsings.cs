@@ -2,7 +2,6 @@ global using global::Bincode;
 global using global::Egui;
 global using global::Egui.Containers;
 global using global::Egui.Containers.Menu;
-global using global::Egui.Containers.Panel;
 global using global::Egui.Layers;
 global using global::Egui.Load;
 global using global::Egui.Text;

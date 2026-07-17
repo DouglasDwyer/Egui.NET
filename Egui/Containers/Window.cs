@@ -534,7 +534,7 @@ public ref struct Window
         var result = this;
         result._scroll = result._scroll.ScrollSource(new ScrollSource
         {
-            Drag = dragToScroll,
+            Drag = dragToScroll ? DragScroll.Always : DragScroll.Never,
             // Other properties can be set here as needed
         });
         return result;

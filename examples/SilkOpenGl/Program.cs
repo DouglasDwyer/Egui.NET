@@ -67,8 +67,10 @@ public class Program
         _gl.Clear((uint)GLEnum.ColorBufferBit);
 
         // Draw UI
-        _integration.Run(ctx =>
+        _integration.Run(rootUi =>
         {
+            var ctx = rootUi.Ctx;
+
             new Window("README Example")
                 .FixedSize((160, 160))
                 .Show(ctx, ui =>

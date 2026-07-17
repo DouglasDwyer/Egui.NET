@@ -19,7 +19,7 @@ public ref partial struct Tooltip
     /// </summary>
     public static Tooltip AlwaysOpen(Context ctx, LayerId parentLayer, Id parentWidget, PopupAnchor anchor)
     {
-        var width = ctx.Style.Spacing.TooltipWidth;
+        var width = ctx.GlobalStyle.Spacing.TooltipWidth;
         return new Tooltip
         {
             Popup = new Popup(parentWidget, ctx, anchor, parentLayer)
@@ -40,7 +40,7 @@ public ref partial struct Tooltip
         var popup = Popup.FromResponse(response)
             .Kind(PopupKind.Tooltip)
             .Gap(4.0f)
-            .Width(response.Ctx.Style.Spacing.TooltipWidth)
+            .Width(response.Ctx.GlobalStyle.Spacing.TooltipWidth)
             .Sense(Sense.Hover);
         return new Tooltip
         {
