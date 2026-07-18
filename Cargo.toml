@@ -44,6 +44,12 @@ serde = { version = "1.0.228", default-features = false, features = [ "derive" ]
 serde_json = { version = "1.0.145", default-features = false, features = [ "std" ] }
 serde-reflection = { version = "0.5.1", default-features = false }
 
+[workspace.metadata.cross.target]
+x86_64-pc-windows-msvc = { image = "i18nsite/x86_64-pc-windows-msvc-cross@sha256:35307f58ade2bc99c295a4f8b88d4cc43ad7617b4c7fc001beb7ee5851135810" }
+aarch64-pc-windows-msvc = { image = "i18nsite/aarch64-pc-windows-msvc-cross@sha256:cf5dd0300c2a945cf117d5d55dbb0ea0c9e2fed1feb828065119d96591234f18" }
+x86_64-apple-darwin = { image = "i18nsite/x86_64-apple-darwin-cross@sha256:8604955bd3fd7bd5e18f8ad00853101dc90c30c8aaea53130909da58f734c94a" }
+aarch64-apple-darwin = { image = "i18nsite/aarch64-apple-darwin-cross@sha256:737bd24b8bc893de2bec133277e4f69c33db725ef02d13c8f1277fe92098ba0d" }
+
 [patch.crates-io]
 egui = { path = "egui-rs/crates/egui" }
 egui_extras = { path = "egui-rs/crates/egui_extras" }
