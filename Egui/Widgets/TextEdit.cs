@@ -97,20 +97,40 @@ public ref partial struct TextEdit : IWidget
     public readonly TextEdit IdSalt(Id idSalt)
     {
         var result = this;
-        result._inner.IdSalt = idSalt;
+        result._inner.IdSalt = new IdSalt(idSalt);
         return result;
     }
 
     /// <summary>
     /// Show a faint hint text when the text field is empty.<br/>
-    /// 
+    ///
     /// If the hint text needs to be persisted even when the text field has input,
     /// the following workaround can be used:
     /// </summary>
-    public readonly TextEdit HintText(WidgetText hintText)
+    public readonly TextEdit HintText(Atoms hintText)
     {
         var result = this;
         result._inner.HintText = hintText;
+        return result;
+    }
+
+    /// <summary>
+    /// Add a prefix to the text edit. This will always be shown before the editable text.
+    /// </summary>
+    public readonly TextEdit Prefix(Atoms prefix)
+    {
+        var result = this;
+        result._inner.Prefix = prefix;
+        return result;
+    }
+
+    /// <summary>
+    /// Add a suffix to the text edit. This will always be shown after the editable text.
+    /// </summary>
+    public readonly TextEdit Suffix(Atoms suffix)
+    {
+        var result = this;
+        result._inner.Suffix = suffix;
         return result;
     }
 
@@ -121,16 +141,6 @@ public ref partial struct TextEdit : IWidget
     {
         var result = this;
         result._inner.BackgroundColor = color;
-        return result;
-    }
-
-    /// <summary>
-    /// Set a specific style for the hint text.
-    /// </summary>
-    public readonly TextEdit HintTextFont(FontSelection hintTextFont)
-    {
-        var result = this;
-        result._inner.HintTextFont = hintTextFont;
         return result;
     }
 
@@ -181,9 +191,9 @@ public ref partial struct TextEdit : IWidget
     }
 
     /// <summary>
-    /// Default is <c>True</c>. If set to <c>False</c> there will be no frame showing that this is editable text!
+    /// Sets a custom frame for the <c>TextEdit</c>. If not set, the default frame will be used.
     /// </summary>
-    public readonly TextEdit Frame(bool frame)
+    public readonly TextEdit Frame(Frame frame)
     {
         var result = this;
         result._inner.Frame = frame;
@@ -322,14 +332,15 @@ public ref partial struct TextEdit : IWidget
     private readonly TextEdit SetDefaults()
     {
         var result = this;
-        result._inner.HintText = new WidgetText();
-        result._inner.HintTextFont = null;
+        result._inner.HintText = new Atoms();
+        result._inner.Prefix = new Atoms();
+        result._inner.Suffix = new Atoms();
         result._inner.Id = null;
         result._inner.IdSalt = null;
         result._inner.FontSelection = new FontSelection();
         result._inner.TextColor = null;
         result._inner.Password = false;
-        result._inner.Frame = true;
+        result._inner.Frame = null;
         result._inner.Margin = Egui.Margin.Symmetric(4, 2);
         result._inner.Multiline = true;
         result._inner.Interactive = true;
@@ -367,14 +378,15 @@ public ref partial struct TextEdit : IWidget
 
     private struct TextEditInner
     {
-        public Egui.WidgetText HintText;
-        public Egui.FontSelection? HintTextFont;
+        public Egui.Atoms HintText;
+        public Egui.Atoms Prefix;
+        public Egui.Atoms Suffix;
         public Egui.Id? Id;
-        public Egui.Id? IdSalt;
+        public Egui.IdSalt? IdSalt;
         public Egui.FontSelection FontSelection;
         public Egui.Color32? TextColor;
         public bool Password;
-        public bool Frame;
+        public Egui.Containers.Frame? Frame;
         public Egui.Margin Margin;
         public bool Multiline;
         public bool Interactive;
@@ -395,13 +407,14 @@ public ref partial struct TextEdit : IWidget
         {
             serializer.increase_container_depth();
             HintText.Serialize(serializer);
-            serialize_option_FontSelection(HintTextFont, serializer);
+            Prefix.Serialize(serializer);
+            Suffix.Serialize(serializer);
             Egui.TraitHelpers.serialize_option_Id(Id, serializer);
-            Egui.TraitHelpers.serialize_option_Id(IdSalt, serializer);
+            serialize_option_IdSalt(IdSalt, serializer);
             FontSelection.Serialize(serializer);
             Egui.TraitHelpers.serialize_option_Color32(TextColor, serializer);
             serializer.serialize_bool(Password);
-            serializer.serialize_bool(Frame);
+            Egui.TraitHelpers.serialize_option_Frame(Frame, serializer);
             Margin.Serialize(serializer);
             serializer.serialize_bool(Multiline);
             serializer.serialize_bool(Interactive);
@@ -420,7 +433,7 @@ public ref partial struct TextEdit : IWidget
 
         internal static TextEditInner Deserialize(Bincode.BincodeDeserializer deserializer) => throw new NotSupportedException();
 
-        private static void serialize_option_FontSelection(Egui.FontSelection? value, Bincode.BincodeSerializer serializer)
+        private static void serialize_option_IdSalt(Egui.IdSalt? value, Bincode.BincodeSerializer serializer)
         {
             if (value is not null)
             {

@@ -118,8 +118,15 @@ impl serde::Serialize for AtomKind {
                 log::warn!("Cannot serialize atom closures");
                 atom_kind_serde_helper::AtomKind::Empty.serialize(serializer)
             }
-            AtomKind::Layout(layout) => {
-                atom_kind_serde_helper::AtomKind::Layout(layout.clone()).serialize(serializer)
+            AtomKind::Layout(_) => {
+                // `AtomLayout` embeds `Atoms`, which embeds `AtomKind` again. Serde's reflection
+                // (used to generate the C# bindings) cannot see through `Box`, so tracing this
+                // variant produces a self-referential value type on the C# side that the CLR
+                // cannot load (it would need infinite size). Until the C# code generator can
+                // detect such cycles and fall back to a reference type, nested layouts cannot
+                // cross the C# FFI boundary, so they are serialized as `AtomKind::Empty` too.
+                log::warn!("Cannot serialize a nested AtomKind::Layout across the C# FFI boundary");
+                atom_kind_serde_helper::AtomKind::Empty.serialize(serializer)
             }
         }
     }
@@ -136,7 +143,6 @@ impl<'de> serde::Deserialize<'de> for AtomKind {
                 atom_kind_serde_helper::AtomKind::Empty => AtomKind::Empty,
                 atom_kind_serde_helper::AtomKind::Text(text) => AtomKind::Text(text),
                 atom_kind_serde_helper::AtomKind::Image(image) => AtomKind::Image(image),
-                atom_kind_serde_helper::AtomKind::Layout(layout) => AtomKind::Layout(layout),
             },
         )
     }
@@ -146,14 +152,13 @@ impl<'de> serde::Deserialize<'de> for AtomKind {
 mod atom_kind_serde_helper {
     use super::*;
 
-    /// The data to serialize for an [`super::AtomKind`]. Closures cannot be serialized, so they
-    /// are represented as [`Self::Empty`].
+    /// The data to serialize for an [`super::AtomKind`]. Closures and nested layouts cannot be
+    /// serialized (see [`super::AtomKind::Layout`]), so they are represented as [`Self::Empty`].
     #[derive(serde::Deserialize, serde::Serialize)]
     pub enum AtomKind {
         Empty,
         Text(WidgetText),
         Image(Image),
-        Layout(Box<AtomLayout>),
     }
 }
 

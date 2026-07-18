@@ -19,7 +19,7 @@ namespace Egui.Containers;
 /// </summary>
 public ref struct Window
 {
-    private WidgetText _title;
+    private Atoms _title;
     private ref bool _open;
     private bool _hasOpen;
     private Area _area;
@@ -30,6 +30,8 @@ public ref struct Window
     private bool _defaultOpen;
     private bool _withTitleBar;
     private bool _fadeOut;
+    private bool _autoSized;
+    private WindowDrag _dragArea;
 
     /// <summary>
     /// The window title is used as a unique Id and must be unique, and should not change.
@@ -53,6 +55,8 @@ public ref struct Window
         _defaultOpen = true;
         _withTitleBar = true;
         _fadeOut = true;
+        _autoSized = false;
+        _dragArea = WindowDrag.OnTouch;
     }
 
     private Window(Window previous, ref bool open)
@@ -493,6 +497,17 @@ public ref struct Window
         var result = this;
         result._resize = result._resize.AutoSized();
         result._scroll = ScrollArea.Neither;
+        result._autoSized = true;
+        return result;
+    }
+
+    /// <summary>
+    /// Sets where the user can drag to move the window. Defaults to <see cref="WindowDrag.OnTouch"/>.
+    /// </summary>
+    public readonly Window DragArea(WindowDrag dragArea)
+    {
+        var result = this;
+        result._dragArea = dragArea;
         return result;
     }
 
@@ -555,7 +570,7 @@ public ref struct Window
     /// </summary>
     private struct WindowInner
     {
-        private Egui.WidgetText _title;
+        private Egui.Atoms _title;
         private Egui.Containers.Area _area;
         private Egui.Containers.Frame? _frame;
         private Egui.Containers.Resize _resize;
@@ -564,6 +579,8 @@ public ref struct Window
         private bool _defaultOpen;
         private bool _withTitleBar;
         private bool _fadeOut;
+        private bool _autoSized;
+        private Egui.Containers.WindowDrag _dragArea;
 
         public WindowInner(Window window)
         {
@@ -576,6 +593,8 @@ public ref struct Window
             _defaultOpen = window._defaultOpen;
             _withTitleBar = window._withTitleBar;
             _fadeOut = window._fadeOut;
+            _autoSized = window._autoSized;
+            _dragArea = window._dragArea;
         }
 
 
@@ -593,6 +612,8 @@ public ref struct Window
             serializer.serialize_bool(_defaultOpen);
             serializer.serialize_bool(_withTitleBar);
             serializer.serialize_bool(_fadeOut);
+            serializer.serialize_bool(_autoSized);
+            _dragArea.Serialize(serializer);
             serializer.decrease_container_depth();
         }
 
@@ -600,7 +621,7 @@ public ref struct Window
         {
             deserializer.increase_container_depth();
             WindowInner obj = default;
-            obj._title = Egui.WidgetText.Deserialize(deserializer);
+            obj._title = Egui.Atoms.Deserialize(deserializer);
             obj._area = Egui.Containers.Area.Deserialize(deserializer);
             obj._frame = Egui.TraitHelpers.deserialize_option_Frame(deserializer);
             obj._resize = Egui.Containers.Resize.Deserialize(deserializer);
@@ -609,6 +630,8 @@ public ref struct Window
             obj._defaultOpen = deserializer.deserialize_bool();
             obj._withTitleBar = deserializer.deserialize_bool();
             obj._fadeOut = deserializer.deserialize_bool();
+            obj._autoSized = deserializer.deserialize_bool();
+            obj._dragArea = Egui.Containers.WindowDragSerdeExtensions.Deserialize(deserializer);
 
             deserializer.decrease_container_depth();
             return obj;
