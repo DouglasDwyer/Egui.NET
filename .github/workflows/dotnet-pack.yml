@@ -23,10 +23,10 @@ jobs:
         with:
           dotnet-version: '9.0.x'
 
-      # Install from git rather than the last crates.io release, since the
-      # release predates `workspace.metadata.cross` support in Cargo.toml.
       - name: Install cross
-        run: cargo install cross --git https://github.com/cross-rs/cross --locked
+        uses: taiki-e/install-action@v2
+        with:
+          tool: cross
 
       - name: Pack
         run: dotnet pack Egui.NET.slnf -c Release --output nupkgs
