@@ -79,14 +79,17 @@ The project is organized in the following way:
 
 - docs -  contains files for customizing the DocFX output
 - Egui - contains the C# project definition and manually-written C# bindings
+- egui-rs - a vendored [subtree](https://git-scm.com/book/en/v2/Git-Tools-Advanced-Merging#_subtree_merge) of `egui`, with the C# interop changes described below committed directly on top
 - egui_net - contains the runtime `egui` crate that is compiled to a `dylib` and loaded by C#.
   - progress_report.txt - describes what percentage of the API is complete, and identifies functions that have yet to be bound. Generated every time `cargo test` is run
-- egui_net_bindgen - helper crate that contains the autobinder. Leverages `rustdoc` and `serde-generate` to bind most of egui automatically. The bindings are written to `target/bindings` whenever `cargo build` is run
+- egui_net_bindgen - helper crate that contains the autobinder. Leverages `rustdoc` and `serde-generate` to bind most of egui automatically. Its build script regenerates rustdoc JSON straight from egui-rs/ on every build where egui-rs/ has changed, and the resulting bindings are written to `target/bindings` whenever `cargo build` is run
 - examples - example programs demonstrating how to use the library in C#
 - media - images and other media used in documentation
 - serde-generate - a fork of the `serde-generate` crate, with some customizations for the Egui.NET API
 
-The project also compiles [a fork of `egui`](https://github.com/DouglasDwyer/egui/tree/egui_net_patches). The main purpose of the fork is to mark additional `egui` types as serializable, so that they may be shared with C# easily.
+The project needs a small amount of `egui` code to be marked as serializable so that it can be shared with C#. Those changes are committed directly onto the `egui-rs` subtree rather than maintained as a separate patch file, so `cargo build` works right after cloning with no extra setup step.
+
+To pull in a newer `egui` release: `git subtree pull --prefix=egui-rs <egui remote> <tag> --squash`, then resolve any merge conflicts between the new upstream release and the existing C# interop changes.
 
 ### Supported platforms
 

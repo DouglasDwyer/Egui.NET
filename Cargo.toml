@@ -5,6 +5,9 @@ members = [
     "egui_net_ffi",
     "serde-generate",
 ]
+# egui-rs/ has its own [workspace]; excluding it stops Cargo from resolving
+# its patched crates' workspace-inherited fields against this workspace.
+exclude = [ "egui-rs" ]
 default-members = [ "egui_net" ]
 resolver = "2"
 
@@ -48,7 +51,5 @@ x86_64-apple-darwin = { image = "i18nsite/x86_64-apple-darwin-cross@sha256:86049
 aarch64-apple-darwin = { image = "i18nsite/aarch64-apple-darwin-cross@sha256:737bd24b8bc893de2bec133277e4f69c33db725ef02d13c8f1277fe92098ba0d" }
 
 [patch.crates-io]
-#egui = { path = "../egui/crates/egui" }
-egui = { git = "https://github.com/DouglasDwyer/egui", rev = "5ab970625cb89175ffffffe937ad397ddb3e32b3" }
-#egui_extras = { path = "../egui/crates/egui_extras" }
-egui_extras = { git = "https://github.com/DouglasDwyer/egui", rev = "5ab970625cb89175ffffffe937ad397ddb3e32b3" }
+egui = { path = "egui-rs/crates/egui" }
+egui_extras = { path = "egui-rs/crates/egui_extras" }

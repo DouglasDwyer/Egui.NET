@@ -1,0 +1,25 @@
+{
+    "files.insertFinalNewline": true,
+    "editor.formatOnSave": true,
+    "files.trimTrailingWhitespace": true,
+    "editor.semanticTokenColorCustomizations": {
+        "rules": {
+            "*.unsafe:rust": "#eb5046"
+        }
+    },
+    "files.exclude": {
+        "target_ra/**": true,
+        "target_wasm/**": true,
+    },
+    "rust-analyzer.check.command": "clippy",
+    // Whether `--workspace` should be passed to `cargo clippy`. If false, `-p <package>` will be passed instead.
+    "rust-analyzer.check.workspace": false,
+    "rust-analyzer.cargo.allTargets": true,
+    "rust-analyzer.cargo.features": "all",
+    // Use a separate target directory for Rust Analyzer so it doesn't prevent cargo/clippy from doing things.
+    "rust-analyzer.cargo.targetDir": "target_ra",
+    "rust-analyzer.showUnlinkedFileNotification": false,
+    // Uncomment the following options and restart rust-analyzer to get it to check code behind `cfg(target_arch=wasm32)`.
+    // Don't forget to put it in a comment again before committing.
+    // "rust-analyzer.cargo.target": "wasm32-unknown-unknown",
+}
