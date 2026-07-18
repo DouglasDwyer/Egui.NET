@@ -1,4 +1,4 @@
-name: Pack NuGet
+name: Pack
 
 on:
   push:
