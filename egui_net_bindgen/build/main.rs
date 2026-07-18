@@ -86,16 +86,13 @@ fn regenerate_json_docs(manifest_dir: &Path, egui_rs: &Path, out_dir: &Path) -> 
     for &crate_name in DOC_CRATES {
         let crate_manifest = egui_rs.join("crates").join(crate_name).join("Cargo.toml");
 
-        // cwd = manifest_dir so rustup resolves the toolchain from Egui.NET/rust-toolchain.toml.
-        // --target-dir is passed explicitly (rather than relying on the default,
-        // relative-to-manifest location) because tools like `cross` override
-        // CARGO_TARGET_DIR in the environment, which would otherwise redirect
-        // this nested `cargo` invocation's doc output away from egui-rs/target.
         let status = Command::new(&cargo)
+            // cwd = manifest_dir so rustup resolves the toolchain from Egui.NET/rust-toolchain.toml.
             .current_dir(manifest_dir)
             .args([
                 "rustdoc",
                 "--manifest-path", crate_manifest.to_str().expect("non-UTF8 path"),
+                // Overrides any inherited CARGO_TARGET_DIR (e.g. set by `cross`).
                 "--target-dir", egui_rs_target.to_str().expect("non-UTF8 path"),
                 "--lib",
                 "--features", "serde",
