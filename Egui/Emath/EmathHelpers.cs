@@ -35,6 +35,14 @@ public static partial class EmathHelpers
     }
 
     /// <summary>
+    /// The midpoint of <paramref name="a"/> and <paramref name="b"/>.
+    /// </summary>
+    public static R FastMidpoint<R>(R a, R b) where R : INumber<R>
+    {
+        return (a + b) / (R.One + R.One);
+    }
+
+    /// <summary>
     /// Where in the range is this value? Returns 0-1 if within the range.<br/>
     /// Returns <0 if before and >1 if after.<br/>
     /// Returns <c>null</c> if the input range is zero-width.

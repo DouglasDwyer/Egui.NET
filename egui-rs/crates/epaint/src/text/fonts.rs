@@ -183,6 +183,7 @@ impl FontData {
 ///
 /// Obtained via [`FontData::variation_axes`].
 #[derive(Clone, Debug, PartialEq)]
+#[cfg_attr(feature = "serde", derive(serde::Deserialize, serde::Serialize))]
 pub struct FontVariationAxis {
     /// The axis tag, e.g. `wght` or `wdth`.
     pub tag: Tag,

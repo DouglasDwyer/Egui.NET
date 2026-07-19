@@ -150,7 +150,14 @@ const CUSTOM_FNS: &[&str] = &[
     "egui_ui_Ui_set_enabled",
     "egui_memory_Memory_options",
     "egui_memory_Memory_set_options",
-    "egui_containers_collapsing_header_EguiCollapsingStateShowToggleButtonParams_unpack"
+    "egui_containers_collapsing_header_EguiCollapsingStateShowToggleButtonParams_unpack",
+    // `RichText::variation` takes `impl IntoTag`, which the autobinder can't handle
+    // generically; the auto-discovered `variation` fn is bound concretely against
+    // `String`, and these two extra overloads (for the other `IntoTag` implementors,
+    // `u32` and `[u8; 4]`) are defined by hand since only one concrete signature can
+    // be auto-discovered per Rust function name.
+    "egui_widget_text_RichText_variation_u32",
+    "egui_widget_text_RichText_variation_bytes"
 ];
 
 /// A list of fully-qualified function IDs to ignore during generation.
