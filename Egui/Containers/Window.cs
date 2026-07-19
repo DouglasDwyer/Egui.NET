@@ -38,10 +38,9 @@ public ref struct Window
     /// This is true even if you disable the title bar with <c>TitleBar(false)</c>.
     /// If you need a changing title, you must call <see cref="Id"/> with a fixed id.
     /// </summary>
-    public Window(WidgetText title)
+    public Window(Atoms title)
     {
-        title = title.FallbackTextStyle(new TextStyle.Heading());
-        Area area = new Area(title.RawText).Kind(UiKind.Window);
+        Area area = new Area(title.Text ?? string.Empty).Kind(UiKind.Window);
         _title = title;
         _hasOpen = false;
         _area = area;

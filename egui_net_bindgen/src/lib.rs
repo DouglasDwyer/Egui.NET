@@ -1179,6 +1179,7 @@ impl BindingsGenerator {
             .with_namespaces(self.namespaces.clone());
         let generator = CodeGenerator::new(&config);
 
+        self.inject_tuple_struct_wrappers();
         self.emit_cs_fn_bindings();
         self.rename_types();
         self.rename_struct_fields();
@@ -1242,6 +1243,98 @@ impl BindingsGenerator {
         for ty in BINDING_EXCLUDE_TYPE_DEFINITIONS {
             let _ = self.registry.remove(*ty);
         }
+    }
+
+    /// Synthesizes registry entries for tuple structs that `serde_reflection` never sees.
+    ///
+    /// A type like `ByteIndex(pub usize)` uses `#[serde(transparent)]` so that it round-trips
+    /// as a bare `usize` in every *other* format (bincode, JSON, ...) that already depends on
+    /// it. But that also makes it indistinguishable, to the tracer, from a plain `usize`: it
+    /// never gets its own entry in the registry, so no bound function can use it by name and
+    /// the C# generator never emits a dedicated type for it.
+    ///
+    /// For any tuple struct (`struct Foo(T)` / `struct Foo(T, U, ...)`) not already in the
+    /// registry, this reads its field types directly from rustdoc and inserts a synthetic
+    /// `NewTypeStruct`/`TupleStruct` entry, as long as every field is a primitive or another
+    /// already-registered type. This produces exactly the code the generator already emits for
+    /// a non-transparent tuple struct like `IdSalt` (a struct with one `_value` field, or
+    /// `Item1`/`Item2`/... for several) - and it's wire-compatible, since serializing a
+    /// newtype/tuple struct writes no extra framing beyond its fields either way.
+    fn inject_tuple_struct_wrappers(&mut self) {
+        let mut additions = Vec::new();
+
+        for (name, id) in &self.name_to_id {
+            if self.registry.contains_key(name) {
+                continue;
+            }
+
+            let ItemEnum::Struct(s) = &self.krate.index[id].inner else { continue };
+            let StructKind::Tuple(field_ids) = &s.kind else { continue };
+            if field_ids.is_empty() {
+                continue;
+            }
+
+            let Some(formats) = field_ids
+                .iter()
+                .map(|field_id| {
+                    let field_id = field_id.as_ref()?;
+                    let ItemEnum::StructField(ty) = &self.krate.index[field_id].inner else { return None };
+                    self.simple_format_of(ty)
+                })
+                .collect::<Option<Vec<_>>>()
+            else {
+                continue;
+            };
+
+            let container = if let [format] = formats.as_slice() {
+                ContainerFormat::NewTypeStruct(Box::new(format.clone()))
+            } else {
+                ContainerFormat::TupleStruct(formats)
+            };
+
+            additions.push((name.clone(), container));
+        }
+
+        for (name, container) in additions {
+            self.registry.insert(name, container);
+        }
+    }
+
+    /// Gets the `serde_reflection` wire [`Format`] of a rustdoc [`Type`], without tracing an
+    /// actual value - only primitives and types already present in the registry are supported,
+    /// since those are the only ones whose format can be known without doing so.
+    fn simple_format_of(&self, ty: &Type) -> Option<Format> {
+        Some(match ty {
+            Type::Primitive(x) => match x.as_str() {
+                "bool" => Format::Bool,
+                "char" => Format::Char,
+                "str" => Format::Str,
+                "u8" => Format::U8,
+                "u16" => Format::U16,
+                "u32" => Format::U32,
+                "u64" | "usize" => Format::U64,
+                "u128" => Format::U128,
+                "i8" => Format::I8,
+                "i16" => Format::I16,
+                "i32" => Format::I32,
+                "i64" | "isize" => Format::I64,
+                "i128" => Format::I128,
+                "f32" => Format::F32,
+                "f64" => Format::F64,
+                _ => return None,
+            },
+            Type::ResolvedPath(path) => {
+                let name = path.path.split("::").last()?;
+                if name == "String" {
+                    Format::Str
+                } else if self.registry.contains_key(name) {
+                    Format::TypeName(name.to_string())
+                } else {
+                    return None;
+                }
+            }
+            _ => return None,
+        })
     }
 
     /// Gets the C# and Rust representations of a type, or returns [`None`] if the type

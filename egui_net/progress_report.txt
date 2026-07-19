@@ -1,4 +1,4 @@
-1817 / 1916 (94%) bound
+1818 / 1916 (94%) bound
 egui_atomics_atom_kind_AtomKind_closure
 egui_atomics_atom_kind_AtomKind_into_sized
 egui_atomics_atom_layout_SizedAtomLayout_iter_images
@@ -88,7 +88,6 @@ emath_fast_midpoint
 epaint_shapes_bezier_shape_CubicBezierShape_for_each_flattened_with_t
 epaint_shapes_bezier_shape_CubicBezierShape_split_range
 epaint_shapes_bezier_shape_QuadraticBezierShape_for_each_flattened_with_t
-epaint_text_cursor_CCursor_new
 epaint_text_fonts_FontsImpl_options
 epaint_text_fonts_FontsImpl_return_shape_buffer
 epaint_text_fonts_FontsImpl_take_shape_buffer
