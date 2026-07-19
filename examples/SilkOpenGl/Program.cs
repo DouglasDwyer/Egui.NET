@@ -114,6 +114,7 @@ public class Program
         private string _string = "";
         private Color32 _color = Color32.LightBlue.LinearMultiply(0.5f);
         private bool _animateProgressBar = false;
+        private DateOnly _date = DateOnly.FromDateTime(DateTime.Today);
 
         public void Show(Ui ui)
         {
@@ -253,6 +254,10 @@ public class Program
             {
                 _boolean = !_boolean;
             }
+            ui.EndRow();
+
+            ui.Add(DocLinkLabel("DatePicker", "DatePickerButton"));
+            ui.Add(new DatePicker(ref _date));
             ui.EndRow();
 
             ui.Add(DocLinkLabel("Separator", "separator"));

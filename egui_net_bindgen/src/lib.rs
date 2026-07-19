@@ -25,6 +25,7 @@ use egui::text_selection::*;
 use egui::text_selection::visuals::*;
 use egui::util::undoer::*;
 use egui::widget_style::*;
+use egui_extras::syntax_highlighting::*;
 use rustdoc_types::*;
 use rustdoc_types::Id as RdId;
 use rustdoc_types::Path as RdPath;
@@ -344,6 +345,20 @@ const IGNORE_FNS: &[&str] = &[
 
     // ComboBox: not yet implemented:
     "egui_containers_combo_box_ComboBox_popup_style",
+
+    // DatePickerButton: bound manually
+    "egui_extras_datepicker_button_DatePickerButton_arrows",
+    "egui_extras_datepicker_button_DatePickerButton_calendar",
+    "egui_extras_datepicker_button_DatePickerButton_calendar_week",
+    "egui_extras_datepicker_button_DatePickerButton_combo_boxes",
+    "egui_extras_datepicker_button_DatePickerButton_format",
+    "egui_extras_datepicker_button_DatePickerButton_highlight_weekends",
+    "egui_extras_datepicker_button_DatePickerButton_id_salt",
+    "egui_extras_datepicker_button_DatePickerButton_new",
+    "egui_extras_datepicker_button_DatePickerButton_reverse_years",
+    "egui_extras_datepicker_button_DatePickerButton_show_icon",
+    "egui_extras_datepicker_button_DatePickerButton_start_end_years",
+    "egui_extras_datepicker_button_DatePickerButton_year_scroll_to",
 
     // DragValue: bound manually
     "egui_widgets_drag_value_DragValue_binary",
@@ -1125,11 +1140,12 @@ impl BindingsGenerator {
         Self::merge_crates(&mut krate, &serde_json::from_str::<Crate>(include_str!(concat!(env!("OUT_DIR"), "/emath.json"))).expect("Failed to parse emath"));
         Self::merge_crates(&mut krate, &serde_json::from_str::<Crate>(include_str!(concat!(env!("OUT_DIR"), "/epaint.json"))).expect("Failed to parse epaint"));
         Self::merge_crates(&mut krate, &serde_json::from_str::<Crate>(include_str!(concat!(env!("OUT_DIR"), "/ecolor.json"))).expect("Failed to parse epaint"));
+        Self::merge_crates(&mut krate, &serde_json::from_str::<Crate>(include_str!(concat!(env!("OUT_DIR"), "/egui_extras.json"))).expect("Failed to parse egui_extras"));
         let declaring_tys = Self::declaring_types(&krate);
         let name_to_id = Self::names_to_ids(&krate);
         let public_fields = Self::public_fields(&krate);
 
-        let mut namespaces = Self::find_public_paths(&krate, &["egui", "epaint", "emath", "ecolor"])
+        let mut namespaces = Self::find_public_paths(&krate, &["egui", "epaint", "emath", "ecolor", "egui_extras"])
             .into_iter().map(|(name, mut path)| {
                 path.pop();
                 for segment in &mut path {
@@ -2133,6 +2149,7 @@ impl BindingsGenerator {
         trace_auto_emath_types(&mut tracer);
         trace_auto_epaint_types(&mut tracer);
         trace_auto_ecolor_types(&mut tracer);
+        trace_auto_egui_extras_types(&mut tracer);
 
         let mut result = tracer.registry().expect("Failed to generate serde registry");
 
