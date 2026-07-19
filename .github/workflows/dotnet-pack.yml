@@ -2,10 +2,10 @@ name: Pack
 
 on:
   push:
-    branches: [main]
+    tags: ['v*']
 
 permissions:
-  contents: read
+  contents: write
 
 jobs:
   pack:
@@ -31,8 +31,7 @@ jobs:
       - name: Pack
         run: dotnet pack Egui.NET.slnf -c Release --output nupkgs
 
-      - name: Upload nupkg artifact
-        uses: actions/upload-artifact@v4
-        with:
-          name: nupkgs
-          path: nupkgs/*.nupkg
+      - name: Publish release
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: gh release create "${{ github.ref_name }}" nupkgs/*.nupkg --generate-notes
