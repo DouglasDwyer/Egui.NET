@@ -404,7 +404,12 @@ using System.Numerics;"
     fn quote_serialize_value(&self, value: &str, format: &Format) -> String {
         use Format::*;
         match format {
-            TypeName(_) | TupleArray { .. } => format!("{}.Serialize(serializer);", value),
+            TypeName(_) => format!("{}.Serialize(serializer);", value),
+            TupleArray { content, size } => format!(
+                "EguiMarshal.SerializerCache<Array{size}<{}>>.Serialize(serializer, {});",
+                self.quote_type(content),
+                value
+            ),
             Unit => format!("serializer.serialize_unit({});", value),
             Bool => format!("serializer.serialize_bool({});", value),
             I8 => format!("serializer.serialize_i8({});", value),
@@ -453,7 +458,10 @@ using System.Numerics;"
                     )
                 }
             }
-            TupleArray { content, size } => format!("Array{size}<{}>.Deserialize(deserializer)", self.quote_type(content)),
+            TupleArray { content, size } => format!(
+                "EguiMarshal.SerializerCache<Array{size}<{}>>.Deserialize(deserializer)",
+                self.quote_type(content)
+            ),
             Unit => "deserializer.deserialize_unit()".to_string(),
             Bool => "deserializer.deserialize_bool()".to_string(),
             I8 => "deserializer.deserialize_i8()".to_string(),
