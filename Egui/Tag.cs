@@ -90,12 +90,12 @@ public partial struct Tag : IEquatable<Tag>
 
     internal void Serialize(BincodeSerializer serializer)
     {
-        _value.Serialize(serializer);
+        EguiMarshal.SerializerCache<Array4<byte>>.Serialize(serializer, _value);
     }
 
     internal static Tag Deserialize(BincodeDeserializer deserializer)
     {
-        return new Tag { _value = Array4<byte>.Deserialize(deserializer) };
+        return new Tag { _value = EguiMarshal.SerializerCache<Array4<byte>>.Deserialize(deserializer) };
     }
 
     /// <inheritdoc/>
