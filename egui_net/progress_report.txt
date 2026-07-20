@@ -1,4 +1,4 @@
-1818 / 1916 (94%) bound
+1826 / 1916 (95%) bound
 egui_atomics_atom_kind_AtomKind_closure
 egui_atomics_atom_kind_AtomKind_into_sized
 egui_atomics_atom_layout_SizedAtomLayout_iter_images
@@ -47,14 +47,6 @@ egui_load_LoadError_byte_size
 egui_memory_Memory_areas
 egui_memory_Memory_areas_mut
 egui_plugin_TypedPluginHandle_lock
-egui_response_Response_widget_state
-egui_style_Style_button_style
-egui_style_Style_checkbox_style
-egui_style_Style_label_style
-egui_style_Style_separator_style
-egui_style_Style_widget_style
-egui_style_Widgets_state
-egui_style_default_text_styles
 egui_text_selection_accesskit_text_update_accesskit_for_text_widget
 egui_text_selection_visuals_paint_text_selection
 egui_ui_builder_UiBuilder_classes_mut
