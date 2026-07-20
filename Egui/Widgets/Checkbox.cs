@@ -17,6 +17,13 @@ public ref struct Checkbox : IWidget
         _indeterminate = false;
     }
 
+    /// <summary>
+    /// Output the checkbox's <see cref="Egui.Atoms"/>.<br/>
+    ///
+    /// This includes any images you have on the checkbox.
+    /// </summary>
+    public readonly Atoms Atoms => _atoms;
+
     public static Checkbox WithoutText(ref bool isChecked)
     {
         return new Checkbox(ref isChecked, new Atoms());

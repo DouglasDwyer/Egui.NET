@@ -1048,8 +1048,8 @@ impl SerializableTextEdit {
 #[derive(Clone, Serialize, Deserialize)]
 pub struct SerializableDragValue {
     speed: f64,
-    prefix: String,
-    suffix: String,
+    prefix: Atoms,
+    suffix: Atoms,
     start: f64,
     end: f64,
     clamp_existing_to_range: bool,
