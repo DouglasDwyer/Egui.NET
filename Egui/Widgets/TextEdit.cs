@@ -120,7 +120,7 @@ public ref partial struct TextEdit : IWidget
     public readonly TextEdit Prefix(Atoms prefix)
     {
         var result = this;
-        result._inner.Prefix = prefix;
+        result._inner = EguiMarshal.Call<TextEditInner, Atoms, TextEditInner>(EguiFn.egui_widgets_text_edit_builder_TextEdit_prefix, _inner, prefix);
         return result;
     }
 
@@ -130,7 +130,7 @@ public ref partial struct TextEdit : IWidget
     public readonly TextEdit Suffix(Atoms suffix)
     {
         var result = this;
-        result._inner.Suffix = suffix;
+        result._inner = EguiMarshal.Call<TextEditInner, Atoms, TextEditInner>(EguiFn.egui_widgets_text_edit_builder_TextEdit_suffix, _inner, suffix);
         return result;
     }
 
@@ -431,7 +431,35 @@ public ref partial struct TextEdit : IWidget
             serializer.decrease_container_depth();
         }
 
-        internal static TextEditInner Deserialize(Bincode.BincodeDeserializer deserializer) => throw new NotSupportedException();
+        internal static TextEditInner Deserialize(Bincode.BincodeDeserializer deserializer)
+        {
+            deserializer.increase_container_depth();
+            TextEditInner obj = default;
+            obj.HintText = Egui.Atoms.Deserialize(deserializer);
+            obj.Prefix = Egui.Atoms.Deserialize(deserializer);
+            obj.Suffix = Egui.Atoms.Deserialize(deserializer);
+            obj.Id = Egui.TraitHelpers.deserialize_option_Id(deserializer);
+            obj.IdSalt = deserialize_option_IdSalt(deserializer);
+            obj.FontSelection = Egui.FontSelection.Deserialize(deserializer);
+            obj.TextColor = Egui.TraitHelpers.deserialize_option_Color32(deserializer);
+            obj.Password = deserializer.deserialize_bool();
+            obj.Frame = Egui.TraitHelpers.deserialize_option_Frame(deserializer);
+            obj.Margin = Egui.Margin.Deserialize(deserializer);
+            obj.Multiline = deserializer.deserialize_bool();
+            obj.Interactive = deserializer.deserialize_bool();
+            obj.DesiredWidth = Egui.TraitHelpers.deserialize_option_f32(deserializer);
+            obj.DesiredHeightRows = deserializer.deserialize_u64();
+            obj.EventFilter = Egui.EventFilter.Deserialize(deserializer);
+            obj.CursorAtEnd = deserializer.deserialize_bool();
+            obj.MinSize = Egui.EVec2.Deserialize(deserializer);
+            obj.Align = Egui.Align2.Deserialize(deserializer);
+            obj.ClipText = deserializer.deserialize_bool();
+            obj.CharLimit = deserializer.deserialize_u64();
+            obj.ReturnKey = deserialize_option_KeyboardShortcut(deserializer);
+            obj.BackgroundColor = Egui.TraitHelpers.deserialize_option_Color32(deserializer);
+            deserializer.decrease_container_depth();
+            return obj;
+        }
 
         private static void serialize_option_IdSalt(Egui.IdSalt? value, Bincode.BincodeSerializer serializer)
         {
@@ -446,6 +474,18 @@ public ref partial struct TextEdit : IWidget
             }
         }
 
+        private static Egui.IdSalt? deserialize_option_IdSalt(Bincode.BincodeDeserializer deserializer)
+        {
+            if (deserializer.deserialize_option_tag())
+            {
+                return Egui.IdSalt.Deserialize(deserializer);
+            }
+            else
+            {
+                return null;
+            }
+        }
+
         private static void serialize_option_KeyboardShortcut(Egui.KeyboardShortcut? value, Bincode.BincodeSerializer serializer)
         {
             if (value is not null)
@@ -456,6 +496,18 @@ public ref partial struct TextEdit : IWidget
             else
             {
                 serializer.serialize_option_tag(false);
+            }
+        }
+
+        private static Egui.KeyboardShortcut? deserialize_option_KeyboardShortcut(Bincode.BincodeDeserializer deserializer)
+        {
+            if (deserializer.deserialize_option_tag())
+            {
+                return Egui.KeyboardShortcut.Deserialize(deserializer);
+            }
+            else
+            {
+                return null;
             }
         }
     }
