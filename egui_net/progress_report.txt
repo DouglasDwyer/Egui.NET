@@ -1,4 +1,4 @@
-1828 / 1911 (95%) bound
+1830 / 1911 (95%) bound
 egui_atomics_atom_kind_AtomKind_closure
 egui_atomics_atom_kind_AtomKind_into_sized
 egui_atomics_atom_layout_SizedAtomLayout_iter_images
@@ -10,8 +10,6 @@ egui_atomics_atom_layout_SizedAtomLayout_iter_texts_mut
 egui_atomics_atom_layout_SizedAtomLayout_map_images
 egui_atomics_atom_layout_SizedAtomLayout_map_kind
 egui_containers_menu_MenuState_from_id
-egui_containers_window_Window_drag_area
-egui_containers_window_Window_from_viewport
 egui_context_Context_accesskit_node_builder
 egui_context_Context_add_plugin
 egui_context_Context_global_style_mut
