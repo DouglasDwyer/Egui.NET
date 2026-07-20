@@ -424,23 +424,25 @@ public class Program
     private class CodeExample
     {
         private const string Snippet = """
-            pub struct CodeExample {
-                name: String,
-                age: u32,
-            }
+            public class CodeExample
+            {
+                private string name;
+                private int age;
 
-            impl CodeExample {
-                fn ui(&mut self, ui: &mut egui::Ui) {
-                    ui.heading("Example");
-                    ui.horizontal(|ui| {
-                        ui.label("Name");
-                        ui.text_edit_singleline(&mut self.name);
+                public void Show(Ui ui)
+                {
+                    ui.Heading("Example");
+                    ui.Horizontal(ui =>
+                    {
+                        ui.Label("Name");
+                        ui.TextEditSingleline(ref name);
                     });
-                    ui.add(egui::DragValue::new(&mut self.age).range(0..=120).suffix(" years"));
-                    if ui.button("Increment").clicked() {
-                        self.age += 1;
+                    ui.Add(new DragValue<int>(ref age).Range(0, 120).Suffix(" years"));
+                    if (ui.Button("Increment").Clicked)
+                    {
+                        age += 1;
                     }
-                    ui.label(format!("{} is {}", self.name, self.age));
+                    ui.Label($"{name} is {age}");
                 }
             }
             """;
@@ -448,7 +450,7 @@ public class Program
         public void Show(Ui ui)
         {
             var theme = CodeTheme.FromMemory(ui.Ctx, ui.Style);
-            SyntaxHighlightingHelpers.CodeViewUi(ui, theme, Snippet, "rs");
+            SyntaxHighlightingHelpers.CodeViewUi(ui, theme, Snippet, "cs");
 
             ui.Separator();
 

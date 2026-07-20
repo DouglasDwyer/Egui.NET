@@ -1,4 +1,4 @@
-1804 / 2019 (89%) bound
+1807 / 2024 (89%) bound
 egui_atomics_atom_kind_AtomKind_closure
 egui_atomics_atom_kind_AtomKind_into_sized
 egui_atomics_atom_layout_SizedAtomLayout_iter_images
@@ -78,6 +78,8 @@ egui_extras_strip_Strip_cell
 egui_extras_strip_Strip_drop
 egui_extras_strip_Strip_empty
 egui_extras_strip_Strip_strip
+egui_extras_syntax_highlighting_SyntectSettings_default
+egui_extras_syntax_highlighting_highlight_with
 egui_extras_table_Column_at_least
 egui_extras_table_Column_at_most
 egui_extras_table_Column_auto

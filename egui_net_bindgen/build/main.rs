@@ -9,6 +9,7 @@ const EXCLUDE_TYPES: &[&str] = &[
     "History",
     "OrderedFloat",
     "PointerState",
+    "SyntectSettings",
     "Undoer",
 ];
 
@@ -18,7 +19,7 @@ const DOC_CRATES: &[&str] = &["ecolor", "egui", "emath", "epaint", "egui_extras"
 /// Determines the `--features` argument passed to `cargo rustdoc` for a given crate.
 fn doc_features(crate_name: &str) -> &'static str {
     match crate_name {
-        "egui_extras" => "serde,datepicker,image,svg,svg_text",
+        "egui_extras" => "serde,datepicker,image,svg,svg_text,syntect",
         _ => "serde",
     }
 }
