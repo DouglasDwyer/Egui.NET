@@ -9,19 +9,6 @@ namespace Egui;
 public readonly ref partial struct Ui
 {
     /// <summary>
-    /// Check for clicks, drags and/or hover on a specific region of this <see cref="Ui"/>.
-    /// </summary>
-    /// <param name="rect">The region to check.</param>
-    /// <param name="id">The id to assign to the region.</param>
-    /// <param name="sense">The senses to check for.</param>
-    /// <param name="moveToTop">If we call <c>Interact</c> on the same widget multiple times, should we move it to the top on subsequent calls?</param>
-    public readonly Response InteractOpt(Rect rect, Id id, Sense sense, bool moveToTop)
-    {
-        AssertInitialized();
-        return EguiMarshal.Call<nuint, Rect, Id, Sense, bool, Response>(EguiFn.egui_ui_Ui_interact_opt, Ptr, rect, id, sense, moveToTop);
-    }
-
-    /// <summary>
     /// Use this to paint stuff within this <see cref="Ui"/>.
     /// </summary>
     public Painter Painter

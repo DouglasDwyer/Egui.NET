@@ -150,14 +150,7 @@ const CUSTOM_FNS: &[&str] = &[
     "egui_ui_Ui_set_enabled",
     "egui_memory_Memory_options",
     "egui_memory_Memory_set_options",
-    "egui_containers_collapsing_header_EguiCollapsingStateShowToggleButtonParams_unpack",
-    // `RichText::variation` takes `impl IntoTag`, which the autobinder can't handle
-    // generically; the auto-discovered `variation` fn is bound concretely against
-    // `String`, and these two extra overloads (for the other `IntoTag` implementors,
-    // `u32` and `[u8; 4]`) are defined by hand since only one concrete signature can
-    // be auto-discovered per Rust function name.
-    "egui_widget_text_RichText_variation_u32",
-    "egui_widget_text_RichText_variation_bytes"
+    "egui_containers_collapsing_header_EguiCollapsingStateShowToggleButtonParams_unpack"
 ];
 
 /// A list of fully-qualified function IDs to ignore during generation.
@@ -1063,7 +1056,14 @@ const IGNORE_FNS: &[&str] = &[
 
     "serde_de_impls_deserialize_NonZeroVisitor",
     "serde_de_impls_deserialize_in_place_TupleInPlaceVisitor",
-    "egui_warn_if_debug_build"
+    "egui_warn_if_debug_build",
+
+    // `FontsImpl` is an internal implementation detail - not meant to be constructed or held
+    // onto by consumers - that only happens to be `pub` because it's a public field
+    // (`Fonts::fonts`) of `Fonts`, the type users are actually meant to interact with.
+    "epaint_text_fonts_FontsImpl_options",
+    "epaint_text_fonts_FontsImpl_return_shape_buffer",
+    "epaint_text_fonts_FontsImpl_take_shape_buffer"
 ];
 
 /// Function names to be ignored during generation.
@@ -1446,6 +1446,15 @@ impl BindingsGenerator {
                     }
                     else if path.contains("IntoAtoms") {
                         BoundTypeName::cs_rs("Atoms", "Atoms")
+                    }
+                    else if path.contains("IntoTag") {
+                        // `font_types::Tag` implements `IntoTag` itself (the identity case), so
+                        // the generated wrapper can take a `Tag` directly and pass it straight
+                        // through. `Tag` lives in an external crate that egui only re-exports
+                        // (`epaint::text::Tag`), so it never gets its own registry entry the way
+                        // a local type would - hand-written in `Egui/Tag.cs` instead, with
+                        // implicit conversions from the C# types that also implement `IntoTag`.
+                        BoundTypeName::cs_rs("Tag", "Tag")
                     }
                     else {
                         return None
