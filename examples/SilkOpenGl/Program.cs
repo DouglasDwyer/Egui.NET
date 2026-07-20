@@ -6,6 +6,7 @@ using System.Collections.Immutable;
 using Egui;
 using Egui.Containers;
 using Egui.Epaint;
+using Egui.EguiExtras.SyntaxHighlighting;
 using Egui.Silk.NET;
 using Egui.Viewport;
 using Egui.Widgets;
@@ -33,6 +34,8 @@ public class Program
     private static IWindow _window;
 
     private static WidgetGallery _widgetGallery = new WidgetGallery();
+
+    private static CodeExample _codeExample = new CodeExample();
 
     public static void Main(string[] args)
     {
@@ -100,6 +103,16 @@ public class Program
 
             new Window("Settings")
                 .Show(ctx, ui => ctx.SettingsUi(ui));
+
+            new Window("🖮 Code Example")
+                .MinWidth(375)
+                .DefaultSize((390, 500))
+                .Scroll((false, false))
+                .Resizable((true, false))
+                .Show(ctx, ui =>
+            {
+                _codeExample.Show(ui);
+            });
         });
     }
 
@@ -406,5 +419,44 @@ public class Program
         First,
         Second,
         Third,
+    }
+
+    private class CodeExample
+    {
+        private const string Snippet = """
+            pub struct CodeExample {
+                name: String,
+                age: u32,
+            }
+
+            impl CodeExample {
+                fn ui(&mut self, ui: &mut egui::Ui) {
+                    ui.heading("Example");
+                    ui.horizontal(|ui| {
+                        ui.label("Name");
+                        ui.text_edit_singleline(&mut self.name);
+                    });
+                    ui.add(egui::DragValue::new(&mut self.age).range(0..=120).suffix(" years"));
+                    if ui.button("Increment").clicked() {
+                        self.age += 1;
+                    }
+                    ui.label(format!("{} is {}", self.name, self.age));
+                }
+            }
+            """;
+
+        public void Show(Ui ui)
+        {
+            var theme = CodeTheme.FromMemory(ui.Ctx, ui.Style);
+            SyntaxHighlightingHelpers.CodeViewUi(ui, theme, Snippet, "rs");
+
+            ui.Separator();
+
+            ui.Collapsing("Theme", ui =>
+            {
+                theme.Ui(ui);
+                theme.StoreInMemory(ui.Ctx);
+            });
+        }
     }
 }
