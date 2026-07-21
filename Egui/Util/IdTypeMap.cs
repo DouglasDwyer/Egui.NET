@@ -10,7 +10,7 @@ public ref struct IdTypeMap
     /// <summary>
     /// Holds C#-side objects.
     /// </summary>
-    private readonly Dictionary<(Id, Type), object> _inner;
+    private readonly Dictionary<RawKey, object> _inner;
 
     public bool IsEmpty => _inner.Count == 0;
 
@@ -20,7 +20,7 @@ public ref struct IdTypeMap
     /// Creates a new map wrapper.
     /// </summary>
     /// <param name="inner">The inner map to modify.</param>
-    internal IdTypeMap(Dictionary<(Id, Type), object> inner)
+    internal IdTypeMap(Dictionary<RawKey, object> inner)
     {
         _inner = inner;
     }
@@ -33,24 +33,17 @@ public ref struct IdTypeMap
     /// <summary>
     /// Count the number of values are stored with the given type.
     /// </summary>
-    public int Count<T>()
+    public readonly int Count<T>()
     {
-        return _inner.Where(x => typeof(T) == x.Key.Item2).Count();
+        return _inner.Keys.Count(x => x.Type == typeof(T));
     }
 
     /// <summary>
     /// Reads a value without trying to deserialize a persisted value.
     /// </summary>
-    public T? GetTemp<T>(Id id) where T : struct
+    public readonly T? GetTemp<T>(Id id) where T : struct
     {
-        if (_inner.TryGetValue((id, typeof(T)), out var value))
-        {
-            return (T?)value;
-        }
-        else
-        {
-            return null;
-        }
+        return GetTempRaw(new RawKey(typeof(T), id)) is { } value ? (T)value : null;
     }
 
     /// <summary>
@@ -58,7 +51,7 @@ public ref struct IdTypeMap
     /// </summary>
     public void InsertTemp<T>(Id id, T value) where T : struct
     {
-        _inner[(id, typeof(T))] = value;
+        InsertTempRaw(new RawKey(typeof(T), id), value);
     }
 
     /// <summary>
@@ -66,7 +59,7 @@ public ref struct IdTypeMap
     /// </summary>
     public void Remove<T>(Id id) where T : struct
     {
-        _inner.Remove((id, typeof(T)));
+        RemoveTempRaw(new RawKey(typeof(T), id));
     }
 
     /// <summary>
@@ -74,12 +67,9 @@ public ref struct IdTypeMap
     /// </summary>
     public void RemoveByType<T>() where T : struct
     {
-        foreach (var (id, ty) in _inner.Keys)
+        foreach (var key in _inner.Keys.Where(x => x.Type == typeof(T)).ToList())
         {
-            if (typeof(T) == ty)
-            {
-                _inner.Remove((id, ty));
-            }
+            _inner.Remove(key);
         }
     }
 
@@ -88,13 +78,38 @@ public ref struct IdTypeMap
     /// </summary>
     public T? RemoveTemp<T>(Id id) where T : struct
     {
-        if (_inner.Remove((id, typeof(T)), out var value))
-        {
-            return (T)value;
-        }
-        else
-        {
-            return null;
-        }
+        return RemoveTempRaw(new RawKey(typeof(T), id)) is { } value ? (T)value : null;
+    }
+
+    /// <summary>
+    /// Gets the value for a given raw key.
+    /// </summary>
+    public readonly object? GetTempRaw(RawKey raw)
+    {
+        return _inner.TryGetValue(raw, out var value) ? value : null;
+    }
+
+    /// <summary>
+    /// Inserts (or replaces) the value for a given raw key.
+    /// </summary>
+    public void InsertTempRaw(RawKey raw, object value)
+    {
+        _inner[raw] = value;
+    }
+
+    /// <summary>
+    /// Removes and returns the value for a given raw key.
+    /// </summary>
+    public object? RemoveTempRaw(RawKey raw)
+    {
+        return _inner.Remove(raw, out var value) ? value : null;
+    }
+
+    /// <summary>
+    /// Returns all <see cref="RawKey"/>s to values in this map.
+    /// </summary>
+    public readonly IEnumerable<RawKey> TempKeys()
+    {
+        return _inner.Keys;
     }
 }

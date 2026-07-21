@@ -8,10 +8,7 @@ use std::{any::Any, sync::Arc};
 
 /// Like [`std::any::TypeId`], but can be serialized and deserialized.
 #[derive(Clone, Copy, Debug, Eq, PartialEq, Hash)]
-// `persistence` implies `serde`, so gating on `serde` alone is a strict superset of the
-// original `persistence` gate - this also makes `TypeId` traceable for the C# bindings, which
-// enable `serde` but not `persistence`.
-#[cfg_attr(feature = "serde", derive(serde::Deserialize, serde::Serialize))]
+#[cfg_attr(feature = "persistence", derive(serde::Deserialize, serde::Serialize))]
 pub struct TypeId(u64);
 
 impl TypeId {
@@ -340,7 +337,6 @@ use crate::Id;
 /// they were initially obtained from. Using them on other instances of [`IdTypeMap`]
 /// may produce unexpected behavior.
 #[derive(Clone, Copy, Debug, Eq, PartialEq, Hash)]
-#[cfg_attr(feature = "serde", derive(serde::Deserialize, serde::Serialize))]
 #[repr(transparent)]
 pub struct RawKey(u64);
 
@@ -364,33 +360,6 @@ impl RawKey {
         let type_id = TypeId::of::<T>();
         Self(type_id.value() ^ id.value())
     }
-
-    /// Like [`Self::new`], but takes an explicit [`TypeId`] instead of a Rust generic `T`.
-    ///
-    /// `T: 'static` can't be supplied from outside Rust (e.g. from the C# bindings, which have
-    /// no equivalent of a Rust `TypeId`), and a [`RawKey`] only needs to produce deterministic,
-    /// collision-free results against the map it was obtained from (see the struct docs) - it
-    /// need not correspond to any genuine `std::any::TypeId`. External callers can reuse a
-    /// [`TypeId`] read from a [`RawValue`] (see [`IdTypeMap::get_temp_raw`]) or just pick their
-    /// own consistently.
-    #[inline(always)]
-    pub fn from_type_id(type_id: TypeId, id: Id) -> Self {
-        Self(type_id.value() ^ id.value())
-    }
-}
-
-/// A type-erased handle to a value stored in an [`IdTypeMap`], returned by
-/// [`IdTypeMap::get_temp_raw`]/[`IdTypeMap::get_temp_raw_mut`]/[`IdTypeMap::remove_temp_raw`].
-///
-/// A `dyn Any` reference can't cross the C# FFI boundary (there is no C#-side concrete type it
-/// could ever downcast to), so this only carries the value's [`TypeId`] - enough to identify
-/// what is stored (e.g. to compare against a [`TypeId`] obtained elsewhere, or to reconstruct a
-/// [`RawKey`] via [`RawKey::from_type_id`]) without exposing the value's contents.
-#[derive(Clone, Copy, Debug)]
-#[cfg_attr(feature = "serde", derive(serde::Deserialize, serde::Serialize))]
-pub struct RawValue {
-    /// The type of the erased value.
-    pub type_id: TypeId,
 }
 
 // TODO(emilk): make IdTypeMap generic over the key (`Id`), and make a library of IdTypeMap.

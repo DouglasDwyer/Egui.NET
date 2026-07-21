@@ -24,7 +24,7 @@ public sealed partial class Context : EguiObject
     /// <summary>
     /// Holds temporary data for widgets between frames.
     /// </summary>
-    private readonly Dictionary<(Id, Type), object> _data = new Dictionary<(Id, Type), object>();
+    private readonly Dictionary<RawKey, object> _data = new Dictionary<RawKey, object>();
 
     /// <summary>
     /// Used to guard access to <see cref="_data"/>. 
@@ -455,47 +455,6 @@ public sealed partial class Context : EguiObject
         {
             EguiMarshal.Call(EguiFn.egui_context_Context_input_mut_for, Ptr, id, input);
         }
-    }
-
-    /// <summary>
-    /// Read-only access to the real Rust <see cref="RawIdTypeMap"/> backing this context's
-    /// widget state (as opposed to <see cref="IdTypeMap"/>, a separate, purely C#-side store).
-    /// </summary>
-    public void RawData(Action<RawIdTypeMap> reader)
-    {
-        RawDataMut(d =>
-        {
-            reader(d);
-            return false;
-        });
-    }
-
-    /// <inheritdoc cref="RawData"/>
-    public R RawData<R>(Func<RawIdTypeMap, R> reader)
-    {
-        return RawDataMut(reader);
-    }
-
-    /// <summary>
-    /// Read-write access to the real Rust <see cref="RawIdTypeMap"/> backing this context's
-    /// widget state (as opposed to <see cref="IdTypeMap"/>, a separate, purely C#-side store).
-    /// </summary>
-    public void RawDataMut(Action<RawIdTypeMap> writer)
-    {
-        RawDataMut(d =>
-        {
-            writer(d);
-            return false;
-        });
-    }
-
-    /// <inheritdoc cref="RawDataMut"/>
-    public R RawDataMut<R>(Func<RawIdTypeMap, R> writer)
-    {
-        R result = default!;
-        using var callback = new EguiCallback(d => result = writer(new RawIdTypeMap(d)));
-        EguiMarshal.Call(EguiFn.egui_context_Context_data_mut, Ptr, callback);
-        return result;
     }
 
     /// <summary>
