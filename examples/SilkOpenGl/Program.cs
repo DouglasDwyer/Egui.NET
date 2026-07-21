@@ -6,6 +6,7 @@ using System.Collections.Immutable;
 using Egui;
 using Egui.Containers;
 using Egui.Epaint;
+using Egui.EguiExtras;
 using Egui.EguiExtras.SyntaxHighlighting;
 using Egui.Silk.NET;
 using Egui.Viewport;
@@ -36,6 +37,8 @@ public class Program
     private static WidgetGallery _widgetGallery = new WidgetGallery();
 
     private static CodeExample _codeExample = new CodeExample();
+
+    private static TableDemo _tableDemo = new TableDemo();
 
     public static void Main(string[] args)
     {
@@ -112,6 +115,13 @@ public class Program
                 .Show(ctx, ui =>
             {
                 _codeExample.Show(ui);
+            });
+
+            new Window("☰ Table")
+                .DefaultWidth(400)
+                .Show(ctx, ui =>
+            {
+                _tableDemo.Show(ui);
             });
         });
     }
@@ -458,6 +468,67 @@ public class Program
             {
                 theme.Ui(ui);
                 theme.StoreInMemory(ui.Ctx);
+            });
+        }
+    }
+
+    private class TableDemo
+    {
+        private const int NumRows = 20;
+
+        private bool _striped = true;
+        private bool _resizableColumns = true;
+        private bool _clickable = true;
+        private HashSet<int> _selection = new HashSet<int>();
+
+        public void Show(Ui ui)
+        {
+            ui.Horizontal(ui =>
+            {
+                ui.Checkbox(ref _striped, "Striped");
+                ui.Checkbox(ref _resizableColumns, "Resizable columns");
+                ui.Checkbox(ref _clickable, "Clickable rows");
+            });
+
+            ui.Separator();
+
+            var table = new TableBuilder()
+                .Striped(_striped)
+                .Resizable(_resizableColumns)
+                .Column(Column.Auto())
+                .Column(Column.Remainder().AtLeast(80.0f))
+                .Column(Column.Remainder().AtLeast(80.0f))
+                .MinScrolledHeight(0.0f);
+
+            if (_clickable)
+            {
+                table = table.Sense(Egui.Sense.Click);
+            }
+
+            table.Show(ui, 20.0f, header =>
+            {
+                header.Col(ui => ui.Label("Row"));
+                header.Col(ui => ui.Label("Description"));
+                header.Col(ui => ui.Label("Progress"));
+            }, body =>
+            {
+                for (int i = 0; i < NumRows; i++)
+                {
+                    var index = i;
+                    body.Row(18.0f, row =>
+                    {
+                        row.SetSelected(_selection.Contains(index));
+
+                        row.Col(ui => ui.Label($"{index}"));
+                        var (_, response) = row.Col(ui => ui.Label($"This is row {index}"));
+                        row.Col(ui => ui.Add(new ProgressBar((index % 10) / 10.0f)));
+
+                        if (_clickable && response.Clicked && !_selection.Add(index))
+                        {
+                            _selection.Remove(index);
+                        }
+                    });
+                }
             });
         }
     }
