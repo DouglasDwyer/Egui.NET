@@ -12,8 +12,14 @@ public ref struct IdTypeMap
     /// </summary>
     private readonly Dictionary<RawKey, object> _inner;
 
+    /// <summary>
+    /// Whether this map contains no values.
+    /// </summary>
     public bool IsEmpty => _inner.Count == 0;
 
+    /// <summary>
+    /// The number of values stored in this map.
+    /// </summary>
     public int Length => _inner.Count;
 
     /// <summary>
@@ -25,6 +31,9 @@ public ref struct IdTypeMap
         _inner = inner;
     }
 
+    /// <summary>
+    /// Removes all values from this map.
+    /// </summary>
     public void Clear()
     {
         _inner.Clear();
