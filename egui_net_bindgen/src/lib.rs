@@ -152,7 +152,8 @@ const CUSTOM_FNS: &[&str] = &[
     "egui_memory_Memory_options",
     "egui_memory_Memory_set_options",
     "egui_containers_collapsing_header_EguiCollapsingStateShowToggleButtonParams_unpack",
-    "egui_extras_table_TableBuilder_show"
+    "egui_extras_table_TableBuilder_show",
+    "egui_widgets_text_edit_builder_TextEdit_set_layout_job"
 ];
 
 /// A list of fully-qualified function IDs to ignore during generation.

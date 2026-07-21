@@ -1,4 +1,4 @@
-1814 / 1983 (91%) bound
+1815 / 1984 (91%) bound
 egui_atomics_atom_kind_AtomKind_closure
 egui_atomics_atom_kind_AtomKind_into_sized
 egui_atomics_atom_layout_SizedAtomLayout_iter_images
