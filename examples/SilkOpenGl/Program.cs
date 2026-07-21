@@ -500,11 +500,6 @@ public class Program
                 .Column(Column.Remainder().AtLeast(80.0f))
                 .MinScrolledHeight(0.0f);
 
-            if (_clickable)
-            {
-                table = table.Sense(Egui.Sense.Click);
-            }
-
             table.Show(ui, 20.0f, header =>
             {
                 header.Col(ui => ui.Label("Row"));
@@ -520,13 +515,21 @@ public class Program
                         row.SetSelected(_selection.Contains(index));
 
                         row.Col(ui => ui.Label($"{index}"));
-                        var (_, response) = row.Col(ui => ui.Label($"This is row {index}"));
-                        row.Col(ui => ui.Add(new ProgressBar((index % 10) / 10.0f)));
-
-                        if (_clickable && response.Clicked && !_selection.Add(index))
+                        row.Col(ui =>
                         {
-                            _selection.Remove(index);
-                        }
+                            if (_clickable)
+                            {
+                                if (ui.Button($"This is row {index}").Clicked && !_selection.Add(index))
+                                {
+                                    _selection.Remove(index);
+                                }
+                            }
+                            else
+                            {
+                                ui.Label($"This is row {index}");
+                            }
+                        });
+                        row.Col(ui => ui.Add(new ProgressBar((index % 10) / 10.0f)));
                     });
                 }
             });
