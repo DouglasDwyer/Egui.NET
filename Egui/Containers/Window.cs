@@ -19,7 +19,7 @@ namespace Egui.Containers;
 /// </summary>
 public ref struct Window
 {
-    private WidgetText _title;
+    private Atoms _title;
     private ref bool _open;
     private bool _hasOpen;
     private Area _area;
@@ -30,16 +30,17 @@ public ref struct Window
     private bool _defaultOpen;
     private bool _withTitleBar;
     private bool _fadeOut;
+    private bool _autoSized;
+    private WindowDrag _dragArea;
 
     /// <summary>
     /// The window title is used as a unique Id and must be unique, and should not change.
     /// This is true even if you disable the title bar with <c>TitleBar(false)</c>.
     /// If you need a changing title, you must call <see cref="Id"/> with a fixed id.
     /// </summary>
-    public Window(WidgetText title)
+    public Window(Atoms title)
     {
-        title = title.FallbackTextStyle(new TextStyle.Heading());
-        Area area = new Area(title.RawText).Kind(UiKind.Window);
+        Area area = new Area(title.Text ?? string.Empty).Kind(UiKind.Window);
         _title = title;
         _hasOpen = false;
         _area = area;
@@ -53,6 +54,8 @@ public ref struct Window
         _defaultOpen = true;
         _withTitleBar = true;
         _fadeOut = true;
+        _autoSized = false;
+        _dragArea = WindowDrag.OnTouch;
     }
 
     private Window(Window previous, ref bool open)
@@ -493,7 +496,28 @@ public ref struct Window
         var result = this;
         result._resize = result._resize.AutoSized();
         result._scroll = ScrollArea.Neither;
+        result._autoSized = true;
         return result;
+    }
+
+    /// <summary>
+    /// Sets where the user can drag to move the window. Defaults to <see cref="WindowDrag.OnTouch"/>.
+    /// </summary>
+    public readonly Window DragArea(WindowDrag dragArea)
+    {
+        var result = this;
+        var inner = EguiMarshal.Call<WindowInner, WindowDrag, WindowInner>(EguiFn.egui_containers_window_Window_drag_area, new WindowInner(this), dragArea);
+        inner.ApplyTo(ref result);
+        return result;
+    }
+
+    /// <summary>
+    /// Construct a <see cref="Window"/> that follows the given viewport.
+    /// </summary>
+    public static Window FromViewport(ViewportId id, ViewportBuilder viewport)
+    {
+        var inner = EguiMarshal.Call<ViewportId, ViewportBuilder, WindowInner>(EguiFn.egui_containers_window_Window_from_viewport, id, viewport);
+        return inner.ToWindow();
     }
 
     /// <summary>
@@ -534,7 +558,7 @@ public ref struct Window
         var result = this;
         result._scroll = result._scroll.ScrollSource(new ScrollSource
         {
-            Drag = dragToScroll,
+            Drag = dragToScroll ? DragScroll.Always : DragScroll.Never,
             // Other properties can be set here as needed
         });
         return result;
@@ -555,7 +579,7 @@ public ref struct Window
     /// </summary>
     private struct WindowInner
     {
-        private Egui.WidgetText _title;
+        private Egui.Atoms _title;
         private Egui.Containers.Area _area;
         private Egui.Containers.Frame? _frame;
         private Egui.Containers.Resize _resize;
@@ -564,6 +588,8 @@ public ref struct Window
         private bool _defaultOpen;
         private bool _withTitleBar;
         private bool _fadeOut;
+        private bool _autoSized;
+        private Egui.Containers.WindowDrag _dragArea;
 
         public WindowInner(Window window)
         {
@@ -576,8 +602,39 @@ public ref struct Window
             _defaultOpen = window._defaultOpen;
             _withTitleBar = window._withTitleBar;
             _fadeOut = window._fadeOut;
+            _autoSized = window._autoSized;
+            _dragArea = window._dragArea;
         }
 
+        /// <summary>
+        /// Copies these fields onto an existing <see cref="Window"/> (everything but <c>Open</c>,
+        /// which isn't part of the wire representation - see <see cref="ToWindow"/>).
+        /// </summary>
+        public readonly void ApplyTo(ref Window window)
+        {
+            window._title = _title;
+            window._area = _area;
+            window._frame = _frame;
+            window._resize = _resize;
+            window._scroll = _scroll;
+            window._collapsible = _collapsible;
+            window._defaultOpen = _defaultOpen;
+            window._withTitleBar = _withTitleBar;
+            window._fadeOut = _fadeOut;
+            window._autoSized = _autoSized;
+            window._dragArea = _dragArea;
+        }
+
+        /// <summary>
+        /// Creates a fresh <see cref="Window"/> (with <c>Open</c> unset) from these fields.
+        /// </summary>
+        public readonly Window ToWindow()
+        {
+            Window window = default;
+            window._hasOpen = false;
+            ApplyTo(ref window);
+            return window;
+        }
 
         internal static void Serialize(BincodeSerializer serializer, WindowInner value) => value.Serialize(serializer);
 
@@ -593,6 +650,8 @@ public ref struct Window
             serializer.serialize_bool(_defaultOpen);
             serializer.serialize_bool(_withTitleBar);
             serializer.serialize_bool(_fadeOut);
+            serializer.serialize_bool(_autoSized);
+            _dragArea.Serialize(serializer);
             serializer.decrease_container_depth();
         }
 
@@ -600,7 +659,7 @@ public ref struct Window
         {
             deserializer.increase_container_depth();
             WindowInner obj = default;
-            obj._title = Egui.WidgetText.Deserialize(deserializer);
+            obj._title = Egui.Atoms.Deserialize(deserializer);
             obj._area = Egui.Containers.Area.Deserialize(deserializer);
             obj._frame = Egui.TraitHelpers.deserialize_option_Frame(deserializer);
             obj._resize = Egui.Containers.Resize.Deserialize(deserializer);
@@ -609,6 +668,8 @@ public ref struct Window
             obj._defaultOpen = deserializer.deserialize_bool();
             obj._withTitleBar = deserializer.deserialize_bool();
             obj._fadeOut = deserializer.deserialize_bool();
+            obj._autoSized = deserializer.deserialize_bool();
+            obj._dragArea = Egui.Containers.WindowDragSerdeExtensions.Deserialize(deserializer);
 
             deserializer.decrease_container_depth();
             return obj;

@@ -1,10 +1,28 @@
-use crate::{FontSelection, Id, Image, ImageSource, SizedAtomKind, Ui, WidgetText};
+use crate::{AtomLayout, FontSelection, Image, ImageSource, SizedAtomKind, Ui, WidgetText};
 use emath::Vec2;
 use epaint::text::TextWrapMode;
+use std::fmt::Debug;
+
+/// Args passed when sizing an [`super::Atom`]
+#[cfg_attr(feature = "serde", derive(serde::Deserialize, serde::Serialize))]
+pub struct IntoSizedArgs {
+    pub available_size: Vec2,
+    pub wrap_mode: TextWrapMode,
+    pub fallback_font: FontSelection,
+}
+
+/// Result returned when sizing an [`super::Atom`]
+#[cfg_attr(feature = "serde", derive(serde::Deserialize, serde::Serialize))]
+pub struct IntoSizedResult {
+    pub intrinsic_size: Vec2,
+    pub sized: SizedAtomKind,
+}
+
+/// See [`AtomKind::Closure`]
+pub type AtomClosure = Box<dyn FnOnce(&Ui, IntoSizedArgs) -> IntoSizedResult + 'static>;
 
 /// The different kinds of [`crate::Atom`]s.
-#[derive(Clone, Default, Debug)]
-#[cfg_attr(feature = "serde", derive(serde::Deserialize, serde::Serialize))]
+#[derive(Default)]
 pub enum AtomKind {
     /// Empty, that can be used with [`crate::AtomExt::atom_grow`] to reserve space.
     #[default]
@@ -39,61 +57,189 @@ pub enum AtomKind {
     /// default font height, which is convenient for icons.
     Image(Image),
 
-    /// For custom rendering.
+    /// A custom closure that produces a sized atom.
     ///
-    /// You can get the [`crate::Rect`] with the [`Id`] from [`crate::AtomLayoutResponse`] and use a
-    /// [`crate::Painter`] or [`Ui::place`] to add/draw some custom content.
+    /// The vec2 passed in is the available size to this atom. The returned vec2 should be the
+    /// preferred / intrinsic size.
     ///
-    /// Example:
-    /// ```
-    /// # use egui::{AtomExt, AtomKind, Atom, Button, Id, __run_test_ui};
-    /// # use emath::Vec2;
-    /// # __run_test_ui(|ui| {
-    /// let id = Id::new("my_button");
-    /// let response = Button::new(("Hi!", Atom::custom(id, Vec2::splat(18.0)))).atom_ui(ui);
+    /// Note: This api is experimental, expect breaking changes here.
+    /// When cloning, this will be cloned as [`AtomKind::Empty`].
+    /// Closures cannot cross the C# FFI boundary, so they are serialized as [`AtomKind::Empty`] too.
+    Closure(AtomClosure),
+
+    /// A nested [`AtomLayout`], letting you embed an atom-based widget as a single atom
+    /// inside another [`AtomLayout`].
     ///
-    /// let rect = response.rect(id);
-    /// if let Some(rect) = rect {
-    ///     ui.place(rect, Button::new("⏵"));
-    /// }
-    /// # });
-    /// ```
-    Custom(Id),
+    /// The nested layout is measured (sized) when the parent is sized, and painted (and
+    /// interacted with) at the cell rect the parent computes for it.
+    Layout(Box<AtomLayout>),
+}
+
+impl Clone for AtomKind {
+    fn clone(&self) -> Self {
+        match self {
+            AtomKind::Empty => AtomKind::Empty,
+            AtomKind::Text(text) => AtomKind::Text(text.clone()),
+            AtomKind::Image(image) => AtomKind::Image(image.clone()),
+            AtomKind::Closure(_) => {
+                log::warn!("Cannot clone atom closures");
+                AtomKind::Empty
+            }
+            AtomKind::Layout(layout) => AtomKind::Layout(layout.clone()),
+        }
+    }
+}
+
+impl Debug for AtomKind {
+    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        match self {
+            AtomKind::Empty => write!(f, "AtomKind::Empty"),
+            AtomKind::Text(text) => write!(f, "AtomKind::Text({text:?})"),
+            AtomKind::Image(image) => write!(f, "AtomKind::Image({image:?})"),
+            AtomKind::Closure(_) => write!(f, "AtomKind::Closure(<closure>)"),
+            AtomKind::Layout(_) => write!(f, "AtomKind::Layout(<layout>)"),
+        }
+    }
+}
+
+#[cfg(feature = "serde")]
+impl serde::Serialize for AtomKind {
+    fn serialize<S>(&self, serializer: S) -> Result<S::Ok, S::Error>
+    where
+        S: serde::Serializer,
+    {
+        match self {
+            AtomKind::Empty => atom_kind_serde_helper::AtomKind::Empty.serialize(serializer),
+            AtomKind::Text(text) => {
+                atom_kind_serde_helper::AtomKind::Text(text.clone()).serialize(serializer)
+            }
+            AtomKind::Image(image) => {
+                atom_kind_serde_helper::AtomKind::Image(image.clone()).serialize(serializer)
+            }
+            AtomKind::Closure(_) => {
+                log::warn!("Cannot serialize atom closures");
+                atom_kind_serde_helper::AtomKind::Empty.serialize(serializer)
+            }
+            AtomKind::Layout(_) => {
+                // `AtomLayout` embeds `Atoms`, which embeds `AtomKind` again. Serde's reflection
+                // (used to generate the C# bindings) cannot see through `Box`, so tracing this
+                // variant produces a self-referential value type on the C# side that the CLR
+                // cannot load (it would need infinite size). Until the C# code generator can
+                // detect such cycles and fall back to a reference type, nested layouts cannot
+                // cross the C# FFI boundary, so they are serialized as `AtomKind::Empty` too.
+                log::warn!("Cannot serialize a nested AtomKind::Layout across the C# FFI boundary");
+                atom_kind_serde_helper::AtomKind::Empty.serialize(serializer)
+            }
+        }
+    }
+}
+
+#[cfg(feature = "serde")]
+impl<'de> serde::Deserialize<'de> for AtomKind {
+    fn deserialize<D>(deserializer: D) -> Result<Self, D::Error>
+    where
+        D: serde::Deserializer<'de>,
+    {
+        Ok(
+            match atom_kind_serde_helper::AtomKind::deserialize(deserializer)? {
+                atom_kind_serde_helper::AtomKind::Empty => AtomKind::Empty,
+                atom_kind_serde_helper::AtomKind::Text(text) => AtomKind::Text(text),
+                atom_kind_serde_helper::AtomKind::Image(image) => AtomKind::Image(image),
+            },
+        )
+    }
+}
+
+#[cfg(feature = "serde")]
+mod atom_kind_serde_helper {
+    use super::*;
+
+    /// The data to serialize for an [`super::AtomKind`]. Closures and nested layouts cannot be
+    /// serialized (see [`super::AtomKind::Layout`]), so they are represented as [`Self::Empty`].
+    #[derive(serde::Deserialize, serde::Serialize)]
+    pub enum AtomKind {
+        Empty,
+        Text(WidgetText),
+        Image(Image),
+    }
 }
 
 impl AtomKind {
+    /// See [`Self::Text`]
     pub fn text(text: impl Into<WidgetText>) -> Self {
         AtomKind::Text(text.into())
     }
 
+    /// See [`Self::Image`]
     pub fn image(image: impl Into<Image>) -> Self {
         AtomKind::Image(image.into())
+    }
+
+    /// See [`Self::Closure`]
+    ///
+    /// `func` need not be `'static`: `AtomKind` has to be lifetime-free so it can cross the
+    /// C# FFI boundary, so the closure's lifetime is erased here. This is sound because a
+    /// `Closure` atom is only ever created and resolved (via [`Self::into_sized`]) synchronously
+    /// within a single widget call, and is never itself serialized (see the `serde` impls above) or
+    /// stored past that call.
+    pub fn closure<'c>(func: impl FnOnce(&Ui, IntoSizedArgs) -> IntoSizedResult + 'c) -> Self {
+        let boxed: Box<dyn FnOnce(&Ui, IntoSizedArgs) -> IntoSizedResult + 'c> = Box::new(func);
+        // SAFETY: see the doc comment above; the erased lifetime never outlives the call that
+        // resolves this `Closure` atom back into a `SizedAtomKind`.
+        let boxed: AtomClosure = unsafe { std::mem::transmute(boxed) };
+        AtomKind::Closure(boxed)
     }
 
     /// Turn this [`AtomKind`] into a [`SizedAtomKind`].
     ///
     /// This converts [`WidgetText`] into [`crate::Galley`] and tries to load and size [`Image`].
     /// The first returned argument is the preferred size.
-    pub fn into_sized(
-        self,
-        ui: &Ui,
-        available_size: Vec2,
-        wrap_mode: Option<TextWrapMode>,
-        fallback_font: FontSelection,
-    ) -> (Vec2, SizedAtomKind) {
+    pub fn into_sized(self, ui: &Ui, args: IntoSizedArgs) -> IntoSizedResult {
+        // Destructured here (rather than in the parameter list, as upstream originally had it)
+        // so the parameter keeps a plain name (`args`) that the C# bindgen's autobinder can see -
+        // a destructuring pattern parameter has no name of its own, which produced a nameless,
+        // invalid C# parameter (`IntoSizedArgs )`) in the generated bindings.
+        let IntoSizedArgs {
+            available_size,
+            wrap_mode,
+            fallback_font,
+        } = args;
+
         match self {
             AtomKind::Text(text) => {
-                let wrap_mode = wrap_mode.unwrap_or(ui.wrap_mode());
                 let galley = text.into_galley(ui, Some(wrap_mode), available_size.x, fallback_font);
-                (galley.intrinsic_size(), SizedAtomKind::Text(galley))
+                IntoSizedResult {
+                    intrinsic_size: galley.intrinsic_size(),
+                    sized: SizedAtomKind::Text(galley),
+                }
             }
             AtomKind::Image(image) => {
                 let size = image.load_and_calc_size(ui, available_size);
                 let size = size.unwrap_or(Vec2::ZERO);
-                (size, SizedAtomKind::Image(image, size))
+                IntoSizedResult {
+                    intrinsic_size: size,
+                    sized: SizedAtomKind::Image { image, size },
+                }
             }
-            AtomKind::Custom(id) => (Vec2::ZERO, SizedAtomKind::Custom(id)),
-            AtomKind::Empty => (Vec2::ZERO, SizedAtomKind::Empty),
+            AtomKind::Empty => IntoSizedResult {
+                intrinsic_size: Vec2::ZERO,
+                sized: SizedAtomKind::Empty { size: None },
+            },
+            AtomKind::Closure(func) => func(
+                ui,
+                IntoSizedArgs {
+                    available_size,
+                    wrap_mode,
+                    fallback_font,
+                },
+            ),
+            AtomKind::Layout(layout) => {
+                let sized = layout.measure(ui, available_size);
+                IntoSizedResult {
+                    intrinsic_size: sized.intrinsic_size,
+                    sized: SizedAtomKind::Layout(Box::new(sized)),
+                }
+            }
         }
     }
 }
@@ -116,5 +262,11 @@ where
 {
     fn from(value: T) -> Self {
         AtomKind::Text(value.into())
+    }
+}
+
+impl From<AtomLayout> for AtomKind {
+    fn from(layout: AtomLayout) -> Self {
+        AtomKind::Layout(Box::new(layout))
     }
 }

@@ -49,20 +49,8 @@ public partial struct Response : IEquatable<Response>
     /// (that is handled by the <c>Painter</c> directly).
     /// </summary>
     public Egui.Sense Sense;
-    private Egui.EPos2? _interactPointerPos;
-    /// <summary>
-    /// The intrinsic / desired size of the widget.<br/>
-    ///
-    /// This is the size that a non-wrapped, non-truncated, non-justified version of the widget
-    /// would have.<br/>
-    ///
-    /// If this is <c>None</c>, use <c>Rect</c> instead.<br/>
-    ///
-    /// At the time of writing, this is only used by external crates
-    /// for improved layouting.
-    /// See for instance <c>EguiFlex</c>.
-    /// </summary>
-    public Egui.EVec2? IntrinsicSize;
+    private Egui.EPos2 _interactPointerPos;
+    private Egui.EVec2 _intrinsicSize;
     private Egui.Flags _flags;
 
     /// <summary>
@@ -143,8 +131,8 @@ public partial struct Response : IEquatable<Response>
         Rect.Serialize(serializer);
         InteractRect.Serialize(serializer);
         Sense.Serialize(serializer);
-        Egui.TraitHelpers.serialize_option_EPos2(_interactPointerPos, serializer);
-        Egui.TraitHelpers.serialize_option_EVec2(IntrinsicSize, serializer);
+        _interactPointerPos.Serialize(serializer);
+        _intrinsicSize.Serialize(serializer);
         _flags.Serialize(serializer);
         serializer.decrease_container_depth();
     }
@@ -160,8 +148,8 @@ public partial struct Response : IEquatable<Response>
         obj.Rect = Egui.Rect.Deserialize(deserializer);
         obj.InteractRect = Egui.Rect.Deserialize(deserializer);
         obj.Sense = Egui.Sense.Deserialize(deserializer);
-        obj._interactPointerPos = Egui.TraitHelpers.deserialize_option_EPos2(deserializer);
-        obj.IntrinsicSize = Egui.TraitHelpers.deserialize_option_EVec2(deserializer);
+        obj._interactPointerPos = Egui.EPos2.Deserialize(deserializer);
+        obj._intrinsicSize = Egui.EVec2.Deserialize(deserializer);
         obj._flags = Egui.Flags.Deserialize(deserializer);
 
         deserializer.decrease_container_depth();
@@ -183,7 +171,7 @@ public partial struct Response : IEquatable<Response>
         if (InteractRect != other.InteractRect) return false;
         if (Sense != other.Sense) return false;
         if (_interactPointerPos != other._interactPointerPos) return false;
-        if (IntrinsicSize != other.IntrinsicSize) return false;
+        if (_intrinsicSize != other._intrinsicSize) return false;
         if (_flags != other._flags) return false;
         return true;
     }
@@ -200,7 +188,7 @@ public partial struct Response : IEquatable<Response>
             value = 31 * value + InteractRect.GetHashCode();
             value = 31 * value + Sense.GetHashCode();
             value = 31 * value + _interactPointerPos.GetHashCode();
-            value = 31 * value + IntrinsicSize.GetHashCode();
+            value = 31 * value + _intrinsicSize.GetHashCode();
             value = 31 * value + _flags.GetHashCode();
             return value;
         }

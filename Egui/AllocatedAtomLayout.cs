@@ -1,35 +1,19 @@
-using System.Collections.Immutable;
-
 namespace Egui;
 
 public partial struct AllocatedAtomLayout
 {
-    public IEnumerable<Image> Images => SizedAtoms.Where(x => x.Kind.Inner is SizedAtomKind.Image)
-        .Select(x => ((SizedAtomKind.Image)x.Kind.Inner).Item1);
+    /// <inheritdoc cref="SizedAtomLayout.Images"/>
+    public readonly IEnumerable<Image> Images => Sized.Images;
 
-    public IEnumerable<Galley> Texts => SizedAtoms.Where(x => x.Kind.Inner is SizedAtomKind.Text)
-        .Select(x => ((SizedAtomKind.Text)x.Kind.Inner).Value);
+    /// <inheritdoc cref="SizedAtomLayout.Texts"/>
+    public readonly IEnumerable<Galley> Texts => Sized.Texts;
 
-    public IEnumerable<SizedAtomKind> Kinds => SizedAtoms.Select(x => x.Kind);
+    /// <inheritdoc cref="SizedAtomLayout.Kinds"/>
+    public readonly IEnumerable<SizedAtomKind> Kinds => Sized.Kinds;
 
-    public void MapKind(Func<SizedAtomKind, SizedAtomKind> f)
-    {
-        SizedAtoms = SizedAtoms.Select(x =>
-        {
-            x.Kind = f(x.Kind);
-            return x;
-        }).ToImmutableArray();
-    }
+    /// <inheritdoc cref="SizedAtomLayout.MapKind"/>
+    public void MapKind(Func<SizedAtomKind, SizedAtomKind> f) => Sized.MapKind(f);
 
-    public void MapImages(Func<Image, Image> f)
-    {
-        SizedAtoms = SizedAtoms.Select(x =>
-        {
-            if (x.Kind.Inner is SizedAtomKind.Image image)
-            {
-                x.Kind = new SizedAtomKind.Image(f(image.Item1), image.Item2);
-            }
-            return x;
-        }).ToImmutableArray();
-    }
+    /// <inheritdoc cref="SizedAtomLayout.MapImages"/>
+    public void MapImages(Func<Image, Image> f) => Sized.MapImages(f);
 }

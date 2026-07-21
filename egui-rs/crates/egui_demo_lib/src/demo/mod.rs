@@ -61,5 +61,9 @@ pub trait Demo {
     fn name(&self) -> &'static str;
 
     /// Show windows, etc
-    fn show(&mut self, ctx: &egui::Context, open: &mut bool);
+    fn show(&mut self, ui: &mut egui::Ui, open: &mut bool);
+
+    /// Run background logic, called every frame even when the demo window is closed
+    /// or the app is hidden.
+    fn logic(&mut self, _ctx: &egui::Context) {}
 }

@@ -5,6 +5,8 @@ use emath::Vec2;
 #[derive(Clone, Debug)]
 #[cfg_attr(feature = "serde", derive(serde::Deserialize, serde::Serialize))]
 pub struct SizedAtom {
+    pub id: Option<crate::Id>,
+
     pub(crate) grow: bool,
 
     /// The size of the atom.
@@ -15,6 +17,9 @@ pub struct SizedAtom {
 
     /// Intrinsic size of the atom. This is used to calculate `Response::intrinsic_size`.
     pub intrinsic_size: Vec2,
+
+    /// How will the atom be aligned in its available space?
+    pub align: emath::Align2,
 
     pub kind: SizedAtomKind,
 }

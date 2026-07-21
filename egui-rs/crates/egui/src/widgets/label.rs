@@ -221,7 +221,7 @@ impl Label {
                 .rect_without_leading_space()
                 .translate(pos.to_vec2());
             let mut response = ui.allocate_rect(rect, sense);
-            response.intrinsic_size = Some(galley.intrinsic_size());
+            response.set_intrinsic_size(galley.intrinsic_size());
             for placed_row in galley.rows.iter().skip(1) {
                 let rect = placed_row.rect().translate(pos.to_vec2());
                 response |= ui.allocate_rect(rect, sense);
@@ -249,13 +249,15 @@ impl Label {
                 layout_job.halign = Align::LEFT;
                 layout_job.justify = false;
             } else {
-                layout_job.halign = self.halign.unwrap_or(ui.layout().horizontal_placement());
+                layout_job.halign = self
+                    .halign
+                    .unwrap_or_else(|| ui.layout().horizontal_placement());
                 layout_job.justify = ui.layout().horizontal_justify();
             }
 
             let galley = ui.fonts_mut(|fonts| fonts.layout_job(layout_job));
             let (rect, mut response) = ui.allocate_exact_size(galley.size(), sense);
-            response.intrinsic_size = Some(galley.intrinsic_size());
+            response.set_intrinsic_size(galley.intrinsic_size());
             let galley_pos = match galley.job.halign {
                 Align::LEFT => rect.left_top(),
                 Align::Center => rect.center_top(),

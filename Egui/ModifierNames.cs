@@ -49,7 +49,7 @@ public struct ModifierNames
 
     public readonly string Format(Modifiers modifiers, bool isMac)
     {
-        return EguiMarshal.Call<bool, ImmutableArray<string>, Modifiers, bool, string>(EguiFn.egui_data_input_ModifierNames_format,
+        return EguiMarshal.Call<bool, ImmutableArray<string>, Modifiers, bool, string>(EguiFn.egui_data_input_modifier_names_ModifierNames_format,
             IsShort, [Alt, Ctrl, Shift, MacAlt, MacCmd, Concat], modifiers, isMac);
     }
 }

@@ -5,7 +5,7 @@ namespace Egui.Containers;
 /// <summary>
 /// Specifies which pointer buttons can be used to pan the scene by dragging.
 /// </summary>
-public readonly struct DragPanButtons
+public readonly partial struct DragPanButtons
 {
     /// <summary>
     /// No flags.

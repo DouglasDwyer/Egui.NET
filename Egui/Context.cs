@@ -24,7 +24,7 @@ public sealed partial class Context : EguiObject
     /// <summary>
     /// Holds temporary data for widgets between frames.
     /// </summary>
-    private readonly Dictionary<(Id, Type), object> _data = new Dictionary<(Id, Type), object>();
+    private readonly Dictionary<RawKey, object> _data = new Dictionary<RawKey, object>();
 
     /// <summary>
     /// Used to guard access to <see cref="_data"/>. 
@@ -95,7 +95,7 @@ public sealed partial class Context : EguiObject
     /// </summary>
     public float AnimateBoolWithEasing(Id id, bool value, Func<float, float> easing)
     {
-        return AnimateBoolWithTimeAndEasing(id, value, Style.AnimationTime, easing);
+        return AnimateBoolWithTimeAndEasing(id, value, GlobalStyle.AnimationTime, easing);
     }
 
     /// <summary>
@@ -109,7 +109,7 @@ public sealed partial class Context : EguiObject
     /// </summary>
     public float AnimateBoolWithTimeAndEasing(Id id, bool targetValue, float animationTime, Func<float, float> easing)
     {
-        var animatedValue = AnimateBoolWithTime(id, targetValue, Style.AnimationTime);
+        var animatedValue = AnimateBoolWithTime(id, targetValue, GlobalStyle.AnimationTime);
         if (targetValue)
         {
             return easing(animatedValue);
@@ -148,24 +148,24 @@ public sealed partial class Context : EguiObject
     /// <summary>
     /// Run the ui code for one frame.<br/>
     /// At most <see cref="Options.MaxPasses"/>  calls will be issued to <paramref name="runUi"/>, and only on the rare occasion that <see cref="RequestDiscard"/> is called. Usually, it will only be called once.<br/>
-    /// Put your widgets into a <see cref="SidePanel"/> , <see cref="TopBottomPanel"/> , <see cref="CentralPanel"/> , <see cref="Window"/>  or <see cref="Area"/> .<br/>
+    /// The <see cref="Ui"/> given to <paramref name="runUi"/> covers the entire viewport; put your widgets into a <see cref="Panel"/> , <see cref="CentralPanel"/> , <see cref="Window"/>  or <see cref="Area"/> .<br/>
     /// Instead of calling run, you can alternatively use <see cref="BeginPass"/>  and <see cref="EndPass"/> .<br/>
     /// </summary>
-    public FullOutput Run(RawInput input, Action<Context> runUi)
+    public FullOutput Run(RawInput input, Action<Ui> runUi)
     {
-        using var callback = new EguiCallback(_ => runUi(this));
-        return EguiMarshal.Call<nuint, RawInput, EguiCallback, FullOutput>(EguiFn.egui_context_Context_run, Ptr, input, callback);
+        using var callback = new EguiCallback(ui => runUi(new Ui(this, ui)));
+        return EguiMarshal.Call<nuint, RawInput, EguiCallback, FullOutput>(EguiFn.egui_context_Context_run_ui, Ptr, input, callback);
     }
 
     /// <summary>
-    /// Like <see cref="Run(RawInput, Action{Context})"/>, but reads input and
+    /// Like <see cref="Run(RawInput, Action{Ui})"/>, but reads input and
     /// writes output to an <see cref="EguiFfi"/> object.
     /// This may be used to pass data directly to a Rust-native integration
     /// library (like <c>egui-winit</c>) without a round-trip through C# data types.
     /// </summary>
-    public unsafe void RunFfi(EguiFfi ffi, Action<Context> runUi)
+    public unsafe void RunFfi(EguiFfi ffi, Action<Ui> runUi)
     {
-        using var callback = new EguiCallback(_ => runUi(this));
+        using var callback = new EguiCallback(ui => runUi(new Ui(this, ui)));
         EguiMarshal.Call(EguiFn.egui_context_Context_run_ffi, Ptr, ffi.Pointer, callback);
     }
 
@@ -175,14 +175,14 @@ public sealed partial class Context : EguiObject
     /// <param name="mutateStyle"></param>
     public void StyleMut(MutateDelegate<Style> mutateStyle)
     {
-        var style = Style;
+        var style = GlobalStyle;
         try
         {
             mutateStyle(ref style);
         }
         finally
         {
-            SetStyle(style);
+            SetGlobalStyle(style);
         }
     }
 
@@ -458,7 +458,7 @@ public sealed partial class Context : EguiObject
     }
 
     /// <summary>
-    /// Read-only access to <see cref="Memory"/>. 
+    /// Read-only access to <see cref="Memory"/>.
     /// </summary>
     private void Memory(Action<Memory> writer)
     {

@@ -43,7 +43,7 @@ fn main() {
         .csharp_class_name("EguiBindings")
         .csharp_class_accessibility("internal")
         .csharp_dll_name("egui_net")
-        .always_included_types(["EguiAnimatedUi", "EguiCallback", "EguiFn", "EguiScrollAreaShowRowsParams", "EguiScrollAreaShowViewportParams", "EguiContextRunTessellateParams"])
+        .always_included_types(["EguiAnimatedUi", "EguiSwitchedUi", "EguiCallback", "EguiFn", "EguiScrollAreaShowRowsParams", "EguiScrollAreaShowViewportParams", "EguiContextRunTessellateParams"])
         .csharp_generate_const_filter(|_| true);
 
     for file in get_all_files("src") {

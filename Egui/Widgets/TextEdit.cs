@@ -97,20 +97,40 @@ public ref partial struct TextEdit : IWidget
     public readonly TextEdit IdSalt(Id idSalt)
     {
         var result = this;
-        result._inner.IdSalt = idSalt;
+        result._inner.IdSalt = new IdSalt(idSalt);
         return result;
     }
 
     /// <summary>
     /// Show a faint hint text when the text field is empty.<br/>
-    /// 
+    ///
     /// If the hint text needs to be persisted even when the text field has input,
     /// the following workaround can be used:
     /// </summary>
-    public readonly TextEdit HintText(WidgetText hintText)
+    public readonly TextEdit HintText(Atoms hintText)
     {
         var result = this;
         result._inner.HintText = hintText;
+        return result;
+    }
+
+    /// <summary>
+    /// Add a prefix to the text edit. This will always be shown before the editable text.
+    /// </summary>
+    public readonly TextEdit Prefix(Atoms prefix)
+    {
+        var result = this;
+        result._inner = EguiMarshal.Call<TextEditInner, Atoms, TextEditInner>(EguiFn.egui_widgets_text_edit_builder_TextEdit_prefix, _inner, prefix);
+        return result;
+    }
+
+    /// <summary>
+    /// Add a suffix to the text edit. This will always be shown after the editable text.
+    /// </summary>
+    public readonly TextEdit Suffix(Atoms suffix)
+    {
+        var result = this;
+        result._inner = EguiMarshal.Call<TextEditInner, Atoms, TextEditInner>(EguiFn.egui_widgets_text_edit_builder_TextEdit_suffix, _inner, suffix);
         return result;
     }
 
@@ -121,16 +141,6 @@ public ref partial struct TextEdit : IWidget
     {
         var result = this;
         result._inner.BackgroundColor = color;
-        return result;
-    }
-
-    /// <summary>
-    /// Set a specific style for the hint text.
-    /// </summary>
-    public readonly TextEdit HintTextFont(FontSelection hintTextFont)
-    {
-        var result = this;
-        result._inner.HintTextFont = hintTextFont;
         return result;
     }
 
@@ -181,9 +191,9 @@ public ref partial struct TextEdit : IWidget
     }
 
     /// <summary>
-    /// Default is <c>True</c>. If set to <c>False</c> there will be no frame showing that this is editable text!
+    /// Sets a custom frame for the <c>TextEdit</c>. If not set, the default frame will be used.
     /// </summary>
-    public readonly TextEdit Frame(bool frame)
+    public readonly TextEdit Frame(Frame frame)
     {
         var result = this;
         result._inner.Frame = frame;
@@ -322,14 +332,15 @@ public ref partial struct TextEdit : IWidget
     private readonly TextEdit SetDefaults()
     {
         var result = this;
-        result._inner.HintText = new WidgetText();
-        result._inner.HintTextFont = null;
+        result._inner.HintText = new Atoms();
+        result._inner.Prefix = new Atoms();
+        result._inner.Suffix = new Atoms();
         result._inner.Id = null;
         result._inner.IdSalt = null;
         result._inner.FontSelection = new FontSelection();
         result._inner.TextColor = null;
         result._inner.Password = false;
-        result._inner.Frame = true;
+        result._inner.Frame = null;
         result._inner.Margin = Egui.Margin.Symmetric(4, 2);
         result._inner.Multiline = true;
         result._inner.Interactive = true;
@@ -367,14 +378,15 @@ public ref partial struct TextEdit : IWidget
 
     private struct TextEditInner
     {
-        public Egui.WidgetText HintText;
-        public Egui.FontSelection? HintTextFont;
+        public Egui.Atoms HintText;
+        public Egui.Atoms Prefix;
+        public Egui.Atoms Suffix;
         public Egui.Id? Id;
-        public Egui.Id? IdSalt;
+        public Egui.IdSalt? IdSalt;
         public Egui.FontSelection FontSelection;
         public Egui.Color32? TextColor;
         public bool Password;
-        public bool Frame;
+        public Egui.Containers.Frame? Frame;
         public Egui.Margin Margin;
         public bool Multiline;
         public bool Interactive;
@@ -395,13 +407,14 @@ public ref partial struct TextEdit : IWidget
         {
             serializer.increase_container_depth();
             HintText.Serialize(serializer);
-            serialize_option_FontSelection(HintTextFont, serializer);
+            Prefix.Serialize(serializer);
+            Suffix.Serialize(serializer);
             Egui.TraitHelpers.serialize_option_Id(Id, serializer);
-            Egui.TraitHelpers.serialize_option_Id(IdSalt, serializer);
+            serialize_option_IdSalt(IdSalt, serializer);
             FontSelection.Serialize(serializer);
             Egui.TraitHelpers.serialize_option_Color32(TextColor, serializer);
             serializer.serialize_bool(Password);
-            serializer.serialize_bool(Frame);
+            Egui.TraitHelpers.serialize_option_Frame(Frame, serializer);
             Margin.Serialize(serializer);
             serializer.serialize_bool(Multiline);
             serializer.serialize_bool(Interactive);
@@ -418,9 +431,37 @@ public ref partial struct TextEdit : IWidget
             serializer.decrease_container_depth();
         }
 
-        internal static TextEditInner Deserialize(Bincode.BincodeDeserializer deserializer) => throw new NotSupportedException();
+        internal static TextEditInner Deserialize(Bincode.BincodeDeserializer deserializer)
+        {
+            deserializer.increase_container_depth();
+            TextEditInner obj = default;
+            obj.HintText = Egui.Atoms.Deserialize(deserializer);
+            obj.Prefix = Egui.Atoms.Deserialize(deserializer);
+            obj.Suffix = Egui.Atoms.Deserialize(deserializer);
+            obj.Id = Egui.TraitHelpers.deserialize_option_Id(deserializer);
+            obj.IdSalt = deserialize_option_IdSalt(deserializer);
+            obj.FontSelection = Egui.FontSelection.Deserialize(deserializer);
+            obj.TextColor = Egui.TraitHelpers.deserialize_option_Color32(deserializer);
+            obj.Password = deserializer.deserialize_bool();
+            obj.Frame = Egui.TraitHelpers.deserialize_option_Frame(deserializer);
+            obj.Margin = Egui.Margin.Deserialize(deserializer);
+            obj.Multiline = deserializer.deserialize_bool();
+            obj.Interactive = deserializer.deserialize_bool();
+            obj.DesiredWidth = Egui.TraitHelpers.deserialize_option_f32(deserializer);
+            obj.DesiredHeightRows = deserializer.deserialize_u64();
+            obj.EventFilter = Egui.EventFilter.Deserialize(deserializer);
+            obj.CursorAtEnd = deserializer.deserialize_bool();
+            obj.MinSize = Egui.EVec2.Deserialize(deserializer);
+            obj.Align = Egui.Align2.Deserialize(deserializer);
+            obj.ClipText = deserializer.deserialize_bool();
+            obj.CharLimit = deserializer.deserialize_u64();
+            obj.ReturnKey = deserialize_option_KeyboardShortcut(deserializer);
+            obj.BackgroundColor = Egui.TraitHelpers.deserialize_option_Color32(deserializer);
+            deserializer.decrease_container_depth();
+            return obj;
+        }
 
-        private static void serialize_option_FontSelection(Egui.FontSelection? value, Bincode.BincodeSerializer serializer)
+        private static void serialize_option_IdSalt(Egui.IdSalt? value, Bincode.BincodeSerializer serializer)
         {
             if (value is not null)
             {
@@ -430,6 +471,18 @@ public ref partial struct TextEdit : IWidget
             else
             {
                 serializer.serialize_option_tag(false);
+            }
+        }
+
+        private static Egui.IdSalt? deserialize_option_IdSalt(Bincode.BincodeDeserializer deserializer)
+        {
+            if (deserializer.deserialize_option_tag())
+            {
+                return Egui.IdSalt.Deserialize(deserializer);
+            }
+            else
+            {
+                return null;
             }
         }
 
@@ -443,6 +496,18 @@ public ref partial struct TextEdit : IWidget
             else
             {
                 serializer.serialize_option_tag(false);
+            }
+        }
+
+        private static Egui.KeyboardShortcut? deserialize_option_KeyboardShortcut(Bincode.BincodeDeserializer deserializer)
+        {
+            if (deserializer.deserialize_option_tag())
+            {
+                return Egui.KeyboardShortcut.Deserialize(deserializer);
+            }
+            else
+            {
+                return null;
             }
         }
     }
