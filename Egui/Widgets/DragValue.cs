@@ -71,6 +71,13 @@ public ref struct DragValue<T> : IWidget where T : INumber<T>
         return result;
     }
     /// <summary>
+    /// Output the <see cref="DragValue{T}"/>'s <see cref="Egui.Atoms"/>.<br/>
+    ///
+    /// This includes any images you have on the <see cref="DragValue{T}"/>.
+    /// </summary>
+    public readonly Atoms Atoms => EguiMarshal.Call<DragValueInner, Atoms>(EguiFn.egui_widgets_drag_value_DragValue_atoms, _inner);
+
+    /// <summary>
     /// Show a prefix before the number, e.g. "x: "
     /// </summary>
     public readonly DragValue<T> Prefix(Atoms prefix)
