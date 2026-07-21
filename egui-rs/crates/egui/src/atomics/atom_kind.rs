@@ -4,6 +4,7 @@ use epaint::text::TextWrapMode;
 use std::fmt::Debug;
 
 /// Args passed when sizing an [`super::Atom`]
+#[cfg_attr(feature = "serde", derive(serde::Deserialize, serde::Serialize))]
 pub struct IntoSizedArgs {
     pub available_size: Vec2,
     pub wrap_mode: TextWrapMode,
@@ -11,6 +12,7 @@ pub struct IntoSizedArgs {
 }
 
 /// Result returned when sizing an [`super::Atom`]
+#[cfg_attr(feature = "serde", derive(serde::Deserialize, serde::Serialize))]
 pub struct IntoSizedResult {
     pub intrinsic_size: Vec2,
     pub sized: SizedAtomKind,
@@ -192,15 +194,17 @@ impl AtomKind {
     ///
     /// This converts [`WidgetText`] into [`crate::Galley`] and tries to load and size [`Image`].
     /// The first returned argument is the preferred size.
-    pub fn into_sized(
-        self,
-        ui: &Ui,
-        IntoSizedArgs {
+    pub fn into_sized(self, ui: &Ui, args: IntoSizedArgs) -> IntoSizedResult {
+        // Destructured here (rather than in the parameter list, as upstream originally had it)
+        // so the parameter keeps a plain name (`args`) that the C# bindgen's autobinder can see -
+        // a destructuring pattern parameter has no name of its own, which produced a nameless,
+        // invalid C# parameter (`IntoSizedArgs )`) in the generated bindings.
+        let IntoSizedArgs {
             available_size,
             wrap_mode,
             fallback_font,
-        }: IntoSizedArgs,
-    ) -> IntoSizedResult {
+        } = args;
+
         match self {
             AtomKind::Text(text) => {
                 let galley = text.into_galley(ui, Some(wrap_mode), available_size.x, fallback_font);

@@ -314,6 +314,22 @@ const IGNORE_FNS: &[&str] = &[
     "egui_atomics_atom_layout_AllocatedAtomLayout_iter_texts_mut",
     "egui_atomics_atom_layout_AllocatedAtomLayout_map_images",
 
+    // SizedAtomLayout: manually bound (client-side, mirroring Atoms.cs - no FFI call needed)
+    "egui_atomics_atom_layout_SizedAtomLayout_iter_kinds",
+    "egui_atomics_atom_layout_SizedAtomLayout_iter_kinds_mut",
+    "egui_atomics_atom_layout_SizedAtomLayout_map_kind",
+    "egui_atomics_atom_layout_SizedAtomLayout_iter_images",
+    "egui_atomics_atom_layout_SizedAtomLayout_iter_images_mut",
+    "egui_atomics_atom_layout_SizedAtomLayout_iter_texts",
+    "egui_atomics_atom_layout_SizedAtomLayout_iter_texts_mut",
+    "egui_atomics_atom_layout_SizedAtomLayout_map_images",
+
+    // AtomKind::closure: takes an `impl FnOnce(&Ui, IntoSizedArgs) -> IntoSizedResult`. Rust
+    // closures cannot cross the C# FFI boundary as a stored/later-invoked value (unlike the
+    // synchronous, scope-bound `EguiCallback` pattern used elsewhere), so this will never be
+    // bindable - intentionally left out rather than tracked as still-missing.
+    "egui_atomics_atom_kind_AtomKind_closure",
+
     // Atoms: manually bound
     "egui_atomics_atoms_Atoms_from_iter",
     "egui_atomics_atoms_Atoms_into_iter",
