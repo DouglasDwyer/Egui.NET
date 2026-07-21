@@ -218,6 +218,11 @@ internal static class EguiMarshal
         { typeof(ValueTuple<,,>), (nameof(Tuple3Serializer), nameof(Tuple3Deserializer)) },
         { typeof(ValueTuple<,,,>), (nameof(Tuple4Serializer), nameof(Tuple4Deserializer)) },
         { typeof(Nullable<>), (nameof(NullableSerializer), nameof(NullableDeserializer)) },
+        { typeof(Array2<>), (nameof(Array2Serializer), nameof(Array2Deserializer)) },
+        { typeof(Array3<>), (nameof(Array3Serializer), nameof(Array3Deserializer)) },
+        { typeof(Array4<>), (nameof(Array4Serializer), nameof(Array4Deserializer)) },
+        { typeof(Array5<>), (nameof(Array5Serializer), nameof(Array5Deserializer)) },
+        { typeof(Array6<>), (nameof(Array6Serializer), nameof(Array6Deserializer)) },
     };
 
     /// <summary>
@@ -490,6 +495,126 @@ internal static class EguiMarshal
         {
             return null;
         }
+    }
+
+    /// <summary>
+    /// Serializes a fixed-size array.
+    /// </summary>
+    private static void Array2Serializer<T>(BincodeSerializer serializer, Array2<T> value)
+    {
+        foreach (var item in value)
+        {
+            SerializerCache<T>.Serialize(serializer, item);
+        }
+    }
+
+    /// <summary>
+    /// Deserializes a fixed-size array.
+    /// </summary>
+    private static Array2<T> Array2Deserializer<T>(BincodeDeserializer deserializer)
+    {
+        Array2<T> result = default;
+        for (var i = 0; i < result.Length; i++)
+        {
+            result[i] = SerializerCache<T>.Deserialize(deserializer);
+        }
+        return result;
+    }
+
+    /// <summary>
+    /// Serializes a fixed-size array.
+    /// </summary>
+    private static void Array3Serializer<T>(BincodeSerializer serializer, Array3<T> value)
+    {
+        foreach (var item in value)
+        {
+            SerializerCache<T>.Serialize(serializer, item);
+        }
+    }
+
+    /// <summary>
+    /// Deserializes a fixed-size array.
+    /// </summary>
+    private static Array3<T> Array3Deserializer<T>(BincodeDeserializer deserializer)
+    {
+        Array3<T> result = default;
+        for (var i = 0; i < result.Length; i++)
+        {
+            result[i] = SerializerCache<T>.Deserialize(deserializer);
+        }
+        return result;
+    }
+
+    /// <summary>
+    /// Serializes a fixed-size array.
+    /// </summary>
+    private static void Array4Serializer<T>(BincodeSerializer serializer, Array4<T> value)
+    {
+        foreach (var item in value)
+        {
+            SerializerCache<T>.Serialize(serializer, item);
+        }
+    }
+
+    /// <summary>
+    /// Deserializes a fixed-size array.
+    /// </summary>
+    private static Array4<T> Array4Deserializer<T>(BincodeDeserializer deserializer)
+    {
+        Array4<T> result = default;
+        for (var i = 0; i < result.Length; i++)
+        {
+            result[i] = SerializerCache<T>.Deserialize(deserializer);
+        }
+        return result;
+    }
+
+    /// <summary>
+    /// Serializes a fixed-size array.
+    /// </summary>
+    private static void Array5Serializer<T>(BincodeSerializer serializer, Array5<T> value)
+    {
+        foreach (var item in value)
+        {
+            SerializerCache<T>.Serialize(serializer, item);
+        }
+    }
+
+    /// <summary>
+    /// Deserializes a fixed-size array.
+    /// </summary>
+    private static Array5<T> Array5Deserializer<T>(BincodeDeserializer deserializer)
+    {
+        Array5<T> result = default;
+        for (var i = 0; i < result.Length; i++)
+        {
+            result[i] = SerializerCache<T>.Deserialize(deserializer);
+        }
+        return result;
+    }
+
+    /// <summary>
+    /// Serializes a fixed-size array.
+    /// </summary>
+    private static void Array6Serializer<T>(BincodeSerializer serializer, Array6<T> value)
+    {
+        foreach (var item in value)
+        {
+            SerializerCache<T>.Serialize(serializer, item);
+        }
+    }
+
+    /// <summary>
+    /// Deserializes a fixed-size array.
+    /// </summary>
+    private static Array6<T> Array6Deserializer<T>(BincodeDeserializer deserializer)
+    {
+        Array6<T> result = default;
+        for (var i = 0; i < result.Length; i++)
+        {
+            result[i] = SerializerCache<T>.Deserialize(deserializer);
+        }
+        return result;
     }
 
     /// <summary>

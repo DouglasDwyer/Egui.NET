@@ -17,6 +17,6 @@ public partial struct Align2
     /// </summary>
     public Align2(Align horizontal, Align vertical)
     {
-        _value = (horizontal, vertical);
+        _value = new Array2<Align>(horizontal, vertical);
     }
 }
