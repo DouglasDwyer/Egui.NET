@@ -15,6 +15,9 @@ resolver = "2"
 edition = "2024"
 version = "0.7.0+0.33.2"
 
+[profile.dev]
+debug = "line-tables-only"
+
 [profile.release]
 codegen-units = 1
 incremental = false
