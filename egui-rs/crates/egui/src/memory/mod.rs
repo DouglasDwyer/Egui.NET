@@ -148,6 +148,7 @@ impl Default for Memory {
 
 /// A direction in which to move the keyboard focus.
 #[derive(Clone, Copy, Debug, Default, PartialEq, Eq)]
+#[cfg_attr(feature = "serde", derive(serde::Deserialize, serde::Serialize))]
 pub enum FocusDirection {
     /// Select the widget closest above the current focused widget.
     Up,
