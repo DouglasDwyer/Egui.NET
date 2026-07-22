@@ -38,10 +38,9 @@ public ref struct Window
     /// This is true even if you disable the title bar with <c>TitleBar(false)</c>.
     /// If you need a changing title, you must call <see cref="Id"/> with a fixed id.
     /// </summary>
-    public Window(WidgetText title)
+    public Window(Atoms title)
     {
-        title = title.FallbackTextStyle(new TextStyle.Heading());
-        Area area = new Area(title.RawText).Kind(UiKind.Window);
+        Area area = new Area(title.Text ?? string.Empty).Kind(UiKind.Window);
         _title = title;
         _hasOpen = false;
         _area = area;
@@ -507,8 +506,18 @@ public ref struct Window
     public readonly Window DragArea(WindowDrag dragArea)
     {
         var result = this;
-        result._dragArea = dragArea;
+        var inner = EguiMarshal.Call<WindowInner, WindowDrag, WindowInner>(EguiFn.egui_containers_window_Window_drag_area, new WindowInner(this), dragArea);
+        inner.ApplyTo(ref result);
         return result;
+    }
+
+    /// <summary>
+    /// Construct a <see cref="Window"/> that follows the given viewport.
+    /// </summary>
+    public static Window FromViewport(ViewportId id, ViewportBuilder viewport)
+    {
+        var inner = EguiMarshal.Call<ViewportId, ViewportBuilder, WindowInner>(EguiFn.egui_containers_window_Window_from_viewport, id, viewport);
+        return inner.ToWindow();
     }
 
     /// <summary>
@@ -597,6 +606,35 @@ public ref struct Window
             _dragArea = window._dragArea;
         }
 
+        /// <summary>
+        /// Copies these fields onto an existing <see cref="Window"/> (everything but <c>Open</c>,
+        /// which isn't part of the wire representation - see <see cref="ToWindow"/>).
+        /// </summary>
+        public readonly void ApplyTo(ref Window window)
+        {
+            window._title = _title;
+            window._area = _area;
+            window._frame = _frame;
+            window._resize = _resize;
+            window._scroll = _scroll;
+            window._collapsible = _collapsible;
+            window._defaultOpen = _defaultOpen;
+            window._withTitleBar = _withTitleBar;
+            window._fadeOut = _fadeOut;
+            window._autoSized = _autoSized;
+            window._dragArea = _dragArea;
+        }
+
+        /// <summary>
+        /// Creates a fresh <see cref="Window"/> (with <c>Open</c> unset) from these fields.
+        /// </summary>
+        public readonly Window ToWindow()
+        {
+            Window window = default;
+            window._hasOpen = false;
+            ApplyTo(ref window);
+            return window;
+        }
 
         internal static void Serialize(BincodeSerializer serializer, WindowInner value) => value.Serialize(serializer);
 

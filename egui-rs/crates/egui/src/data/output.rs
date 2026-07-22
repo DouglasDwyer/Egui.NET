@@ -302,6 +302,7 @@ pub enum UserAttentionType {
 /// identity (`Arc::ptr_eq`) and avoid re-uploading the same bitmap to
 /// the OS every frame.
 #[derive(Clone, PartialEq, Eq)]
+#[cfg_attr(feature = "serde", derive(serde::Deserialize, serde::Serialize))]
 pub struct CustomCursorImage {
     pub rgba: std::sync::Arc<[u8]>,
     pub size: [u16; 2],

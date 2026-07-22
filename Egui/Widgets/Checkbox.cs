@@ -9,13 +9,22 @@ public ref struct Checkbox : IWidget
     private Atoms _atoms;
     private ref bool _checked;
     private bool _indeterminate;
+    private Classes _classes;
 
     public Checkbox(ref bool isChecked, Atoms atoms)
     {
         _atoms = atoms;
         _checked = ref isChecked;
         _indeterminate = false;
+        _classes = new Classes();
     }
+
+    /// <summary>
+    /// Output the checkbox's <see cref="Egui.Atoms"/>.<br/>
+    ///
+    /// This includes any images you have on the checkbox.
+    /// </summary>
+    public readonly Atoms Atoms => _atoms;
 
     public static Checkbox WithoutText(ref bool isChecked)
     {
@@ -35,11 +44,22 @@ public ref struct Checkbox : IWidget
         return result;
     }
 
+    /// <summary>
+    /// Sets the CSS-like classes for this checkbox.<br/>
+    ///
+    /// This can be used by a styling engine to compute a different style based on the set of
+    /// classes present on the widget.
+    /// </summary>
+    public void SetClasses(Classes classes)
+    {
+        _classes = classes;
+    }
+
     /// <inheritdoc/>
     Response IWidget.Ui(Ui ui)
     {
         ui.AssertInitialized();
-        var (response, setChecked) = EguiMarshal.Call<nuint, Atoms, bool, bool, (Response, bool)>(EguiFn.egui_widgets_checkbox_Checkbox_ui, ui.Ptr, _atoms, _checked, _indeterminate);
+        var (response, setChecked) = EguiMarshal.Call<nuint, Atoms, bool, bool, Classes, (Response, bool)>(EguiFn.egui_widgets_checkbox_Checkbox_ui, ui.Ptr, _atoms, _checked, _indeterminate, _classes);
         _checked = setChecked;
         return response;
     }

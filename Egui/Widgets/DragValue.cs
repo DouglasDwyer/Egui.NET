@@ -13,8 +13,8 @@ public ref struct DragValue<T> : IWidget where T : INumber<T>
     public DragValue(ref T value)
     {
         _value = ref value;
-        _inner.Prefix = "";
-        _inner.Suffix = "";
+        _inner.Prefix = new Atoms();
+        _inner.Suffix = new Atoms();
         _inner.Speed = 1.0f;
         _inner.Start = double.NegativeInfinity;
         _inner.End = double.PositiveInfinity;
@@ -71,9 +71,16 @@ public ref struct DragValue<T> : IWidget where T : INumber<T>
         return result;
     }
     /// <summary>
+    /// Output the <see cref="DragValue{T}"/>'s <see cref="Egui.Atoms"/>.<br/>
+    ///
+    /// This includes any images you have on the <see cref="DragValue{T}"/>.
+    /// </summary>
+    public readonly Atoms Atoms => EguiMarshal.Call<DragValueInner, Atoms>(EguiFn.egui_widgets_drag_value_DragValue_atoms, _inner);
+
+    /// <summary>
     /// Show a prefix before the number, e.g. "x: "
     /// </summary>
-    public readonly DragValue<T> Prefix(string prefix)
+    public readonly DragValue<T> Prefix(Atoms prefix)
     {
         var result = this;
         result._inner.Prefix = prefix;
@@ -81,11 +88,9 @@ public ref struct DragValue<T> : IWidget where T : INumber<T>
     }
 
     /// <summary>
-    /// How much the value changes when dragged one point (logical pixel).<br/>
-    ///
-    /// Should be finite and greater than zero.
+    /// Add a suffix to the number, this can be e.g. a unit ("°" or " m").
     /// </summary>
-    public readonly DragValue<T> Suffix(string suffix)
+    public readonly DragValue<T> Suffix(Atoms suffix)
     {
         var result = this;
         result._inner.Suffix = suffix;
@@ -234,8 +239,8 @@ public ref struct DragValue<T> : IWidget where T : INumber<T>
 
     private partial struct DragValueInner {
         public double Speed;
-        public string Prefix;
-        public string Suffix;
+        public Atoms Prefix;
+        public Atoms Suffix;
         public double Start;
         public double End;
         public bool ClampExistingToRange;
@@ -252,8 +257,8 @@ public ref struct DragValue<T> : IWidget where T : INumber<T>
         internal void Serialize(Bincode.BincodeSerializer serializer) {
             serializer.increase_container_depth();
             serializer.serialize_f64(Speed);
-            serializer.serialize_str(Prefix);
-            serializer.serialize_str(Suffix);
+            Prefix.Serialize(serializer);
+            Suffix.Serialize(serializer);
             serializer.serialize_f64(Start);
             serializer.serialize_f64(End);
             serializer.serialize_bool(ClampExistingToRange);

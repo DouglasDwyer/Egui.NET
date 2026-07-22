@@ -24,7 +24,7 @@ public sealed partial class Context : EguiObject
     /// <summary>
     /// Holds temporary data for widgets between frames.
     /// </summary>
-    private readonly Dictionary<(Id, Type), object> _data = new Dictionary<(Id, Type), object>();
+    private readonly Dictionary<RawKey, object> _data = new Dictionary<RawKey, object>();
 
     /// <summary>
     /// Used to guard access to <see cref="_data"/>. 
@@ -458,7 +458,7 @@ public sealed partial class Context : EguiObject
     }
 
     /// <summary>
-    /// Read-only access to <see cref="Memory"/>. 
+    /// Read-only access to <see cref="Memory"/>.
     /// </summary>
     private void Memory(Action<Memory> writer)
     {

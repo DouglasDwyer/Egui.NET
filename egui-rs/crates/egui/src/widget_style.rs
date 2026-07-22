@@ -10,6 +10,7 @@ use crate::{
 };
 
 /// General text style
+#[cfg_attr(feature = "serde", derive(serde::Deserialize, serde::Serialize))]
 pub struct TextVisuals {
     /// Font used
     pub font_id: FontId,
@@ -23,6 +24,7 @@ pub struct TextVisuals {
 }
 
 /// General widget style
+#[cfg_attr(feature = "serde", derive(serde::Deserialize, serde::Serialize))]
 pub struct WidgetStyle {
     pub frame: Frame,
 
@@ -32,12 +34,14 @@ pub struct WidgetStyle {
 }
 
 /// Dedicated button style
+#[cfg_attr(feature = "serde", derive(serde::Deserialize, serde::Serialize))]
 pub struct ButtonStyle {
     pub frame: Frame,
     pub text_style: TextVisuals,
 }
 
 /// Dedicated checkbox style
+#[cfg_attr(feature = "serde", derive(serde::Deserialize, serde::Serialize))]
 pub struct CheckboxStyle {
     /// Frame around
     pub frame: Frame,
@@ -59,6 +63,7 @@ pub struct CheckboxStyle {
 }
 
 /// Dedicated label style
+#[cfg_attr(feature = "serde", derive(serde::Deserialize, serde::Serialize))]
 pub struct LabelStyle {
     /// Frame around
     pub frame: Frame,
@@ -71,6 +76,7 @@ pub struct LabelStyle {
 }
 
 /// Dedicated separator style
+#[cfg_attr(feature = "serde", derive(serde::Deserialize, serde::Serialize))]
 pub struct SeparatorStyle {
     /// How much space is allocated in the layout direction
     pub spacing: f32,
@@ -81,6 +87,7 @@ pub struct SeparatorStyle {
 
 /// The different state of a widget can be
 #[derive(Default, Clone, Copy, Debug, PartialEq, Eq)]
+#[cfg_attr(feature = "serde", derive(serde::Deserialize, serde::Serialize))]
 pub enum WidgetState {
     Noninteractive,
     #[default]

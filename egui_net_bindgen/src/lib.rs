@@ -316,6 +316,22 @@ const IGNORE_FNS: &[&str] = &[
     "egui_atomics_atom_layout_AllocatedAtomLayout_iter_texts_mut",
     "egui_atomics_atom_layout_AllocatedAtomLayout_map_images",
 
+    // SizedAtomLayout: manually bound (client-side, mirroring Atoms.cs - no FFI call needed)
+    "egui_atomics_atom_layout_SizedAtomLayout_iter_kinds",
+    "egui_atomics_atom_layout_SizedAtomLayout_iter_kinds_mut",
+    "egui_atomics_atom_layout_SizedAtomLayout_map_kind",
+    "egui_atomics_atom_layout_SizedAtomLayout_iter_images",
+    "egui_atomics_atom_layout_SizedAtomLayout_iter_images_mut",
+    "egui_atomics_atom_layout_SizedAtomLayout_iter_texts",
+    "egui_atomics_atom_layout_SizedAtomLayout_iter_texts_mut",
+    "egui_atomics_atom_layout_SizedAtomLayout_map_images",
+
+    // AtomKind::closure: takes an `impl FnOnce(&Ui, IntoSizedArgs) -> IntoSizedResult`. Rust
+    // closures cannot cross the C# FFI boundary as a stored/later-invoked value (unlike the
+    // synchronous, scope-bound `EguiCallback` pattern used elsewhere), so this will never be
+    // bindable - intentionally left out rather than tracked as still-missing.
+    "egui_atomics_atom_kind_AtomKind_closure",
+
     // Atoms: manually bound
     "egui_atomics_atoms_Atoms_from_iter",
     "egui_atomics_atoms_Atoms_into_iter",
@@ -331,9 +347,18 @@ const IGNORE_FNS: &[&str] = &[
     "egui_atomics_atoms_Atoms_map_texts",
 
     // Checkbox: manually bound
+    "egui_widgets_checkbox_Checkbox_atoms",
     "egui_widgets_checkbox_Checkbox_indeterminate",
     "egui_widgets_checkbox_Checkbox_new",
     "egui_widgets_checkbox_Checkbox_without_text",
+    "egui_widgets_checkbox_Checkbox_classes_mut",
+
+    // classes_mut: a live &mut Classes can't cross the C# FFI boundary, so instead each type's
+    // C# wrapper gets a `SetClasses(Classes)` method that replaces the whole value at once
+    // (mirroring the `Context.SetXxx`-style setters).
+    "egui_ui_builder_UiBuilder_classes_mut",
+    "egui_widgets_button_Button_classes_mut",
+    "egui_widgets_separator_Separator_classes_mut",
 
     // ClosableTag: private type
     "egui_containers_close_tag_ClosableTag_default",
@@ -526,6 +551,11 @@ const IGNORE_FNS: &[&str] = &[
     "epaint_text_fonts_Fonts_max_texture_side",
     "epaint_text_fonts_Fonts_num_galleys_in_cache",
     "epaint_text_fonts_Fonts_with_pixels_per_point",
+    // `Fonts::options` forwards to the same `TextureAtlas::options` call already reachable
+    // through `FontsView` (see `epaint_texture_atlas_TextureAtlas_options` below) - `Fonts`
+    // itself is never reachable from any bound function (`Context::fonts`/`fonts_mut` only ever
+    // hand out a `FontsView`), so it's excluded here for the same reason as the rest of `Fonts`.
+    "epaint_text_fonts_Fonts_options",
 
     // History: not possible to bind to C# due to generics
     "emath_history_History_average",
@@ -548,7 +578,9 @@ const IGNORE_FNS: &[&str] = &[
     "emath_history_History_values",
     "emath_history_History_velocity",
 
-    // IdTypeMap: not possible to bind to C# due to generics
+    // IdTypeMap: not possible to bind to C# due to generics. Rather than round-trip through
+    // Rust's IdTypeMap (which would still need a `dyn Any`/generic-erasing workaround on the C#
+    // side), `Egui.Util.IdTypeMap` is a separate, purely C#-side store keyed by `System.Type`.
 	"egui_util_id_type_map_IdTypeMap_clear",
 	"egui_util_id_type_map_IdTypeMap_count",
 	"egui_util_id_type_map_IdTypeMap_count_serialized",
@@ -561,6 +593,8 @@ const IGNORE_FNS: &[&str] = &[
 	"egui_util_id_type_map_IdTypeMap_get_temp_mut_or",
 	"egui_util_id_type_map_IdTypeMap_get_temp_mut_or_default",
 	"egui_util_id_type_map_IdTypeMap_get_temp_mut_or_insert_with",
+	"egui_util_id_type_map_IdTypeMap_get_temp_raw",
+	"egui_util_id_type_map_IdTypeMap_get_temp_raw_mut",
 	"egui_util_id_type_map_IdTypeMap_insert_persisted",
 	"egui_util_id_type_map_IdTypeMap_insert_temp",
 	"egui_util_id_type_map_IdTypeMap_is_empty",
@@ -569,7 +603,10 @@ const IGNORE_FNS: &[&str] = &[
 	"egui_util_id_type_map_IdTypeMap_remove",
 	"egui_util_id_type_map_IdTypeMap_remove_by_type",
 	"egui_util_id_type_map_IdTypeMap_remove_temp",
+	"egui_util_id_type_map_IdTypeMap_remove_temp_raw",
 	"egui_util_id_type_map_IdTypeMap_set_max_bytes_per_type",
+	"egui_util_id_type_map_IdTypeMap_temp_keys",
+    "egui_util_id_type_map_RawKey_new",
     "egui_util_id_type_map_TypeId_of",
 
     // Scene: redundant function (same as default)
@@ -1116,7 +1153,14 @@ const IGNORE_FNS: &[&str] = &[
 
     "serde_de_impls_deserialize_NonZeroVisitor",
     "serde_de_impls_deserialize_in_place_TupleInPlaceVisitor",
-    "egui_warn_if_debug_build"
+    "egui_warn_if_debug_build",
+
+    // `FontsImpl` is an internal implementation detail - not meant to be constructed or held
+    // onto by consumers - that only happens to be `pub` because it's a public field
+    // (`Fonts::fonts`) of `Fonts`, the type users are actually meant to interact with.
+    "epaint_text_fonts_FontsImpl_options",
+    "epaint_text_fonts_FontsImpl_return_shape_buffer",
+    "epaint_text_fonts_FontsImpl_take_shape_buffer"
 ];
 
 /// Function names to be ignored during generation.
@@ -1233,6 +1277,7 @@ impl BindingsGenerator {
             .with_namespaces(self.namespaces.clone());
         let generator = CodeGenerator::new(&config);
 
+        self.inject_tuple_struct_wrappers();
         self.emit_cs_fn_bindings();
         self.rename_types();
         self.rename_struct_fields();
@@ -1296,6 +1341,98 @@ impl BindingsGenerator {
         for ty in BINDING_EXCLUDE_TYPE_DEFINITIONS {
             let _ = self.registry.remove(*ty);
         }
+    }
+
+    /// Synthesizes registry entries for tuple structs that `serde_reflection` never sees.
+    ///
+    /// A type like `ByteIndex(pub usize)` uses `#[serde(transparent)]` so that it round-trips
+    /// as a bare `usize` in every *other* format (bincode, JSON, ...) that already depends on
+    /// it. But that also makes it indistinguishable, to the tracer, from a plain `usize`: it
+    /// never gets its own entry in the registry, so no bound function can use it by name and
+    /// the C# generator never emits a dedicated type for it.
+    ///
+    /// For any tuple struct (`struct Foo(T)` / `struct Foo(T, U, ...)`) not already in the
+    /// registry, this reads its field types directly from rustdoc and inserts a synthetic
+    /// `NewTypeStruct`/`TupleStruct` entry, as long as every field is a primitive or another
+    /// already-registered type. This produces exactly the code the generator already emits for
+    /// a non-transparent tuple struct like `IdSalt` (a struct with one `_value` field, or
+    /// `Item1`/`Item2`/... for several) - and it's wire-compatible, since serializing a
+    /// newtype/tuple struct writes no extra framing beyond its fields either way.
+    fn inject_tuple_struct_wrappers(&mut self) {
+        let mut additions = Vec::new();
+
+        for (name, id) in &self.name_to_id {
+            if self.registry.contains_key(name) {
+                continue;
+            }
+
+            let ItemEnum::Struct(s) = &self.krate.index[id].inner else { continue };
+            let StructKind::Tuple(field_ids) = &s.kind else { continue };
+            if field_ids.is_empty() {
+                continue;
+            }
+
+            let Some(formats) = field_ids
+                .iter()
+                .map(|field_id| {
+                    let field_id = field_id.as_ref()?;
+                    let ItemEnum::StructField(ty) = &self.krate.index[field_id].inner else { return None };
+                    self.simple_format_of(ty)
+                })
+                .collect::<Option<Vec<_>>>()
+            else {
+                continue;
+            };
+
+            let container = if let [format] = formats.as_slice() {
+                ContainerFormat::NewTypeStruct(Box::new(format.clone()))
+            } else {
+                ContainerFormat::TupleStruct(formats)
+            };
+
+            additions.push((name.clone(), container));
+        }
+
+        for (name, container) in additions {
+            self.registry.insert(name, container);
+        }
+    }
+
+    /// Gets the `serde_reflection` wire [`Format`] of a rustdoc [`Type`], without tracing an
+    /// actual value - only primitives and types already present in the registry are supported,
+    /// since those are the only ones whose format can be known without doing so.
+    fn simple_format_of(&self, ty: &Type) -> Option<Format> {
+        Some(match ty {
+            Type::Primitive(x) => match x.as_str() {
+                "bool" => Format::Bool,
+                "char" => Format::Char,
+                "str" => Format::Str,
+                "u8" => Format::U8,
+                "u16" => Format::U16,
+                "u32" => Format::U32,
+                "u64" | "usize" => Format::U64,
+                "u128" => Format::U128,
+                "i8" => Format::I8,
+                "i16" => Format::I16,
+                "i32" => Format::I32,
+                "i64" | "isize" => Format::I64,
+                "i128" => Format::I128,
+                "f32" => Format::F32,
+                "f64" => Format::F64,
+                _ => return None,
+            },
+            Type::ResolvedPath(path) => {
+                let name = path.path.split("::").last()?;
+                if name == "String" {
+                    Format::Str
+                } else if self.registry.contains_key(name) {
+                    Format::TypeName(name.to_string())
+                } else {
+                    return None;
+                }
+            }
+            _ => return None,
+        })
     }
 
     /// Gets the C# and Rust representations of a type, or returns [`None`] if the type
@@ -1407,6 +1544,15 @@ impl BindingsGenerator {
                     }
                     else if path.contains("IntoAtoms") {
                         BoundTypeName::cs_rs("Atoms", "Atoms")
+                    }
+                    else if path.contains("IntoTag") {
+                        // `font_types::Tag` implements `IntoTag` itself (the identity case), so
+                        // the generated wrapper can take a `Tag` directly and pass it straight
+                        // through. `Tag` lives in an external crate that egui only re-exports
+                        // (`epaint::text::Tag`), so it never gets its own registry entry the way
+                        // a local type would - hand-written in `Egui/Tag.cs` instead, with
+                        // implicit conversions from the C# types that also implement `IntoTag`.
+                        BoundTypeName::cs_rs("Tag", "Tag")
                     }
                     else {
                         return None

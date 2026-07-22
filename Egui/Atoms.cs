@@ -16,7 +16,14 @@ public partial struct Atoms : IEnumerable<Atom>
     /// <summary>
     /// Concatenate and return the text contents.
     /// </summary>
-    public string? Text => EguiMarshal.Call<Atoms, string?>(EguiFn.egui_atomics_atoms_Atoms_text, this);
+    public string? Text
+    {
+        get
+        {
+            var (hasText, text) = EguiMarshal.Call<Atoms, (bool, string)>(EguiFn.egui_atomics_atoms_Atoms_text, this);
+            return hasText ? text : null;
+        }
+    }
 
     /// <summary>
     /// Creates a value from an iterator.
