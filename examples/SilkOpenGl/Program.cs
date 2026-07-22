@@ -552,7 +552,10 @@ public class Program
 
         public void Show(Ui ui)
         {
-            ui.Label("An example of syntax highlighting in a TextEdit.");
+            ui.Horizontal(ui =>
+            {
+                ui.Label("An example of syntax highlighting in a TextEdit.");
+            });
 
             ui.Horizontal(ui =>
             {
@@ -560,11 +563,21 @@ public class Program
                 ui.TextEditSingleline(ref _language);
             });
 
+            ui.HorizontalWrapped(ui =>
+            {
+                ui.Label("Syntax highlighting powered by ");
+                ui.HyperlinkTo("syntect", "https://github.com/trishume/syntect");
+                ui.Label(".");
+            });
+
             var theme = CodeTheme.FromMemory(ui.Ctx, ui.Style);
             ui.Collapsing("Theme", ui =>
             {
-                theme.Ui(ui);
-                theme.StoreInMemory(ui.Ctx);
+                ui.Group(ui =>
+                {
+                    theme.Ui(ui);
+                    theme.StoreInMemory(ui.Ctx);
+                });
             });
 
             ScrollArea.Vertical.Show(ui, ui =>
@@ -577,7 +590,7 @@ public class Program
                     {
                         var job = SyntaxHighlightingHelpers.Highlight(layoutUi.Ctx, layoutUi.Style, theme, text, _language);
                         job.Wrap.MaxWidth = wrapWidth;
-                        return job;
+                        return layoutUi.Fonts(f => f.LayoutJob(job));
                     });
                 ui.Add(editor);
             });

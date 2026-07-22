@@ -9,7 +9,7 @@ public ref partial struct TextEdit : IWidget
     private string? _textImmutable;
     private ref string _textMutable;
     private TextEditInner _inner;
-    private Func<Ui, string, float, LayoutJob>? _layouter;
+    private Func<Ui, string, float, Galley>? _layouter;
 
 #pragma warning disable CS8618
     private TextEdit(string textImmutable)
@@ -329,13 +329,16 @@ public ref partial struct TextEdit : IWidget
 
     /// <summary>
     /// Set the syntax highlighter (or other custom text layout function) used to lay out this
-    /// text edit's contents.<br/>
+    /// text edit's contents. Mirrors <c>TextEdit::layouter</c>.<br/>
     ///
     /// The callback receives the <see cref="Ui"/>, the current text, and the wrap width, and must
-    /// return a <see cref="LayoutJob"/> describing how to lay out and color the text. <c>egui_extras</c>'s
-    /// <c>SyntaxHighlightingHelpers.Highlight</c> is a common choice.
+    /// return a <see cref="Galley"/> describing how to lay out and color the text. Typically this
+    /// means producing a <see cref="LayoutJob"/> (e.g. via <c>egui_extras</c>'s
+    /// <c>SyntaxHighlightingHelpers.Highlight</c>), setting <c>Wrap.MaxWidth</c> on it, and laying
+    /// it out with <c>ui.Fonts(f =&gt; f.LayoutJob(job))</c> &#8212; matching how <c>egui</c>'s own
+    /// layouter callbacks are written.
     /// </summary>
-    public readonly TextEdit Layouter(Func<Ui, string, float, LayoutJob> layouter)
+    public readonly TextEdit Layouter(Func<Ui, string, float, Galley> layouter)
     {
         var result = this;
         result._layouter = layouter;
@@ -392,8 +395,8 @@ public ref partial struct TextEdit : IWidget
             {
                 var p = *(EguiTextEditLayouterParams*)paramsPtr;
                 var text = System.Text.Encoding.UTF8.GetString((byte*)p.text_ptr, (int)p.text_len);
-                var job = layouter(new Ui(ctx, p.ui), text, p.wrap_width);
-                EguiMarshal.Call(EguiFn.egui_widgets_text_edit_builder_TextEdit_set_layout_job, p.out_job, job);
+                var galley = layouter(new Ui(ctx, p.ui), text, p.wrap_width);
+                EguiMarshal.Call(EguiFn.egui_widgets_text_edit_builder_TextEdit_set_galley, p.out_galley, galley);
             })
             : null;
 
