@@ -25,6 +25,7 @@ use egui::text_selection::*;
 use egui::text_selection::visuals::*;
 use egui::util::undoer::*;
 use egui::widget_style::*;
+use egui_extras::*;
 use egui_extras::syntax_highlighting::*;
 use rustdoc_types::*;
 use rustdoc_types::Id as RdId;
@@ -766,17 +767,6 @@ const IGNORE_FNS: &[&str] = &[
     "egui_widgets_slider_Slider_vertical",
 
     // Table: bound manually
-    "egui_extras_table_Column_at_least",
-    "egui_extras_table_Column_at_most",
-    "egui_extras_table_Column_auto",
-    "egui_extras_table_Column_auto_size_this_frame",
-    "egui_extras_table_Column_auto_with_initial_suggestion",
-    "egui_extras_table_Column_clip",
-    "egui_extras_table_Column_exact",
-    "egui_extras_table_Column_initial",
-    "egui_extras_table_Column_range",
-    "egui_extras_table_Column_remainder",
-    "egui_extras_table_Column_resizable",
     "egui_extras_table_TableBody_drop",
     "egui_extras_table_TableBody_heterogeneous_rows",
     "egui_extras_table_TableBody_max_rect",
