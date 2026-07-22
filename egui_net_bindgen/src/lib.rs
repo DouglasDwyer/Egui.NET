@@ -1159,7 +1159,10 @@ pub struct BindingsGenerator {
     /// A list of public fields on every struct type.
     public_fields: HashSet<(String, String)>,
     /// A set containing all types for which a parameterless constructor was generated.
-    parameterless_constructor_types: HashSet<RdId>
+    parameterless_constructor_types: HashSet<RdId>,
+    /// Maps the ID of a getter function to the ID of its paired setter function, for getters
+    /// and setters that should be merged into a single C# property.
+    getter_setters: HashMap<RdId, RdId>
 }
 
 impl BindingsGenerator {
@@ -1198,7 +1201,8 @@ impl BindingsGenerator {
             namespaces,
             name_to_id,
             public_fields,
-            parameterless_constructor_types: HashSet::new()
+            parameterless_constructor_types: HashSet::new(),
+            getter_setters: HashMap::new()
         }.run()
     }
 
@@ -1559,15 +1563,35 @@ impl BindingsGenerator {
         let mut bound_ids = Vec::new();
         let binding_exclude_fns = BINDING_EXCLUDE_FNS.into_iter().collect::<HashSet<_>>();
 
-        for id in self.gather_fns() {
+        let fn_ids = self.gather_fns();
+        let mut getter_setters = self.gather_setter_pairs(&fn_ids);
+        // A getter or setter that is individually excluded from binding must not be merged
+        // into a property, since one half of the pair would otherwise silently disappear.
+        getter_setters.retain(|&getter_id, &mut setter_id|
+            !binding_exclude_fns.contains(&&*self.fn_enum_variant_name(getter_id))
+                && !binding_exclude_fns.contains(&&*self.fn_enum_variant_name(setter_id)));
+        self.getter_setters = getter_setters;
+        let setter_ids = self.getter_setters.values().cloned().collect::<HashSet<_>>();
+
+        for id in fn_ids {
             if binding_exclude_fns.contains(&&*self.fn_enum_variant_name(id)) {
                 continue;
             }
 
+            // Setters that have been paired with a getter are emitted as part of that
+            // getter's property (see `emit_cs_fn_def`), not as standalone functions.
+            if setter_ids.contains(&id) {
+                continue;
+            }
+
             let result = self.emit_cs_fn_binding(&mut std::fmt::Formatter::new(&mut result, Default::default()), id);
-            
+
             if result.is_ok() {
                 bound_ids.push(id);
+
+                if let Some(&setter_id) = self.getter_setters.get(&id) {
+                    bound_ids.push(setter_id);
+                }
             }
         }
 
@@ -1800,15 +1824,17 @@ impl BindingsGenerator {
     ) -> std::fmt::Result {
         let sig = &func.sig;
         let property = self.is_property(id, fn_ty, returns_this, func);
-        
+
         if sig.output.as_ref()
             .and_then(|x| Some(!matches!(self.bound_ty(ty_name, x)?.kind, BoundTypeKind::Value | BoundTypeKind::Reference { mutable: false })))
             .unwrap_or_default() {
             return Err(std::fmt::Error);
         }
 
+        let synchronized = ty_name.map(|name| HANDLE_TYPES.contains(&name) && name != "Context").unwrap_or_default();
+
         if property {
-            if let Some(name) = ty_name && HANDLE_TYPES.contains(&name) && name != "Context" {
+            if synchronized {
                 writeln!(f, "{{ [MethodImpl(MethodImplOptions.Synchronized)]\n get {{")?;
             }
             else {
@@ -1818,6 +1844,43 @@ impl BindingsGenerator {
         else {
             writeln!(f, "({}) {{", self.cs_binding_signature(ty_name, fn_ty, func).ok_or(std::fmt::Error)?)?;
         }
+
+        self.emit_cs_fn_body(f, ty_name, id, fn_ty, func)?;
+
+        if property {
+            writeln!(f, "}}")?;
+
+            if let Some(&setter_id) = self.getter_setters.get(&id) {
+                let ItemEnum::Function(setter_func) = &self.krate.index[&setter_id].inner else { panic!("Expected id to refer to a function") };
+
+                // Use the C# convention of naming the setter's incoming value `value`,
+                // regardless of what the parameter is called on the Rust side.
+                let mut setter_func = setter_func.clone();
+                if let Some((name, _)) = setter_func.sig.inputs.get_mut(1) {
+                    *name = "value".to_string();
+                }
+
+                if synchronized {
+                    writeln!(f, "[MethodImpl(MethodImplOptions.Synchronized)]\n set {{")?;
+                }
+                else {
+                    writeln!(f, "set {{")?;
+                }
+
+                self.emit_cs_fn_body(f, ty_name, setter_id, FnType::Instance, &setter_func)?;
+
+                writeln!(f, "}}")?;
+            }
+        }
+
+        writeln!(f, "}}")?;
+        Ok(())
+    }
+
+    /// Emits the call to the native `egui` function that backs a C# function or property
+    /// accessor, including argument marshalling and the return statement (if any).
+    fn emit_cs_fn_body(&self, f: &mut std::fmt::Formatter, ty_name: Option<&str>, id: RdId, fn_ty: FnType, func: &Function) -> std::fmt::Result {
+        let sig = &func.sig;
 
         let pointer_checks = self.cs_binding_ptr_checks(ty_name, fn_ty, func);
         writeln!(f, "    {pointer_checks}")?;
@@ -1850,12 +1913,75 @@ impl BindingsGenerator {
             writeln!(f, "    return result;")?;
         }
 
-        if property {
-            writeln!(f, "}}")?;
+        Ok(())
+    }
+
+    /// Finds setter functions of the form `fn set_xxx(&mut self, value: T)` that have a
+    /// corresponding getter `fn xxx(&self) -> &T` on the same type, so the two can be merged
+    /// into a single C# property with both a `get` and a `set` accessor. Functions in `ids`
+    /// that don't fit this shape (including setters without a matching getter) are left
+    /// untouched, and continue to be bound as ordinary methods.
+    ///
+    /// Returns a map from each getter's ID to its paired setter's ID.
+    fn gather_setter_pairs(&self, ids: &[RdId]) -> HashMap<RdId, RdId> {
+        let mut getters = HashMap::new();
+
+        for &id in ids {
+            let ItemEnum::Function(func) = &self.krate.index[&id].inner else { continue };
+            let Some(decl_ty) = self.declaring_type(id) else { continue };
+            let has_this = func.sig.inputs.first().map(|(name, _)| name == "self").unwrap_or_default();
+
+            // A getter on a primitive enum is bound as a static extension method rather than
+            // an instance property, so it can never be paired with a setter accessor.
+            if !has_this || func.sig.inputs.len() != 1 || self.is_primitive_enum(decl_ty) {
+                continue;
+            }
+
+            let ty_name = self.krate.index[&decl_ty].name.as_deref();
+
+            // A property can only be given a getter that returns a value outright (`T`) or an
+            // immutable reference to one (`&T`) - anything else (e.g. `&mut T`) can't be
+            // expressed as a plain C# property type.
+            let Some(output_bound) = func.sig.output.as_ref().and_then(|x| self.bound_ty(ty_name, x)) else { continue };
+            if !matches!(output_bound.kind, BoundTypeKind::Value | BoundTypeKind::Reference { mutable: false }) {
+                continue;
+            }
+
+            if let Some(name) = self.krate.index[&id].name.as_deref()
+                && !name.contains("take") {
+                getters.insert((decl_ty, name.to_string()), id);
+            }
         }
 
-        writeln!(f, "}}")?;
-        Ok(())
+        let mut result = HashMap::new();
+
+        for &id in ids {
+            let ItemEnum::Function(func) = &self.krate.index[&id].inner else { continue };
+            let Some(decl_ty) = self.declaring_type(id) else { continue };
+            let Some(name) = self.krate.index[&id].name.as_deref() else { continue };
+            let Some(base_name) = name.strip_prefix("set_") else { continue };
+            let has_this = func.sig.inputs.first().map(|(name, _)| name == "self").unwrap_or_default();
+
+            if !has_this || func.sig.inputs.len() != 2 {
+                continue;
+            }
+
+            let Some(&getter_id) = getters.get(&(decl_ty, base_name.to_string())) else { continue };
+            let ItemEnum::Function(getter_func) = &self.krate.index[&getter_id].inner else { continue };
+            let ty_name = self.krate.index[&decl_ty].name.as_deref();
+
+            let Some(getter_bound) = getter_func.sig.output.as_ref().and_then(|x| self.bound_ty(ty_name, x)) else { continue };
+            let Some((_, value_ty)) = func.sig.inputs.get(1) else { continue };
+            let Some(setter_bound) = self.bound_ty(ty_name, value_ty) else { continue };
+
+            // The setter's value must resolve to the same C# type as the getter's returned
+            // reference, so the property can be given a single, consistent C# type.
+            if getter_bound.name.cs_name == setter_bound.name.cs_name {
+                result.insert(getter_id, id);
+            }
+        }
+
+        result
     }
 
     /// Emits a registry of all functions that have been bound.

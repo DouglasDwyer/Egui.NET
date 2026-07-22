@@ -182,7 +182,7 @@ public sealed partial class Context : EguiObject
         }
         finally
         {
-            SetGlobalStyle(style);
+            GlobalStyle = style;
         }
     }
 
