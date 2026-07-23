@@ -29,6 +29,11 @@ public ref struct TableBuilder
     private Egui.Containers.ScrollBarVisibility _scrollBarVisibility;
     private bool _animateScrolling;
 
+    /// <summary>
+    /// The <see cref="Ui"/> that this table is being built within.
+    /// </summary>
+    internal readonly Ui Ui => _ui;
+
     public TableBuilder(Ui ui)
     {
         _ui = ui;

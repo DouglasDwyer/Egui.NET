@@ -17,6 +17,12 @@ public readonly ref struct Table
     }
 
     /// <summary>
+    /// The <see cref="Ui"/> that this table is being drawn within. Can be used to add
+    /// extra widgets between the header and the body.
+    /// </summary>
+    public readonly Ui Ui => _builder.Ui;
+
+    /// <summary>
     /// Create table body after adding a header row
     /// </summary>
     public readonly void Body(Action<TableBody> addBodyContents)

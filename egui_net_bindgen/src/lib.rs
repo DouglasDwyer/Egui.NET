@@ -112,6 +112,8 @@ const HANDLE_TYPES: &[&str] = &[
 const POINTER_TYPES: &[&str] = &[
     "FontsView",
     "Memory",
+    "Strip",
+    "TableRow",
     "Ui"
 ];
 
@@ -153,7 +155,9 @@ const CUSTOM_FNS: &[&str] = &[
     "egui_memory_Memory_options",
     "egui_memory_Memory_set_options",
     "egui_containers_collapsing_header_EguiCollapsingStateShowToggleButtonParams_unpack",
-    "egui_extras_table_TableBuilder_show"
+    "egui_extras_table_TableBuilder_show",
+    // `index` collides with the globally-ignored `Index` trait method name
+    "egui_extras_table_TableRow_index"
 ];
 
 /// A list of fully-qualified function IDs to ignore during generation.
@@ -766,11 +770,21 @@ const IGNORE_FNS: &[&str] = &[
     "egui_widgets_slider_Slider_update_while_editing",
     "egui_widgets_slider_Slider_vertical",
 
+    // Strip: bound manually
+    "egui_extras_strip_Strip_drop",
+    // `Strip::strip` is reimplemented client-side by composing `Strip::cell` with a fresh
+    // `StripBuilder`, since it takes a `StripBuilder` by value as its callback argument.
+    "egui_extras_strip_Strip_strip",
+    "egui_extras_strip_StripBuilder_cell_layout",
+    "egui_extras_strip_StripBuilder_clip",
+    "egui_extras_strip_StripBuilder_new",
+    "egui_extras_strip_StripBuilder_sense",
+    "egui_extras_strip_StripBuilder_size",
+    "egui_extras_strip_StripBuilder_sizes",
+
     // Table: bound manually
     "egui_extras_table_TableBody_drop",
-    "egui_extras_table_TableBody_heterogeneous_rows",
     "egui_extras_table_TableBody_max_rect",
-    "egui_extras_table_TableBody_rows",
     "egui_extras_table_TableBody_ui_mut",
     "egui_extras_table_TableBody_widths",
     "egui_extras_table_TableBuilder_animate_scrolling",
@@ -794,7 +808,6 @@ const IGNORE_FNS: &[&str] = &[
     "egui_extras_table_TableBuilder_striped",
     "egui_extras_table_TableBuilder_vertical_scroll_offset",
     "egui_extras_table_TableBuilder_vscroll",
-    "egui_extras_table_TableRow_col_index",
     "egui_extras_table_TableRow_drop",
     "egui_extras_table_Table_body",
     "egui_extras_table_Table_ui_mut",
