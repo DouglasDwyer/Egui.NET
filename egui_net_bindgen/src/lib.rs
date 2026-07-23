@@ -784,9 +784,6 @@ const IGNORE_FNS: &[&str] = &[
 
     // Table: bound manually
     "egui_extras_table_TableBody_drop",
-    "egui_extras_table_TableBody_max_rect",
-    "egui_extras_table_TableBody_ui_mut",
-    "egui_extras_table_TableBody_widths",
     "egui_extras_table_TableBuilder_animate_scrolling",
     "egui_extras_table_TableBuilder_auto_shrink",
     "egui_extras_table_TableBuilder_body",
