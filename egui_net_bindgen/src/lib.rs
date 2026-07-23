@@ -1193,7 +1193,7 @@ impl BindingsGenerator {
 
         namespaces.insert("Duration".to_string(), "".to_string());
 
-        let mut generator = BindingsGenerator {
+        BindingsGenerator {
             declaring_tys,
             krate,
             output_path: path.to_path_buf(),
@@ -1203,20 +1203,7 @@ impl BindingsGenerator {
             public_fields,
             parameterless_constructor_types: HashSet::new(),
             getter_setters: HashMap::new()
-        };
-
-        let binding_exclude_fns = BINDING_EXCLUDE_FNS.into_iter().collect::<HashSet<_>>();
-        generator.getter_setters = generator.gather_setter_pairs(&generator.gather_fns())
-            .into_iter()
-            // A getter or setter that is individually excluded from binding must not be
-            // merged into a property, since one half of the pair would otherwise silently
-            // disappear.
-            .filter(|&(getter_id, setter_id)|
-                !binding_exclude_fns.contains(&&*generator.fn_enum_variant_name(getter_id))
-                    && !binding_exclude_fns.contains(&&*generator.fn_enum_variant_name(setter_id)))
-            .collect();
-
-        generator.run()
+        }.run()
     }
 
     /// Executes the bindings generator.
@@ -1233,6 +1220,7 @@ impl BindingsGenerator {
             .with_namespaces(self.namespaces.clone());
         let generator = CodeGenerator::new(&config);
 
+        self.gather_getters_setters();
         self.inject_tuple_struct_wrappers();
         self.emit_cs_fn_bindings();
         self.rename_types();
@@ -1918,6 +1906,19 @@ impl BindingsGenerator {
         }
 
         Ok(())
+    }
+
+    /// Populates [`Self::getter_setters`] with the getter/setter pairs that should be merged
+    /// into C# properties, excluding any pair where one half is individually excluded from
+    /// binding (which would otherwise cause that half to silently disappear).
+    fn gather_getters_setters(&mut self) {
+        let binding_exclude_fns = BINDING_EXCLUDE_FNS.into_iter().collect::<HashSet<_>>();
+        self.getter_setters = self.gather_setter_pairs(&self.gather_fns())
+            .into_iter()
+            .filter(|&(getter_id, setter_id)|
+                !binding_exclude_fns.contains(&&*self.fn_enum_variant_name(getter_id))
+                    && !binding_exclude_fns.contains(&&*self.fn_enum_variant_name(setter_id)))
+            .collect();
     }
 
     /// Finds instance getter functions of the form `fn xxx(&self) -> T` or `-> &T`, keyed by
