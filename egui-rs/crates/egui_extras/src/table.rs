@@ -16,7 +16,8 @@ use crate::{
 // -----------------------------------------------------------------=----------
 
 #[derive(Clone, Copy, Debug, PartialEq)]
-enum InitialColumnSize {
+#[cfg_attr(feature = "serde", derive(serde::Deserialize, serde::Serialize))]
+pub enum InitialColumnSize {
     /// Absolute size in points
     Absolute(f32),
 
@@ -29,6 +30,7 @@ enum InitialColumnSize {
 
 /// Specifies the properties of a column, like its width range.
 #[derive(Clone, Copy, Debug, PartialEq)]
+#[cfg_attr(feature = "serde", derive(serde::Deserialize, serde::Serialize))]
 pub struct Column {
     initial_width: InitialColumnSize,
 

@@ -1,9 +1,9 @@
 namespace Egui.EguiExtras;
 
 /// <summary>
-/// The row of a table. Do not store this: it should be used immediately.
+/// The row of a table.
 /// </summary>
-public readonly ref struct TableRow
+public readonly ref partial struct TableRow
 {
     internal readonly nuint Ptr;
 
@@ -16,32 +16,19 @@ public readonly ref struct TableRow
     }
 
     /// <summary>
-    /// Add the contents of a column.
+    /// Add the contents of a column on this row (i.e. a cell).<br/>
+    ///
+    /// Returns the used space (<c>MinRect</c>) plus the <see cref="Response"/> of the whole cell.
     /// </summary>
-    public (Rect, Response) Col(Action<Ui> addContents)
+    public (Rect, Response) Col(Action<Ui> addCellContents)
     {
         var ctx = _ctx;
-        using var callback = new EguiCallback(uiPtr => addContents(new Ui(ctx, uiPtr)));
+        using var callback = new EguiCallback(uiPtr => addCellContents(new Ui(ctx, uiPtr)));
         return EguiMarshal.Call<nuint, EguiCallback, (Rect, Response)>(EguiFn.egui_extras_table_TableRow_col, Ptr, callback);
     }
 
     /// <summary>
-    /// Set the selected visual state of this row.
+    /// The index of the row.
     /// </summary>
-    public void SetSelected(bool selected) => EguiMarshal.Call(EguiFn.egui_extras_table_TableRow_set_selected, Ptr, selected);
-
-    /// <summary>
-    /// Set the hovered visual state of this row.
-    /// </summary>
-    public void SetHovered(bool hovered) => EguiMarshal.Call(EguiFn.egui_extras_table_TableRow_set_hovered, Ptr, hovered);
-
-    /// <summary>
-    /// Draw a subtle line above this row.
-    /// </summary>
-    public void SetOverline(bool overline) => EguiMarshal.Call(EguiFn.egui_extras_table_TableRow_set_overline, Ptr, overline);
-
-    /// <summary>
-    /// Returns the response of the whole row.
-    /// </summary>
-    public Response Response() => EguiMarshal.Call<nuint, Response>(EguiFn.egui_extras_table_TableRow_response, Ptr);
+    public nuint Index => EguiMarshal.Call<nuint, nuint>(EguiFn.egui_extras_table_TableRow_index, Ptr);
 }

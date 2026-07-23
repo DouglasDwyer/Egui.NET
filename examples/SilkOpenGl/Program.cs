@@ -501,20 +501,20 @@ public class Program
 
             ui.Separator();
 
-            var table = new TableBuilder()
+            var table = new TableBuilder(ui)
                 .Striped(_striped)
                 .Resizable(_resizableColumns)
-                .Column(Column.Auto())
-                .Column(Column.Remainder().AtLeast(80.0f))
-                .Column(Column.Remainder().AtLeast(80.0f))
+                .Column(Column.Auto)
+                .Column(Column.Remainder.AtLeast(80.0f))
+                .Column(Column.Remainder.AtLeast(80.0f))
                 .MinScrolledHeight(0.0f);
 
-            table.Show(ui, 20.0f, header =>
+            table.Header(20.0f, header =>
             {
                 header.Col(ui => ui.Label("Row"));
                 header.Col(ui => ui.Label("Description"));
                 header.Col(ui => ui.Label("Progress"));
-            }, body =>
+            }).Body(body =>
             {
                 for (int i = 0; i < NumRows; i++)
                 {
