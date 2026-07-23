@@ -1192,8 +1192,8 @@ impl BindingsGenerator {
         }
 
         namespaces.insert("Duration".to_string(), "".to_string());
-        
-        BindingsGenerator {
+
+        let mut generator = BindingsGenerator {
             declaring_tys,
             krate,
             output_path: path.to_path_buf(),
@@ -1203,7 +1203,20 @@ impl BindingsGenerator {
             public_fields,
             parameterless_constructor_types: HashSet::new(),
             getter_setters: HashMap::new()
-        }.run()
+        };
+
+        let binding_exclude_fns = BINDING_EXCLUDE_FNS.into_iter().collect::<HashSet<_>>();
+        generator.getter_setters = generator.gather_setter_pairs(&generator.gather_fns())
+            .into_iter()
+            // A getter or setter that is individually excluded from binding must not be
+            // merged into a property, since one half of the pair would otherwise silently
+            // disappear.
+            .filter(|&(getter_id, setter_id)|
+                !binding_exclude_fns.contains(&&*generator.fn_enum_variant_name(getter_id))
+                    && !binding_exclude_fns.contains(&&*generator.fn_enum_variant_name(setter_id)))
+            .collect();
+
+        generator.run()
     }
 
     /// Executes the bindings generator.
@@ -1562,18 +1575,9 @@ impl BindingsGenerator {
 
         let mut bound_ids = Vec::new();
         let binding_exclude_fns = BINDING_EXCLUDE_FNS.into_iter().collect::<HashSet<_>>();
-
-        let fn_ids = self.gather_fns();
-        let mut getter_setters = self.gather_setter_pairs(&fn_ids);
-        // A getter or setter that is individually excluded from binding must not be merged
-        // into a property, since one half of the pair would otherwise silently disappear.
-        getter_setters.retain(|&getter_id, &mut setter_id|
-            !binding_exclude_fns.contains(&&*self.fn_enum_variant_name(getter_id))
-                && !binding_exclude_fns.contains(&&*self.fn_enum_variant_name(setter_id)));
-        self.getter_setters = getter_setters;
         let setter_ids = self.getter_setters.values().cloned().collect::<HashSet<_>>();
 
-        for id in fn_ids {
+        for id in self.gather_fns() {
             if binding_exclude_fns.contains(&&*self.fn_enum_variant_name(id)) {
                 continue;
             }
@@ -1916,14 +1920,12 @@ impl BindingsGenerator {
         Ok(())
     }
 
-    /// Finds setter functions of the form `fn set_xxx(&mut self, value: T)` that have a
-    /// corresponding getter `fn xxx(&self) -> &T` on the same type, so the two can be merged
-    /// into a single C# property with both a `get` and a `set` accessor. Functions in `ids`
-    /// that don't fit this shape (including setters without a matching getter) are left
-    /// untouched, and continue to be bound as ordinary methods.
-    ///
-    /// Returns a map from each getter's ID to its paired setter's ID.
-    fn gather_setter_pairs(&self, ids: &[RdId]) -> HashMap<RdId, RdId> {
+    /// Finds instance getter functions of the form `fn xxx(&self) -> T` or `-> &T`, keyed by
+    /// their declaring type and name, so they can be paired with a matching setter in
+    /// [`Self::gather_setter_pairs`]. Reuses [`Self::is_property`] - the same check that
+    /// decides which getters are exposed as C# properties in the first place - so only
+    /// getters that would already be bound as properties are considered as merge candidates.
+    fn gather_getters(&self, ids: &[RdId]) -> HashMap<(RdId, String), RdId> {
         let mut getters = HashMap::new();
 
         for &id in ids {
@@ -1933,11 +1935,18 @@ impl BindingsGenerator {
 
             // A getter on a primitive enum is bound as a static extension method rather than
             // an instance property, so it can never be paired with a setter accessor.
-            if !has_this || func.sig.inputs.len() != 1 || self.is_primitive_enum(decl_ty) {
+            if !has_this || self.is_primitive_enum(decl_ty) {
                 continue;
             }
 
             let ty_name = self.krate.index[&decl_ty].name.as_deref();
+            let returns_this = func.sig.output.as_ref().map(|x| x == &Type::Generic("Self".to_string()) || (if let Type::ResolvedPath(p) = x {
+                Some(p.path.as_str()) == ty_name
+            } else { false })).unwrap_or_default();
+
+            if !self.is_property(id, FnType::Instance, returns_this, func) {
+                continue;
+            }
 
             // A property can only be given a getter that returns a value outright (`T`) or an
             // immutable reference to one (`&T`) - anything else (e.g. `&mut T`) can't be
@@ -1947,12 +1956,22 @@ impl BindingsGenerator {
                 continue;
             }
 
-            if let Some(name) = self.krate.index[&id].name.as_deref()
-                && !name.contains("take") {
-                getters.insert((decl_ty, name.to_string()), id);
-            }
+            let name = self.krate.index[&id].name.as_deref().expect("Failed to get function name");
+            getters.insert((decl_ty, name.to_string()), id);
         }
 
+        getters
+    }
+
+    /// Finds setter functions of the form `fn set_xxx(&mut self, value: T)` that have a
+    /// corresponding getter `fn xxx(&self) -> &T` on the same type, so the two can be merged
+    /// into a single C# property with both a `get` and a `set` accessor. Functions in `ids`
+    /// that don't fit this shape (including setters without a matching getter) are left
+    /// untouched, and continue to be bound as ordinary methods.
+    ///
+    /// Returns a map from each getter's ID to its paired setter's ID.
+    fn gather_setter_pairs(&self, ids: &[RdId]) -> HashMap<RdId, RdId> {
+        let getters = self.gather_getters(ids);
         let mut result = HashMap::new();
 
         for &id in ids {
