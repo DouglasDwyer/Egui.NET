@@ -1,3 +1,5 @@
+using Egui.Containers;
+
 namespace Egui.EguiExtras;
 
 /// <summary>
@@ -25,8 +27,8 @@ public readonly ref struct Table
     /// <summary>
     /// Create table body after adding a header row
     /// </summary>
-    public readonly void Body(Action<TableBody> addBodyContents)
+    public readonly ScrollAreaOutput Body(Action<TableBody> addBodyContents)
     {
-        _builder.Show(_headerHeight, _headerCallback, addBodyContents);
+        return _builder.Show(_headerHeight, _headerCallback, addBodyContents);
     }
 }

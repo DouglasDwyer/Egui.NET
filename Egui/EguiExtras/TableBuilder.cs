@@ -280,12 +280,12 @@ public ref struct TableBuilder
     /// <summary>
     /// Create table body without a header row
     /// </summary>
-    public readonly void Body(Action<TableBody> addBodyContents)
+    public readonly ScrollAreaOutput Body(Action<TableBody> addBodyContents)
     {
-        Show(null, null, addBodyContents);
+        return Show(null, null, addBodyContents);
     }
 
-    internal readonly void Show(float? headerHeight, Action<TableRow>? headerCallback, Action<TableBody> addBodyContents)
+    internal readonly ScrollAreaOutput Show(float? headerHeight, Action<TableRow>? headerCallback, Action<TableBody> addBodyContents)
     {
         _ui.AssertInitialized();
         var ctx = _ui.Ctx;
@@ -298,8 +298,15 @@ public ref struct TableBuilder
         try
         {
             using var bodyEguiCallback = new EguiCallback(bodyPtr => addBodyContents(new TableBody(ctx, bodyPtr)));
-            EguiMarshal.Call<nuint, TableOptions, float?, EguiCallback?, EguiCallback, (Id, State, EVec2, Rect)>(
+            var (id, state, contentSize, innerRect) = EguiMarshal.Call<nuint, TableOptions, float?, EguiCallback?, EguiCallback, (Id, State, EVec2, Rect)>(
                 EguiFn.egui_extras_table_TableBuilder_show, _ui.Ptr, options, headerHeight, headerEguiCallback, bodyEguiCallback);
+            return new ScrollAreaOutput
+            {
+                Id = id,
+                State = state,
+                ContentSize = contentSize,
+                InnerRect = innerRect
+            };
         }
         finally
         {
