@@ -41,8 +41,9 @@ bitflags = { version = "2", default-features = false }
 convert_case = { version = "0.10.0", default-features = false }
 csbindgen = { version = "1.9.7", default-features = false }
 egui = { version = "0.35.0", default-features = false }
-egui_extras = { version = "0.35.0", default-features = false, features = [ "image", "svg", "svg_text" ] }
+egui_extras = { version = "0.35.0", default-features = false, features = [ "datepicker", "image", "serde", "svg", "svg_text", "syntect" ] }
 image = { version = "0.25.9", default-features = false, features = [ "default-formats" ] }
+jiff = { version = "0.2.29", default-features = false, features = [ "std", "tz-system" ] }
 mimalloc = { version = "0.1.47", default-features = false }
 rustdoc-types = { version = "0.56.0", default-features = false }
 serde = { version = "1.0.228", default-features = false, features = [ "derive" ] }

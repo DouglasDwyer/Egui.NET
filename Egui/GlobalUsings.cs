@@ -3,6 +3,7 @@ global using global::DouglasDwyer.FixedArray;
 global using global::Egui;
 global using global::Egui.Containers;
 global using global::Egui.Containers.Menu;
+global using global::Egui.EguiExtras;
 global using global::Egui.Layers;
 global using global::Egui.Load;
 global using global::Egui.Text;

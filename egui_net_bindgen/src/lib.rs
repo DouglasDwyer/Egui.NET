@@ -25,6 +25,8 @@ use egui::text_selection::*;
 use egui::text_selection::visuals::*;
 use egui::util::undoer::*;
 use egui::widget_style::*;
+use egui_extras::*;
+use egui_extras::syntax_highlighting::*;
 use rustdoc_types::*;
 use rustdoc_types::Id as RdId;
 use rustdoc_types::Path as RdPath;
@@ -110,6 +112,8 @@ const HANDLE_TYPES: &[&str] = &[
 const POINTER_TYPES: &[&str] = &[
     "FontsView",
     "Memory",
+    "Strip",
+    "TableRow",
     "Ui"
 ];
 
@@ -150,7 +154,10 @@ const CUSTOM_FNS: &[&str] = &[
     "egui_ui_Ui_set_enabled",
     "egui_memory_Memory_options",
     "egui_memory_Memory_set_options",
-    "egui_containers_collapsing_header_EguiCollapsingStateShowToggleButtonParams_unpack"
+    "egui_containers_collapsing_header_EguiCollapsingStateShowToggleButtonParams_unpack",
+    "egui_extras_table_TableBuilder_show",
+    // `index` collides with the globally-ignored `Index` trait method name
+    "egui_extras_table_TableRow_index"
 ];
 
 /// A list of fully-qualified function IDs to ignore during generation.
@@ -369,6 +376,20 @@ const IGNORE_FNS: &[&str] = &[
 
     // ComboBox: not yet implemented:
     "egui_containers_combo_box_ComboBox_popup_style",
+
+    // DatePickerButton: bound manually
+    "egui_extras_datepicker_button_DatePickerButton_arrows",
+    "egui_extras_datepicker_button_DatePickerButton_calendar",
+    "egui_extras_datepicker_button_DatePickerButton_calendar_week",
+    "egui_extras_datepicker_button_DatePickerButton_combo_boxes",
+    "egui_extras_datepicker_button_DatePickerButton_format",
+    "egui_extras_datepicker_button_DatePickerButton_highlight_weekends",
+    "egui_extras_datepicker_button_DatePickerButton_id_salt",
+    "egui_extras_datepicker_button_DatePickerButton_new",
+    "egui_extras_datepicker_button_DatePickerButton_reverse_years",
+    "egui_extras_datepicker_button_DatePickerButton_show_icon",
+    "egui_extras_datepicker_button_DatePickerButton_start_end_years",
+    "egui_extras_datepicker_button_DatePickerButton_year_scroll_to",
 
     // DragValue: bound manually
     "egui_widgets_drag_value_DragValue_binary",
@@ -748,6 +769,45 @@ const IGNORE_FNS: &[&str] = &[
     "egui_widgets_slider_Slider_trailing_fill",
     "egui_widgets_slider_Slider_update_while_editing",
     "egui_widgets_slider_Slider_vertical",
+
+    // Strip: bound manually
+    "egui_extras_strip_Strip_drop",
+    // `Strip::strip` is reimplemented client-side by composing `Strip::cell` with a fresh
+    // `StripBuilder`, since it takes a `StripBuilder` by value as its callback argument.
+    "egui_extras_strip_Strip_strip",
+    "egui_extras_strip_StripBuilder_cell_layout",
+    "egui_extras_strip_StripBuilder_clip",
+    "egui_extras_strip_StripBuilder_new",
+    "egui_extras_strip_StripBuilder_sense",
+    "egui_extras_strip_StripBuilder_size",
+    "egui_extras_strip_StripBuilder_sizes",
+
+    // Table: bound manually
+    "egui_extras_table_TableBody_drop",
+    "egui_extras_table_TableBuilder_animate_scrolling",
+    "egui_extras_table_TableBuilder_auto_shrink",
+    "egui_extras_table_TableBuilder_body",
+    "egui_extras_table_TableBuilder_cell_layout",
+    "egui_extras_table_TableBuilder_column",
+    "egui_extras_table_TableBuilder_columns",
+    "egui_extras_table_TableBuilder_drag_to_scroll",
+    "egui_extras_table_TableBuilder_header",
+    "egui_extras_table_TableBuilder_id_salt",
+    "egui_extras_table_TableBuilder_max_scroll_height",
+    "egui_extras_table_TableBuilder_min_scrolled_height",
+    "egui_extras_table_TableBuilder_new",
+    "egui_extras_table_TableBuilder_reset",
+    "egui_extras_table_TableBuilder_resizable",
+    "egui_extras_table_TableBuilder_scroll_bar_visibility",
+    "egui_extras_table_TableBuilder_scroll_to_row",
+    "egui_extras_table_TableBuilder_sense",
+    "egui_extras_table_TableBuilder_stick_to_bottom",
+    "egui_extras_table_TableBuilder_striped",
+    "egui_extras_table_TableBuilder_vertical_scroll_offset",
+    "egui_extras_table_TableBuilder_vscroll",
+    "egui_extras_table_TableRow_drop",
+    "egui_extras_table_Table_body",
+    "egui_extras_table_Table_ui_mut",
 
     // Tooltip: bound manually
     "egui_containers_tooltip_Tooltip_always_open",
@@ -1172,11 +1232,12 @@ impl BindingsGenerator {
         Self::merge_crates(&mut krate, &serde_json::from_str::<Crate>(include_str!(concat!(env!("OUT_DIR"), "/emath.json"))).expect("Failed to parse emath"));
         Self::merge_crates(&mut krate, &serde_json::from_str::<Crate>(include_str!(concat!(env!("OUT_DIR"), "/epaint.json"))).expect("Failed to parse epaint"));
         Self::merge_crates(&mut krate, &serde_json::from_str::<Crate>(include_str!(concat!(env!("OUT_DIR"), "/ecolor.json"))).expect("Failed to parse epaint"));
+        Self::merge_crates(&mut krate, &serde_json::from_str::<Crate>(include_str!(concat!(env!("OUT_DIR"), "/egui_extras.json"))).expect("Failed to parse egui_extras"));
         let declaring_tys = Self::declaring_types(&krate);
         let name_to_id = Self::names_to_ids(&krate);
         let public_fields = Self::public_fields(&krate);
 
-        let mut namespaces = Self::find_public_paths(&krate, &["egui", "epaint", "emath", "ecolor"])
+        let mut namespaces = Self::find_public_paths(&krate, &["egui", "epaint", "emath", "ecolor", "egui_extras"])
             .into_iter().map(|(name, mut path)| {
                 path.pop();
                 for segment in &mut path {
@@ -2425,6 +2486,7 @@ impl BindingsGenerator {
         trace_auto_emath_types(&mut tracer);
         trace_auto_epaint_types(&mut tracer);
         trace_auto_ecolor_types(&mut tracer);
+        trace_auto_egui_extras_types(&mut tracer);
 
         let mut result = tracer.registry().expect("Failed to generate serde registry");
 

@@ -2,6 +2,7 @@ use egui::Rangef;
 
 /// Size hint for table column/strip cell.
 #[derive(Clone, Debug, Copy)]
+#[cfg_attr(feature = "serde", derive(serde::Deserialize, serde::Serialize))]
 pub enum Size {
     /// Absolute size in points, with a given range of allowed sizes to resize within.
     Absolute { initial: f32, range: Rangef },

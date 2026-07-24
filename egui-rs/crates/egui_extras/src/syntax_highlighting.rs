@@ -141,7 +141,7 @@ enum TokenType {
 #[cfg(feature = "syntect")]
 #[derive(Clone, Copy, Hash, PartialEq)]
 #[cfg_attr(feature = "serde", derive(serde::Deserialize, serde::Serialize))]
-enum SyntectTheme {
+pub enum SyntectTheme {
     Base16EightiesDark,
     Base16MochaDark,
     Base16OceanDark,

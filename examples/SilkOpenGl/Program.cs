@@ -6,6 +6,8 @@ using System.Collections.Immutable;
 using Egui;
 using Egui.Containers;
 using Egui.Epaint;
+using Egui.EguiExtras;
+using Egui.EguiExtras.SyntaxHighlighting;
 using Egui.Silk.NET;
 using Egui.Viewport;
 using Egui.Widgets;
@@ -33,6 +35,10 @@ public class Program
     private static IWindow _window;
 
     private static WidgetGallery _widgetGallery = new WidgetGallery();
+
+    private static CodeExample _codeExample = new CodeExample();
+
+    private static TableDemo _tableDemo = new TableDemo();
 
     public static void Main(string[] args)
     {
@@ -100,6 +106,23 @@ public class Program
 
             new Window("Settings")
                 .Show(ctx, ui => ctx.SettingsUi(ui));
+
+            new Window("🖮 Code Example")
+                .MinWidth(375)
+                .DefaultSize((390, 500))
+                .Scroll((false, false))
+                .Resizable((true, false))
+                .Show(ctx, ui =>
+            {
+                _codeExample.Show(ui);
+            });
+
+            new Window("☰ Table")
+                .DefaultWidth(400)
+                .Show(ctx, ui =>
+            {
+                _tableDemo.Show(ui);
+            });
         });
     }
 
@@ -114,6 +137,7 @@ public class Program
         private string _string = "";
         private Color32 _color = Color32.LightBlue.LinearMultiply(0.5f);
         private bool _animateProgressBar = false;
+        private DateOnly _date = DateOnly.FromDateTime(DateTime.Today);
 
         public void Show(Ui ui)
         {
@@ -253,6 +277,10 @@ public class Program
             {
                 _boolean = !_boolean;
             }
+            ui.EndRow();
+
+            ui.Add(DocLinkLabel("DatePicker", "DatePickerButton"));
+            ui.Add(new DatePicker(ref _date));
             ui.EndRow();
 
             ui.Add(DocLinkLabel("Separator", "separator"));
@@ -401,5 +429,110 @@ public class Program
         First,
         Second,
         Third,
+    }
+
+    private class CodeExample
+    {
+        private const string Snippet = """
+            public class CodeExample
+            {
+                private string name;
+                private int age;
+
+                public void Show(Ui ui)
+                {
+                    ui.Heading("Example");
+                    ui.Horizontal(ui =>
+                    {
+                        ui.Label("Name");
+                        ui.TextEditSingleline(ref name);
+                    });
+                    ui.Add(new DragValue<int>(ref age).Range(0, 120).Suffix(" years"));
+                    if (ui.Button("Increment").Clicked)
+                    {
+                        age += 1;
+                    }
+                    ui.Label($"{name} is {age}");
+                }
+            }
+            """;
+
+        public void Show(Ui ui)
+        {
+            var theme = CodeTheme.FromMemory(ui.Ctx, ui.Style);
+            SyntaxHighlightingHelpers.CodeViewUi(ui, theme, Snippet, "cs");
+
+            ui.Separator();
+
+            ui.Collapsing("Theme", ui =>
+            {
+                theme.Ui(ui);
+                theme.StoreInMemory(ui.Ctx);
+            });
+        }
+    }
+
+    private class TableDemo
+    {
+        private const int NumRows = 20;
+
+        private bool _striped = true;
+        private bool _resizableColumns = true;
+        private bool _clickable = true;
+        private HashSet<int> _selection = new HashSet<int>();
+
+        public void Show(Ui ui)
+        {
+            ui.Horizontal(ui =>
+            {
+                ui.Checkbox(ref _striped, "Striped");
+                ui.Checkbox(ref _resizableColumns, "Resizable columns");
+                ui.Checkbox(ref _clickable, "Clickable rows");
+            });
+
+            ui.Separator();
+
+            var table = new TableBuilder(ui)
+                .Striped(_striped)
+                .Resizable(_resizableColumns)
+                .Column(Column.Auto)
+                .Column(Column.Remainder.AtLeast(80.0f))
+                .Column(Column.Remainder.AtLeast(80.0f))
+                .MinScrolledHeight(0.0f);
+
+            table.Header(20.0f, header =>
+            {
+                header.Col(ui => ui.Label("Row"));
+                header.Col(ui => ui.Label("Description"));
+                header.Col(ui => ui.Label("Progress"));
+            }).Body(body =>
+            {
+                for (int i = 0; i < NumRows; i++)
+                {
+                    var index = i;
+                    body.Row(18.0f, row =>
+                    {
+                        row.SetSelected(_selection.Contains(index));
+
+                        row.Col(ui => ui.Label($"{index}"));
+                        row.Col(ui =>
+                        {
+                            if (_clickable)
+                            {
+                                if (ui.Button($"This is row {index}").Clicked && !_selection.Add(index))
+                                {
+                                    _selection.Remove(index);
+                                }
+                            }
+                            else
+                            {
+                                ui.Label($"This is row {index}");
+                            }
+                        });
+                        row.Col(ui => ui.Add(new ProgressBar((index % 10) / 10.0f)));
+                    });
+                }
+            });
+        }
     }
 }

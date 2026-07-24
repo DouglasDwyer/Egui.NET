@@ -9,11 +9,20 @@ const EXCLUDE_TYPES: &[&str] = &[
     "History",
     "OrderedFloat",
     "PointerState",
+    "SyntectSettings",
     "Undoer",
 ];
 
 /// Crates in the egui-rs subtree that rustdoc JSON is generated for.
-const DOC_CRATES: &[&str] = &["ecolor", "egui", "emath", "epaint"];
+const DOC_CRATES: &[&str] = &["ecolor", "egui", "emath", "epaint", "egui_extras"];
+
+/// Determines the `--features` argument passed to `cargo rustdoc` for a given crate.
+fn doc_features(crate_name: &str) -> &'static str {
+    match crate_name {
+        "egui_extras" => "serde,datepicker,image,svg,svg_text,syntect",
+        _ => "serde",
+    }
+}
 
 /// Determines whether `x` implements the trait with `path`.
 fn impls_contains(krate: &Crate, impls: &[Id], path: &str) -> bool {
@@ -95,7 +104,7 @@ fn regenerate_json_docs(manifest_dir: &Path, egui_rs: &Path, out_dir: &Path) -> 
                 // Overrides any inherited CARGO_TARGET_DIR (e.g. set by `cross`).
                 "--target-dir", egui_rs_target.to_str().expect("non-UTF8 path"),
                 "--lib",
-                "--features", "serde",
+                "--features", doc_features(crate_name),
                 "--",
                 "-Z", "unstable-options",
                 "--output-format=json",
@@ -145,6 +154,7 @@ fn main() {
     let emath_tracer = emit_tracer("emath", &docs["emath"], EXCLUDE_TYPES);
     let epaint_tracer = emit_tracer("epaint", &docs["epaint"], EXCLUDE_TYPES);
     let ecolor_tracer = emit_tracer("ecolor", &docs["ecolor"], EXCLUDE_TYPES);
+    let egui_extras_tracer = emit_tracer("egui_extras", &docs["egui_extras"], EXCLUDE_TYPES);
 
-    std::fs::write(out_file, format!("{egui_tracer}\n{emath_tracer}\n{epaint_tracer}\n{ecolor_tracer}")).expect("Failed to write tracer bindings");
+    std::fs::write(out_file, format!("{egui_tracer}\n{emath_tracer}\n{epaint_tracer}\n{ecolor_tracer}\n{egui_extras_tracer}")).expect("Failed to write tracer bindings");
 }
