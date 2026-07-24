@@ -156,6 +156,7 @@ const CUSTOM_FNS: &[&str] = &[
     "egui_memory_Memory_set_options",
     "egui_containers_collapsing_header_EguiCollapsingStateShowToggleButtonParams_unpack",
     "egui_extras_table_TableBuilder_show",
+    "egui_widgets_text_edit_builder_TextEdit_set_galley",
     // `index` collides with the globally-ignored `Index` trait method name
     "egui_extras_table_TableRow_index"
 ];

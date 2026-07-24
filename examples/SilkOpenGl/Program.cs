@@ -40,6 +40,8 @@ public class Program
 
     private static TableDemo _tableDemo = new TableDemo();
 
+    private static CodeEditorDemo _codeEditorDemo = new CodeEditorDemo();
+
     public static void Main(string[] args)
     {
         _ctx = new Context();
@@ -122,6 +124,13 @@ public class Program
                 .Show(ctx, ui =>
             {
                 _tableDemo.Show(ui);
+            });
+
+            new Window("🖮 Code Editor")
+                .DefaultHeight(500)
+                .Show(ctx, ui =>
+            {
+                _codeEditorDemo.Show(ui);
             });
         });
     }
@@ -532,6 +541,58 @@ public class Program
                         row.Col(ui => ui.Add(new ProgressBar((index % 10) / 10.0f)));
                     });
                 }
+            });
+        }
+    }
+
+    private class CodeEditorDemo
+    {
+        private string _language = "cs";
+        private string _code = "// A very simple example\npublic class Program\n{\n    public static void Main()\n    {\n        System.Console.WriteLine(\"Hello world!\");\n    }\n}\n";
+
+        public void Show(Ui ui)
+        {
+            ui.Horizontal(ui =>
+            {
+                ui.Label("An example of syntax highlighting in a TextEdit.");
+            });
+
+            ui.Horizontal(ui =>
+            {
+                ui.Label("Language:");
+                ui.TextEditSingleline(ref _language);
+            });
+
+            ui.HorizontalWrapped(ui =>
+            {
+                ui.Label("Syntax highlighting powered by ");
+                ui.HyperlinkTo("syntect", "https://github.com/trishume/syntect");
+                ui.Label(".");
+            });
+
+            var theme = CodeTheme.FromMemory(ui.Ctx, ui.Style);
+            ui.Collapsing("Theme", ui =>
+            {
+                ui.Group(ui =>
+                {
+                    theme.Ui(ui);
+                    theme.StoreInMemory(ui.Ctx);
+                });
+            });
+
+            ScrollArea.Vertical.Show(ui, ui =>
+            {
+                var editor = TextEdit.Multiline(ref _code)
+                    .CodeEditor()
+                    .DesiredRows(10)
+                    .DesiredWidth(float.PositiveInfinity)
+                    .Layouter((layoutUi, text, wrapWidth) =>
+                    {
+                        var job = SyntaxHighlightingHelpers.Highlight(layoutUi.Ctx, layoutUi.Style, theme, text, _language);
+                        job.Wrap.MaxWidth = wrapWidth;
+                        return layoutUi.Fonts(f => f.LayoutJob(job));
+                    });
+                ui.Add(editor);
             });
         }
     }
