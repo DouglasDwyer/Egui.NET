@@ -87,7 +87,17 @@ const BINDING_EXCLUDE_TYPES: &[&str] = &[
     "",
     "Fonts",
     // Private types
-    "Tessellator"
+    "Tessellator",
+    // Accessibility/accesskit support is not exposed to C# (see README). These are only
+    // traced so that `Event`'s `AccessKitActionRequest` variant (removed from the registry
+    // in `trace_serde_types`) can be fully enumerated; they have no other reachable use.
+    "Action",
+    "ActionData",
+    "ActionRequest",
+    "TreeId",
+    "NodeId",
+    "ScrollHint",
+    "ScrollUnit",
 ];
 
 /// Types for which fields/serialization logic should not be generated.
@@ -2466,6 +2476,11 @@ impl BindingsGenerator {
         let samples = Samples::new();
         let mut tracer = Tracer::new(TracerConfig::default()
             .default_u64_value(1)
+            // `accesskit::Uuid` (embedded in `TreeId`, used by `Event::AccessKitActionRequest`)
+            // serializes as raw bytes rather than through a newtype/tuple/struct wrapper, so it
+            // isn't covered by the `record_samples_for_*` options below. Without a 16-byte
+            // default here the tracer feeds it zero bytes and `Uuid` parsing fails.
+            .default_borrowed_bytes_value(&[0u8; 16])
             .record_samples_for_newtype_structs(true)
             .record_samples_for_tuple_structs(true)
             .record_samples_for_structs(true));
@@ -2482,7 +2497,20 @@ impl BindingsGenerator {
         tracer.trace_simple_type::<SidesKind>().expect("Failed to trace SidesKind");
         tracer.trace_simple_type::<TextStyle>().expect("Failed to trace SidesKind");
         tracer.trace_simple_type::<WidgetText>().expect("Failed to trace WidgetText");
-        
+        // `Event::AccessKitActionRequest` is no longer skipped from serde (see its doc comment),
+        // so the tracer now walks into these `accesskit` types. They're not part of any
+        // `DOC_CRATES` crate, so `trace_auto_egui_types` never traces them on its own; without
+        // these explicit calls the enums below would only have their first-seen variant
+        // recorded, and `registry()` would reject the registry as incomplete. They're removed
+        // from the final registry below since accesskit support isn't exposed to C#.
+        tracer.trace_simple_type::<egui::accesskit::Action>().expect("Failed to trace Action");
+        tracer.trace_simple_type::<egui::accesskit::ActionData>().expect("Failed to trace ActionData");
+        tracer.trace_simple_type::<egui::accesskit::ActionRequest>().expect("Failed to trace ActionRequest");
+        tracer.trace_simple_type::<egui::accesskit::TreeId>().expect("Failed to trace TreeId");
+        tracer.trace_simple_type::<egui::accesskit::NodeId>().expect("Failed to trace NodeId");
+        tracer.trace_simple_type::<egui::accesskit::ScrollHint>().expect("Failed to trace ScrollHint");
+        tracer.trace_simple_type::<egui::accesskit::ScrollUnit>().expect("Failed to trace ScrollUnit");
+
         trace_auto_egui_types(&mut tracer);
         trace_auto_emath_types(&mut tracer);
         trace_auto_epaint_types(&mut tracer);
@@ -2492,6 +2520,7 @@ impl BindingsGenerator {
         let mut result = tracer.registry().expect("Failed to generate serde registry");
 
         let Some(ContainerFormat::Enum(variants)) = result.get_mut("Event") else { panic!("Could not get Event in registry") };
+        variants.retain(|_, variant| variant.name != "AccessKitActionRequest");
         for variant in variants.values_mut() {
             if variant.name == "Key" {
                 let VariantFormat::Struct(fields) = &mut variant.value else { panic!("Event::Key did not have correct format") };

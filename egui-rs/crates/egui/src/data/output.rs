@@ -151,8 +151,12 @@ pub struct PlatformOutput {
     /// NOTE: this needs to be per-viewport.
     ///
     /// Accessibility/accesskit support is not exposed to C# (see README); skipped from serde
-    /// because `accesskit::TreeUpdate` embeds a `Uuid`, which can't round-trip through the
-    /// reflection-based bincode serialization used for FFI.
+    /// because `accesskit::TreeUpdate` embeds a `Node` type whose internal property map is
+    /// keyed by a private `accesskit::PropertyId` enum. That type can't be named from outside
+    /// the crate, so its variants can never be fully enumerated by the reflection-based tracer
+    /// that drives C# codegen, making this field impossible to expose there. `egui_net_ffi`
+    /// re-serializes this field manually (see `PlatformOutput2`) to stay wire-compatible with
+    /// upstream `egui`, without needing this field to be traceable.
     #[cfg_attr(feature = "serde", serde(skip))]
     pub accesskit_update: Option<accesskit::TreeUpdate>,
 

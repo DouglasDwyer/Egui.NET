@@ -4,6 +4,7 @@ use std::ops::Deref;
 
 use egui::*;
 use egui::epaint::*;
+use egui::output::{IMEOutput, OutputEvent};
 use serde::*;
 
 /// Allows for passing `egui` data back and forth with C#.
@@ -81,7 +82,7 @@ impl Default for EguiFfi {
 #[derive(Clone, Serialize, Deserialize)]
 struct FullOutput2 {
     /// The [`FullOutput::platform_output`] field.
-    pub platform_output: PlatformOutput,
+    pub platform_output: PlatformOutput2,
     /// The [`FullOutput::textures_delta`] field.
     pub textures_delta: TexturesDelta,
     /// The [`FullOutput::pixels_per_point`] field.
@@ -92,7 +93,7 @@ impl From<FullOutput2> for FullOutput {
     fn from(value: FullOutput2) -> Self {
         Self {
             pixels_per_point: value.pixels_per_point,
-            platform_output: value.platform_output,
+            platform_output: value.platform_output.into(),
             textures_delta: value.textures_delta,
             ..Default::default()
         }
@@ -103,8 +104,65 @@ impl From<FullOutput> for FullOutput2 {
     fn from(value: FullOutput) -> Self {
         Self {
             pixels_per_point: value.pixels_per_point,
-            platform_output: value.platform_output,
+            platform_output: value.platform_output.into(),
             textures_delta: value.textures_delta
+        }
+    }
+}
+
+/// Holds the serializable members of [`PlatformOutput`], including `accesskit_update`.
+///
+/// `PlatformOutput::accesskit_update` is `#[serde(skip)]` (see its doc comment) because the
+/// C# reflection-based bindgen can't trace `accesskit::TreeUpdate`'s private `PropertyId` enum.
+/// But the separate (non-C#) Rust program that this crate hands serialized [`FullOutput`]s to
+/// links the official, unpatched `egui`, whose `PlatformOutput` does *not* skip this field: with
+/// it skipped here, every field serialized after it would land at the wrong byte offset once
+/// deserialized on that side. This mirror serializes the field back in using `accesskit`'s own
+/// (working) `Serialize`/`Deserialize` impl directly, without going through the reflection
+/// tracer, restoring a byte-for-byte match with the upstream layout.
+#[derive(Clone, Serialize, Deserialize)]
+struct PlatformOutput2 {
+    /// The [`PlatformOutput::commands`] field.
+    pub commands: Vec<OutputCommand>,
+    /// The [`PlatformOutput::cursor_icon`] field.
+    pub cursor_icon: CursorIcon,
+    /// The [`PlatformOutput::events`] field.
+    pub events: Vec<OutputEvent>,
+    /// The [`PlatformOutput::mutable_text_under_cursor`] field.
+    pub mutable_text_under_cursor: bool,
+    /// The [`PlatformOutput::ime`] field.
+    pub ime: Option<IMEOutput>,
+    /// The [`PlatformOutput::accesskit_update`] field.
+    pub accesskit_update: Option<accesskit::TreeUpdate>,
+    /// The [`PlatformOutput::num_completed_passes`] field.
+    pub num_completed_passes: usize
+}
+
+impl From<PlatformOutput2> for PlatformOutput {
+    fn from(value: PlatformOutput2) -> Self {
+        Self {
+            commands: value.commands,
+            cursor_icon: value.cursor_icon,
+            events: value.events,
+            mutable_text_under_cursor: value.mutable_text_under_cursor,
+            ime: value.ime,
+            accesskit_update: value.accesskit_update,
+            num_completed_passes: value.num_completed_passes,
+            ..Default::default()
+        }
+    }
+}
+
+impl From<PlatformOutput> for PlatformOutput2 {
+    fn from(value: PlatformOutput) -> Self {
+        Self {
+            commands: value.commands,
+            cursor_icon: value.cursor_icon,
+            events: value.events,
+            mutable_text_under_cursor: value.mutable_text_under_cursor,
+            ime: value.ime,
+            accesskit_update: value.accesskit_update,
+            num_completed_passes: value.num_completed_passes
         }
     }
 }
