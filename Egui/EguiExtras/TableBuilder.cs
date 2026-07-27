@@ -1,3 +1,4 @@
+using System.ComponentModel;
 using Egui.Containers;
 
 namespace Egui.EguiExtras;
@@ -33,6 +34,10 @@ public ref struct TableBuilder
     /// The <see cref="Ui"/> that this table is being built within.
     /// </summary>
     internal readonly Ui Ui => _ui;
+
+    [EditorBrowsable(EditorBrowsableState.Never)]
+    [Obsolete("'TableBuilder' does not contain a constructor that takes 0 arguments", error: true)]
+    public TableBuilder() { throw new InvalidOperationException(); }
 
     public TableBuilder(Ui ui)
     {

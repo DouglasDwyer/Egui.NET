@@ -1,3 +1,5 @@
+using System.ComponentModel;
+
 namespace Egui.Util;
 
 /// <summary>
@@ -21,6 +23,10 @@ public ref struct IdTypeMap
     /// The number of values stored in this map.
     /// </summary>
     public int Length => _inner.Count;
+
+    [EditorBrowsable(EditorBrowsableState.Never)]
+    [Obsolete("'IdTypeMap' does not contain a constructor that takes 0 arguments", error: true)]
+    public IdTypeMap() { throw new InvalidOperationException(); }
 
     /// <summary>
     /// Creates a new map wrapper.

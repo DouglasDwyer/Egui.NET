@@ -1,3 +1,4 @@
+using System.ComponentModel;
 using System.Numerics;
 
 namespace Egui.Widgets;
@@ -9,6 +10,10 @@ public ref struct DragValue<T> : IWidget where T : INumber<T>
 {
     private ref T _value;
     private DragValueInner _inner;
+
+    [EditorBrowsable(EditorBrowsableState.Never)]
+    [Obsolete("'DragValue' does not contain a constructor that takes 0 arguments", error: true)]
+    public DragValue() { throw new InvalidOperationException(); }
 
     public DragValue(ref T value)
     {

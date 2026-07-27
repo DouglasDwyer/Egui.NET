@@ -1,3 +1,4 @@
+using System.ComponentModel;
 using Egui.Containers;
 
 namespace Egui.EguiExtras;
@@ -10,6 +11,10 @@ public readonly ref struct Table
     private readonly TableBuilder _builder;
     private readonly float _headerHeight;
     private readonly Action<TableRow> _headerCallback;
+
+    [EditorBrowsable(EditorBrowsableState.Never)]
+    [Obsolete("'Table' does not contain a constructor that takes 0 arguments", error: true)]
+    public Table() { throw new InvalidOperationException(); }
 
     internal Table(TableBuilder builder, float headerHeight, Action<TableRow> headerCallback)
     {

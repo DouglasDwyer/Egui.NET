@@ -1,3 +1,5 @@
+using System.ComponentModel;
+
 namespace Egui.Widgets;
 
 /// <summary>
@@ -7,6 +9,10 @@ public ref struct DatePicker : IWidget
 {
     private ref DateOnly _date;
     private DatePickerInner _inner;
+
+    [EditorBrowsable(EditorBrowsableState.Never)]
+    [Obsolete("'DatePicker' does not contain a constructor that takes 0 arguments", error: true)]
+    public DatePicker() { throw new InvalidOperationException(); }
 
     public DatePicker(ref DateOnly date)
     {

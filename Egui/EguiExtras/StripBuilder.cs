@@ -1,3 +1,5 @@
+using System.ComponentModel;
+
 namespace Egui.EguiExtras;
 
 /// <summary>
@@ -18,6 +20,10 @@ public ref struct StripBuilder
     private Layout? _cellLayout;
     private Egui.Sense _sense;
     private List<Size> _sizes;
+
+    [EditorBrowsable(EditorBrowsableState.Never)]
+    [Obsolete("'StripBuilder' does not contain a constructor that takes 0 arguments", error: true)]
+    public StripBuilder() { throw new InvalidOperationException(); }
 
     public StripBuilder(Ui ui)
     {

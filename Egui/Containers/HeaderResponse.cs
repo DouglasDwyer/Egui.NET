@@ -1,3 +1,5 @@
+using System.ComponentModel;
+
 namespace Egui.Containers;
 
 /// <summary>
@@ -12,6 +14,9 @@ public ref struct HeaderResponse
     private Response _toggleButtonResponse;
     private InnerResponse _response;
 
+    [EditorBrowsable(EditorBrowsableState.Never)]
+    [Obsolete("'HeaderResponse' does not contain a constructor that takes 0 arguments", error: true)]
+    public HeaderResponse() { throw new InvalidOperationException(); }
 
     internal HeaderResponse(CollapsingState state, Ui ui, Response toggleButtonResponse, InnerResponse response)
     {
@@ -73,6 +78,10 @@ public ref struct HeaderResponse<H>
     private Ui _ui;
     private Response _toggleButtonResponse;
     private InnerResponse<H> _response;
+
+    [EditorBrowsable(EditorBrowsableState.Never)]
+    [Obsolete("'HeaderResponse' does not contain a constructor that takes 0 arguments", error: true)]
+    public HeaderResponse() { throw new InvalidOperationException(); }
 
     internal HeaderResponse(CollapsingState state, Ui ui, Response toggleButtonResponse, InnerResponse<H> response)
     {

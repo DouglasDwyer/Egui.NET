@@ -1,4 +1,5 @@
 using System.Collections.Immutable;
+using System.ComponentModel;
 
 namespace Egui.EguiExtras;
 
@@ -10,6 +11,10 @@ public readonly ref struct TableBody
     internal readonly nuint Ptr;
 
     private readonly Context _ctx;
+
+    [EditorBrowsable(EditorBrowsableState.Never)]
+    [Obsolete("'TableBody' does not contain a constructor that takes 0 arguments", error: true)]
+    public TableBody() { throw new InvalidOperationException(); }
 
     internal TableBody(Context ctx, nuint ptr)
     {
