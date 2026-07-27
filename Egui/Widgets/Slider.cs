@@ -1,3 +1,4 @@
+using System.ComponentModel;
 using System.Numerics;
 
 namespace Egui.Widgets;
@@ -18,6 +19,10 @@ public ref struct Slider<T> : IWidget where T : INumber<T>
 {
     private ref T _value;
     private SerializableSlider _inner;
+
+    [EditorBrowsable(EditorBrowsableState.Never)]
+    [Obsolete("'Slider' does not contain a constructor that takes 0 arguments", error: true)]
+    public Slider() { throw new InvalidOperationException(); }
 
     /// <summary>
     /// Creates a new horizontal slider.

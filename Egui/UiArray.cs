@@ -1,3 +1,5 @@
+using System.ComponentModel;
+
 namespace Egui;
 
 /// <summary>
@@ -29,6 +31,10 @@ public unsafe readonly ref struct UiArray
     /// The number of items in the array.
     /// </summary>
     public int Length => _length;
+
+    [EditorBrowsable(EditorBrowsableState.Never)]
+    [Obsolete("'UiArray' does not contain a constructor that takes 0 arguments", error: true)]
+    public UiArray() { throw new InvalidOperationException(); }
 
     /// <summary>
     /// Creates a new UI array.

@@ -1,3 +1,5 @@
+using System.ComponentModel;
+
 namespace Egui.Containers;
 
 /// <summary>
@@ -32,6 +34,10 @@ public ref struct Window
     private bool _fadeOut;
     private bool _autoSized;
     private WindowDrag _dragArea;
+
+    [EditorBrowsable(EditorBrowsableState.Never)]
+    [Obsolete("'Window' does not contain a constructor that takes 0 arguments", error: true)]
+    public Window() { throw new InvalidOperationException(); }
 
     /// <summary>
     /// The window title is used as a unique Id and must be unique, and should not change.

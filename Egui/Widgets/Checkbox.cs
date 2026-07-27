@@ -1,8 +1,10 @@
+using System.ComponentModel;
+
 namespace Egui.Widgets;
 
 /// <summary>
 /// Boolean on/off control with text label.<br/>
-/// Usually you'd use <see cref="Ui.Checkbox"/> instead. 
+/// Usually you'd use <see cref="Ui.Checkbox"/> instead.
 /// </summary>
 public ref struct Checkbox : IWidget
 {
@@ -10,6 +12,10 @@ public ref struct Checkbox : IWidget
     private ref bool _checked;
     private bool _indeterminate;
     private Classes _classes;
+
+    [EditorBrowsable(EditorBrowsableState.Never)]
+    [Obsolete("'Checkbox' does not contain a constructor that takes 0 arguments", error: true)]
+    public Checkbox() { throw new InvalidOperationException(); }
 
     public Checkbox(ref bool isChecked, Atoms atoms)
     {
