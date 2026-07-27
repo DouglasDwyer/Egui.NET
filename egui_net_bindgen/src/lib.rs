@@ -2476,10 +2476,7 @@ impl BindingsGenerator {
         let samples = Samples::new();
         let mut tracer = Tracer::new(TracerConfig::default()
             .default_u64_value(1)
-            // `accesskit::Uuid` (embedded in `TreeId`, used by `Event::AccessKitActionRequest`)
-            // serializes as raw bytes rather than through a newtype/tuple/struct wrapper, so it
-            // isn't covered by the `record_samples_for_*` options below. Without a 16-byte
-            // default here the tracer feeds it zero bytes and `Uuid` parsing fails.
+            // Gives `accesskit::Uuid` (in `TreeId`) a valid 16-byte sample to parse.
             .default_borrowed_bytes_value(&[0u8; 16])
             .record_samples_for_newtype_structs(true)
             .record_samples_for_tuple_structs(true)
@@ -2497,12 +2494,7 @@ impl BindingsGenerator {
         tracer.trace_simple_type::<SidesKind>().expect("Failed to trace SidesKind");
         tracer.trace_simple_type::<TextStyle>().expect("Failed to trace SidesKind");
         tracer.trace_simple_type::<WidgetText>().expect("Failed to trace WidgetText");
-        // `Event::AccessKitActionRequest` is no longer skipped from serde (see its doc comment),
-        // so the tracer now walks into these `accesskit` types. They're not part of any
-        // `DOC_CRATES` crate, so `trace_auto_egui_types` never traces them on its own; without
-        // these explicit calls the enums below would only have their first-seen variant
-        // recorded, and `registry()` would reject the registry as incomplete. They're removed
-        // from the final registry below since accesskit support isn't exposed to C#.
+        // Needed to fully trace `Event::AccessKitActionRequest`; excluded from the final registry below.
         tracer.trace_simple_type::<egui::accesskit::Action>().expect("Failed to trace Action");
         tracer.trace_simple_type::<egui::accesskit::ActionData>().expect("Failed to trace ActionData");
         tracer.trace_simple_type::<egui::accesskit::ActionRequest>().expect("Failed to trace ActionRequest");

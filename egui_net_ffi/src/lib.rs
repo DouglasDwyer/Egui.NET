@@ -110,16 +110,8 @@ impl From<FullOutput> for FullOutput2 {
     }
 }
 
-/// Holds the serializable members of [`PlatformOutput`], including `accesskit_update`.
-///
-/// `PlatformOutput::accesskit_update` is `#[serde(skip)]` (see its doc comment) because the
-/// C# reflection-based bindgen can't trace `accesskit::TreeUpdate`'s private `PropertyId` enum.
-/// But the separate (non-C#) Rust program that this crate hands serialized [`FullOutput`]s to
-/// links the official, unpatched `egui`, whose `PlatformOutput` does *not* skip this field: with
-/// it skipped here, every field serialized after it would land at the wrong byte offset once
-/// deserialized on that side. This mirror serializes the field back in using `accesskit`'s own
-/// (working) `Serialize`/`Deserialize` impl directly, without going through the reflection
-/// tracer, restoring a byte-for-byte match with the upstream layout.
+/// Holds the serializable members of [`PlatformOutput`], including `accesskit_update`
+/// (which is `#[serde(skip)]` on [`PlatformOutput`] itself; see its doc comment).
 #[derive(Clone, Serialize, Deserialize)]
 struct PlatformOutput2 {
     /// The [`PlatformOutput::commands`] field.
