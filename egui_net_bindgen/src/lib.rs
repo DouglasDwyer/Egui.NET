@@ -87,7 +87,17 @@ const BINDING_EXCLUDE_TYPES: &[&str] = &[
     "",
     "Fonts",
     // Private types
-    "Tessellator"
+    "Tessellator",
+    // Accessibility/accesskit support is not exposed to C# (see README). These are only
+    // traced so that `Event`'s `AccessKitActionRequest` variant (removed from the registry
+    // in `trace_serde_types`) can be fully enumerated; they have no other reachable use.
+    "Action",
+    "ActionData",
+    "ActionRequest",
+    "TreeId",
+    "NodeId",
+    "ScrollHint",
+    "ScrollUnit",
 ];
 
 /// Types for which fields/serialization logic should not be generated.
@@ -2466,6 +2476,8 @@ impl BindingsGenerator {
         let samples = Samples::new();
         let mut tracer = Tracer::new(TracerConfig::default()
             .default_u64_value(1)
+            // Gives `accesskit::Uuid` (in `TreeId`) a valid 16-byte sample to parse.
+            .default_borrowed_bytes_value(&[0u8; 16])
             .record_samples_for_newtype_structs(true)
             .record_samples_for_tuple_structs(true)
             .record_samples_for_structs(true));
@@ -2482,7 +2494,15 @@ impl BindingsGenerator {
         tracer.trace_simple_type::<SidesKind>().expect("Failed to trace SidesKind");
         tracer.trace_simple_type::<TextStyle>().expect("Failed to trace SidesKind");
         tracer.trace_simple_type::<WidgetText>().expect("Failed to trace WidgetText");
-        
+        // Needed to fully trace `Event::AccessKitActionRequest`; excluded from the final registry below.
+        tracer.trace_simple_type::<egui::accesskit::Action>().expect("Failed to trace Action");
+        tracer.trace_simple_type::<egui::accesskit::ActionData>().expect("Failed to trace ActionData");
+        tracer.trace_simple_type::<egui::accesskit::ActionRequest>().expect("Failed to trace ActionRequest");
+        tracer.trace_simple_type::<egui::accesskit::TreeId>().expect("Failed to trace TreeId");
+        tracer.trace_simple_type::<egui::accesskit::NodeId>().expect("Failed to trace NodeId");
+        tracer.trace_simple_type::<egui::accesskit::ScrollHint>().expect("Failed to trace ScrollHint");
+        tracer.trace_simple_type::<egui::accesskit::ScrollUnit>().expect("Failed to trace ScrollUnit");
+
         trace_auto_egui_types(&mut tracer);
         trace_auto_emath_types(&mut tracer);
         trace_auto_epaint_types(&mut tracer);
@@ -2492,6 +2512,7 @@ impl BindingsGenerator {
         let mut result = tracer.registry().expect("Failed to generate serde registry");
 
         let Some(ContainerFormat::Enum(variants)) = result.get_mut("Event") else { panic!("Could not get Event in registry") };
+        variants.retain(|_, variant| variant.name != "AccessKitActionRequest");
         for variant in variants.values_mut() {
             if variant.name == "Key" {
                 let VariantFormat::Struct(fields) = &mut variant.value else { panic!("Event::Key did not have correct format") };
