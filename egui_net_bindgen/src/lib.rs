@@ -98,6 +98,11 @@ const BINDING_EXCLUDE_TYPES: &[&str] = &[
     "NodeId",
     "ScrollHint",
     "ScrollUnit",
+    "Point",
+    "TextPosition",
+    // Collides with the namespace used for egui's own (bound) `text_selection` module types
+    // (see `NAMESPACE_RENAMES`) if left in the registry.
+    "TextSelection",
 ];
 
 /// Types for which fields/serialization logic should not be generated.
