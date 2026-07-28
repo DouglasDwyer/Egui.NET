@@ -56,11 +56,13 @@ Need to add Egui.NET somewhere else? [Adding a new egui integration is easy](htt
 
 ## WebAssembly
 
-In addition to dynamic libraries for desktop platforms, the NuGet package ships a `wasm32-unknown-unknown` static library at `runtimes/browser-wasm/native/libegui_net.a`. When building a browser-wasm application with the `wasm-tools` workload installed, the .NET SDK links this archive directly into the final WebAssembly module, allowing the Rust side of Egui.NET to run in the browser. To build the archive from source, run:
+In addition to dynamic libraries for desktop platforms, the NuGet package ships a `wasm32-unknown-unknown` static library at `runtimes/browser-wasm/native/egui_net.a`, along with a `buildTransitive` targets file that adds it as a `NativeFileReference` whenever a consuming project builds with `RuntimeIdentifier=browser-wasm`. When building such a project with the `wasm-tools` workload installed, the .NET SDK links this archive directly into `dotnet.native.wasm`, allowing the Rust side of Egui.NET to run in the browser. To build the archive from source, run:
 
 ```bash
 cargo rustc --profile release --target wasm32-unknown-unknown --package egui_net --crate-type staticlib
 ```
+
+Note that `dotnet publish` for a browser-wasm app trims unused code by default; as of this writing, that trimming removes some of the reflection-based type serializers `EguiMarshal` relies on, which throws at startup (a `TypeInitializationException` for `SerializerCache<T>`). Until Egui.NET ships trim-safety annotations for that marshaling code, disable trimming for consuming projects that need it, e.g. `<PublishTrimmed>false</PublishTrimmed>` — though note that alone was not sufficient in initial testing here (it surfaced an unrelated Mono corelib/runtime version-mismatch failure); a working combination of properties has not yet been established. `dotnet build` (which never trims) is unaffected and was used to verify this target end-to-end.
 
 ## Incomplete features
 

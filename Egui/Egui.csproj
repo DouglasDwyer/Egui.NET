@@ -133,13 +133,18 @@
             CopyToOutputDirectory="Always"
             PackagePath="runtimes/linux-x64/native/libegui_net.so"
             Link="egui_net.so"/>
-        <!-- Static library for WebAssembly. The .NET WebAssembly SDK links .a files found in
-             runtimes/browser-wasm/native into dotnet.native.wasm during native relinking,
-             so this is not copied to the output directory like the dynamic libraries above. -->
+        <!-- Static library for WebAssembly, statically linked into consumers' dotnet.native.wasm
+             by buildTransitive/Egui.targets (see that file for why it can't just be discovered
+             from this runtimes/ path alone). Not copied to the output directory like the
+             dynamic libraries above, since it is never loaded at run time. Packed without the
+             "lib" prefix cargo gives it: the wasm SDK derives each NativeFileReference's P/Invoke
+             module name from the archive's filename (no "lib"/extension stripping like desktop
+             dynamic loading does), and the generated bindings declare DllImport("egui_net"). -->
         <None Include="../target/wasm32-unknown-unknown/$(CargoProfileOutput)/libegui_net.a"
             Condition="$([System.String]::new('$(RuntimeIdentifiers)').Contains('browser-wasm'))"
             Pack="true"
-            PackagePath="runtimes/browser-wasm/native/libegui_net.a"/>
+            PackagePath="runtimes/browser-wasm/native/egui_net.a"/>
+        <None Include="buildTransitive/Egui.targets" Pack="true" PackagePath="buildTransitive/Egui.targets"/>
         <None Include="../README.md" Pack="true" PackagePath="/"/>
     </ItemGroup>
 

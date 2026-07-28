@@ -1,0 +1,18 @@
+<Project>
+    <!--
+      The .NET WebAssembly SDK only static-links a package's native library into
+      dotnet.native.wasm when told to via a NativeFileReference item; simply shipping
+      runtimes/browser-wasm/native/*.a is not enough (NuGet's RID-asset selection, which
+      populates NativeLibrary/NativeFileReference automatically for other RIDs, does not
+      apply to browser-wasm static libraries). So this package adds the reference itself
+      for any consumer targeting browser-wasm.
+
+      The archive is packed as egui_net.a, not cargo's own libegui_net.a: the wasm SDK
+      derives each NativeFileReference's P/Invoke module name from the filename alone (no
+      "lib"/extension stripping like desktop dynamic loading does), and the generated
+      bindings declare DllImport("egui_net").
+    -->
+    <ItemGroup Condition="'$(RuntimeIdentifier)' == 'browser-wasm'">
+        <NativeFileReference Include="$(MSBuildThisFileDirectory)../runtimes/browser-wasm/native/egui_net.a" />
+    </ItemGroup>
+</Project>

@@ -920,7 +920,16 @@ pub unsafe extern "C" fn egui_init() {
 #[unsafe(no_mangle)]
 pub unsafe extern "C" fn egui_invoke(f: EguiFn, args: EguiSliceU8) -> EguiInvokeResult {
     /// The serialization buffer to which results will be written.
+    ///
+    /// Plain `static mut` on wasm32: real `#[thread_local]` storage needs the embedder to call
+    /// Rust's `__wasm_init_tls` per instance to set up `__tls_base`, which the .NET wasm runtime
+    /// has no reason to know about when this crate is just a statically-linked archive; without
+    /// it, any TLS access traps ("memory access out of bounds") on an uninitialized base pointer.
+    /// This is sound here because the target is embedded single-threaded (Mono's WASM runtime).
+    #[cfg(not(target_arch = "wasm32"))]
     #[thread_local]
+    static mut RETURN_BUFFER: Vec<u8> = Vec::new();
+    #[cfg(target_arch = "wasm32")]
     static mut RETURN_BUFFER: Vec<u8> = Vec::new();
 
     match catch_unwind(|| {
