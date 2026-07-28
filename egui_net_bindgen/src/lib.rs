@@ -98,6 +98,9 @@ const BINDING_EXCLUDE_TYPES: &[&str] = &[
     "NodeId",
     "ScrollHint",
     "ScrollUnit",
+    "Point",
+    "TextPosition",
+    "TextSelection",
 ];
 
 /// Types for which fields/serialization logic should not be generated.
