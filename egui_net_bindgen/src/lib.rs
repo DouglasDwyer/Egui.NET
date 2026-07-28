@@ -100,8 +100,6 @@ const BINDING_EXCLUDE_TYPES: &[&str] = &[
     "ScrollUnit",
     "Point",
     "TextPosition",
-    // Collides with the namespace used for egui's own (bound) `text_selection` module types
-    // (see `NAMESPACE_RENAMES`) if left in the registry.
     "TextSelection",
 ];
 
