@@ -2,7 +2,7 @@ using System.Collections.Immutable;
 
 namespace Egui;
 
-public partial struct KeyboardShortcut
+public partial record struct KeyboardShortcut
 {
     public string Format(ModifierNames names, bool isMac)
     {

@@ -2,7 +2,7 @@ using System.Collections.Immutable;
 
 namespace Egui.Load;
 
-public partial struct Bytes
+public partial record struct Bytes
 {
     /// <summary>
     /// Creates a new bytes object for the given data.

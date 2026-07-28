@@ -3,7 +3,7 @@ using System.Collections.Immutable;
 
 namespace Egui;
 
-public partial struct Atoms : IEnumerable<Atom>
+public partial record struct Atoms : IEnumerable<Atom>
 {
     public IEnumerable<AtomKind> Kinds => this.Select(x => x.Kind);
 

@@ -29,7 +29,7 @@ namespace Egui;
 ///
 /// This is niche-optimized to that <c>Option</c> is the same size as <c>Id</c>.
 /// </summary>
-public partial struct Id : IEquatable<Id>
+public partial record struct Id
 {
     /// <summary>
     /// A special <see cref="Id"/> , in particular as a key to <see cref="Memory.Data"/> 
@@ -82,40 +82,14 @@ public partial struct Id : IEquatable<Id>
         deserializer.decrease_container_depth();
         return obj;
     }
-    
-    /// <inheritdoc/>
-    public override bool Equals(object? obj) => obj is Id other && Equals(other);
 
     /// <summary>
-    /// Compares two IDs for equality.
+    /// Restricts the compiler-synthesized <see cref="ToString"/> to just the underlying ID
+    /// value, rather than every convenience property defined on this type.
     /// </summary>
-    /// <param name="left">The first ID.</param>
-    /// <param name="right">The second ID.</param>
-    /// <returns>Whether the two are the same.</returns>
-    public static bool operator ==(Id left, Id right) => Equals(left, right);
-
-    /// <summary>
-    /// Compares two IDs for inequality.
-    /// </summary>
-    /// <param name="left">The first ID.</param>
-    /// <param name="right">The second ID.</param>
-    /// <returns>Whether the two are different.</returns>
-    public static bool operator !=(Id left, Id right) => !Equals(left, right);
-
-    /// <inheritdoc/>
-    public bool Equals(Id other)
+    private readonly bool PrintMembers(System.Text.StringBuilder builder)
     {
-        return _value == other._value;
-    }
-
-    /// <inheritdoc/>
-    public override int GetHashCode()
-    {
-        unchecked
-        {
-            int value = 7;
-            value = 31 * value + _value.GetHashCode();
-            return value;
-        }
+        builder.Append("Value = ").Append(_value);
+        return true;
     }
 }

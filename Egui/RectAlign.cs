@@ -2,7 +2,7 @@ using System.Collections.Immutable;
 
 namespace Egui;
 
-public partial struct RectAlign
+public partial record struct RectAlign
 {
     /// <summary>
     /// Along the top edge, leftmost.

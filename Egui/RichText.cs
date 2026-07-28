@@ -1,6 +1,6 @@
 namespace Egui;
 
-public partial struct RichText
+public partial record struct RichText
 {
     /// <summary>
     /// Creates a <see cref="RichText"/> object for the provided string.

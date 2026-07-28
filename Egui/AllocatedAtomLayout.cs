@@ -1,6 +1,6 @@
 namespace Egui;
 
-public partial struct AllocatedAtomLayout
+public partial record struct AllocatedAtomLayout
 {
     /// <inheritdoc cref="SizedAtomLayout.Images"/>
     public readonly IEnumerable<Image> Images => Sized.Images;

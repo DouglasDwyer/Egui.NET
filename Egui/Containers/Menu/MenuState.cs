@@ -2,7 +2,7 @@ using Microsoft.VisualBasic;
 
 namespace Egui.Containers.Menu;
 
-public partial struct MenuState
+public partial record struct MenuState
 {
     /// <inheritdoc cref="MutateMenuStateFromUi{R}"/>
     public delegate void MutateMenuStateFromUi(ref MenuState state, UiStack stack);

@@ -1,6 +1,6 @@
 namespace Egui.Widgets;
 
-public partial struct Separator
+public partial record struct Separator
 {
     /// <summary>
     /// Sets the CSS-like classes for this separator.<br/>

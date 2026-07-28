@@ -1,6 +1,6 @@
 namespace Egui.Containers.Menu;
 
-public partial struct MenuButton
+public partial record struct MenuButton
 {
     /// <summary>
     /// Show the menu button.

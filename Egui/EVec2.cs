@@ -1,6 +1,6 @@
 namespace Egui;
 
-public partial struct EVec2
+public partial record struct EVec2
 {
     /// <summary>
     /// +X

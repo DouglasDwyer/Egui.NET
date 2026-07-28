@@ -1,6 +1,6 @@
 namespace Egui.Widgets;
 
-public partial struct Button
+public partial record struct Button
 {
     /// <summary>
     /// Sets the CSS-like classes for this button.<br/>

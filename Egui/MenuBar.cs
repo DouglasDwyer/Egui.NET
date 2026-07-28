@@ -1,6 +1,6 @@
 namespace Egui;
 
-public partial struct MenuBar
+public partial record struct MenuBar
 {
     /// <summary>
     /// Show the menu bar.

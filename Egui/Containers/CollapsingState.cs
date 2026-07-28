@@ -1,6 +1,6 @@
 namespace Egui.Containers;
 
-public partial struct CollapsingState
+public partial record struct CollapsingState
 {
     /// <summary>
     /// Show body if we are open, with a nice animation between closed and open.<br/>

@@ -1,6 +1,6 @@
 namespace Egui.Containers;
 
-public partial struct Scene
+public partial record struct Scene
 {
     /// <summary>
     /// <paramref name="sceneRect"/> contains the view bounds of the inner <see cref="Ui"/>.<br/>

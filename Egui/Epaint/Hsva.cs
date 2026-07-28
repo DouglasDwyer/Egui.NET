@@ -2,7 +2,7 @@ using System.Collections.Immutable;
 
 namespace Egui.Epaint;
 
-public partial struct Hsva
+public partial record struct Hsva
 {
     public static Hsva FromAdditiveSrgb(Array3<byte> rgb)
     {

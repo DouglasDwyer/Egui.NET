@@ -13,7 +13,7 @@ namespace Egui;
 /// It can therefore be a deadlock to use <c>Context</c> from within a context-locking closures,
 /// such as <c>Input</c>.
 /// </summary>
-public partial struct Response : IEquatable<Response>
+public partial record struct Response
 {
     /// <summary>
     /// Used for optionally showing a tooltip and checking for more interactions.
@@ -155,12 +155,6 @@ public partial struct Response : IEquatable<Response>
         deserializer.decrease_container_depth();
         return obj;
     }
-    public override bool Equals(object? obj) => obj is Response other && Equals(other);
-
-    public static bool operator ==(Response left, Response right) => Equals(left, right);
-
-    public static bool operator !=(Response left, Response right) => !Equals(left, right);
-
     /// <inheritdoc/>
     public bool Equals(Response other)
     {
@@ -192,6 +186,21 @@ public partial struct Response : IEquatable<Response>
             value = 31 * value + _flags.GetHashCode();
             return value;
         }
+    }
+
+    /// <summary>
+    /// Restricts the compiler-synthesized <see cref="ToString"/> to just this type's data
+    /// fields, rather than every convenience property defined on this type (many of which
+    /// call into native egui code to compute interaction state).
+    /// </summary>
+    private readonly bool PrintMembers(System.Text.StringBuilder builder)
+    {
+        builder.Append("LayerId = ").Append(LayerId);
+        builder.Append(", Id = ").Append(Id);
+        builder.Append(", Rect = ").Append(Rect);
+        builder.Append(", InteractRect = ").Append(InteractRect);
+        builder.Append(", Sense = ").Append(Sense);
+        return true;
     }
 
     /// <summary>

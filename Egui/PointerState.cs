@@ -3,7 +3,7 @@ using System.Collections.Immutable;
 namespace Egui
 {
 
-    public partial struct PointerState
+    public partial record struct PointerState
     {
     }
 }

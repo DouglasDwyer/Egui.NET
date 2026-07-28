@@ -1,6 +1,6 @@
 namespace Egui.Containers;
 
-public partial struct Frame
+public partial record struct Frame
 {
     /// <summary>
     /// Show the given ui surrounded by this frame.

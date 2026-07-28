@@ -1,6 +1,6 @@
 namespace Egui.Ecolor;
 
-public partial struct HexColor
+public partial record struct HexColor
 {
     /// <summary>
     /// Parses a string <paramref name="s"/> to return a value of this type.

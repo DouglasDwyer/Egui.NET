@@ -5,7 +5,7 @@ namespace Egui;
 /// <summary>
 /// What sort of interaction is a widget sensitive to?
 /// </summary>
-public readonly partial struct Sense
+public readonly partial record struct Sense
 {
     /// <summary>
     /// Only hovers detected.
@@ -113,37 +113,12 @@ public readonly partial struct Sense
     public static Sense operator |(Sense lhs, Sense rhs) => new Sense((byte)(lhs._value | rhs._value));
 
     /// <summary>
-    /// Determines whether two sense sets are equal.
+    /// Restricts the compiler-synthesized <see cref="ToString"/> to just the underlying
+    /// flags value, rather than every convenience property defined on this type.
     /// </summary>
-    /// <param name="lhs">The first set of flags.</param>
-    /// <param name="rhs">The second set of flags.</param>
-    /// <returns>Whether the two were the same.</returns>
-    public static bool operator ==(Sense lhs, Sense rhs) => lhs._value == rhs._value;
-
-    /// <summary>
-    /// Determines whether two sense sets are not equal.
-    /// </summary>
-    /// <param name="lhs">The first set of flags.</param>
-    /// <param name="rhs">The second set of flags.</param>
-    /// <returns>Whether the two were different.</returns>
-    public static bool operator !=(Sense lhs, Sense rhs) => !(lhs == rhs);
-
-    /// <inheritdoc/>
-    public override bool Equals([NotNullWhen(true)] object? obj)
+    private readonly bool PrintMembers(System.Text.StringBuilder builder)
     {
-        if (obj is Sense rhs)
-        {
-            return this == rhs;
-        }
-        else
-        {
-            return false;
-        }
-    }
-
-    /// <inheritdoc/>
-    public override int GetHashCode()
-    {
-        return _value.GetHashCode();
+        builder.Append("Value = ").Append(_value);
+        return true;
     }
 }

@@ -1,6 +1,6 @@
 namespace Egui.Containers;
 
-public partial struct Sides
+public partial record struct Sides
 {
     public readonly void Show(Ui ui, Action<Ui> addLeft, Action<Ui> addRight)
     {

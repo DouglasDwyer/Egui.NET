@@ -21,7 +21,7 @@ namespace Egui;
 /// that stack. Most of its methods are about the specific node, but some methods walk up the
 /// hierarchy to provide information about the entire stack.
 /// </summary>
-public partial struct UiStack : IEquatable<UiStack>, IEnumerable<UiStack> {
+public partial record struct UiStack : IEnumerable<UiStack> {
     public Id Id;
     public UiStackInfo Info;
     public Direction LayoutDirection;
@@ -55,35 +55,19 @@ public partial struct UiStack : IEquatable<UiStack>, IEnumerable<UiStack> {
         deserializer.decrease_container_depth();
         return obj;
     }
-    public override bool Equals(object? obj) => obj is UiStack other && Equals(other);
-
-    public static bool operator ==(UiStack left, UiStack right) => Equals(left, right);
-
-    public static bool operator !=(UiStack left, UiStack right) => !Equals(left, right);
-
-    public bool Equals(UiStack other) {
-        if (other == null) return false;
-        if (ReferenceEquals(this, other)) return true;
-        if (!Id.Equals(other.Id)) return false;
-        if (!Info.Equals(other.Info)) return false;
-        if (!LayoutDirection.Equals(other.LayoutDirection)) return false;
-        if (!MinRect.Equals(other.MinRect)) return false;
-        if (!MaxRect.Equals(other.MaxRect)) return false;
-        if (!Parent.Equals(other.Parent)) return false;
+    /// <summary>
+    /// Restricts the compiler-synthesized <see cref="ToString"/> to just this type's data
+    /// fields, rather than every convenience property defined on this type. <see cref="Parent"/>
+    /// is intentionally omitted so printing a deeply nested stack doesn't walk the whole chain.
+    /// </summary>
+    private readonly bool PrintMembers(StringBuilder builder)
+    {
+        builder.Append("Id = ").Append(Id);
+        builder.Append(", Info = ").Append(Info);
+        builder.Append(", LayoutDirection = ").Append(LayoutDirection);
+        builder.Append(", MinRect = ").Append(MinRect);
+        builder.Append(", MaxRect = ").Append(MaxRect);
         return true;
-    }
-
-    public override int GetHashCode() {
-        unchecked {
-            int value = 7;
-            value = 31 * value + Id.GetHashCode();
-            value = 31 * value + Info.GetHashCode();
-            value = 31 * value + LayoutDirection.GetHashCode();
-            value = 31 * value + MinRect.GetHashCode();
-            value = 31 * value + MaxRect.GetHashCode();
-            value = 31 * value + Parent.GetHashCode();
-            return value;
-        }
     }
 
     /// <inheritdoc/>

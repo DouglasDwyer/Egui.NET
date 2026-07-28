@@ -1,6 +1,6 @@
 namespace Egui.Widgets;
 
-public partial struct Image
+public partial record struct Image
 {
     /// <summary>
     /// Converts to this type from the input type.

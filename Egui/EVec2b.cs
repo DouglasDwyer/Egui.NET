@@ -1,6 +1,6 @@
 namespace Egui;
 
-public partial struct EVec2b
+public partial record struct EVec2b
 {
     public static readonly EVec2b False = new EVec2b(false, false);
 

@@ -12,7 +12,7 @@ namespace Egui;
 /// every type that implements <c>IntoTag</c> in Rust (<c>string</c>, <c>int</c>, <c>uint</c>,
 /// and raw 4-byte arrays) so callers can pass any of them directly.
 /// </summary>
-public partial struct Tag : IEquatable<Tag>
+public partial record struct Tag
 {
     private Array4<byte> _value;
 
@@ -97,21 +97,6 @@ public partial struct Tag : IEquatable<Tag>
     {
         return new Tag { _value = EguiMarshal.SerializerCache<Array4<byte>>.Deserialize(deserializer) };
     }
-
-    /// <inheritdoc/>
-    public override bool Equals(object? obj) => obj is Tag other && Equals(other);
-
-    /// <inheritdoc/>
-    public static bool operator ==(Tag left, Tag right) => Equals(left, right);
-
-    /// <inheritdoc/>
-    public static bool operator !=(Tag left, Tag right) => !Equals(left, right);
-
-    /// <inheritdoc/>
-    public bool Equals(Tag other) => _value.Equals(other._value);
-
-    /// <inheritdoc/>
-    public override int GetHashCode() => _value.GetHashCode();
 
     /// <inheritdoc/>
     public override string ToString() => this;

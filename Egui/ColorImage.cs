@@ -2,7 +2,7 @@ using System.Collections.Immutable;
 
 namespace Egui;
 
-public partial struct ColorImage
+public partial record struct ColorImage
 {
     /// <summary>
     /// Alternative method to <see cref="FromGray"/>.<br/>

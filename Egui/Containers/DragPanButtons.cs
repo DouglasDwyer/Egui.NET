@@ -5,7 +5,7 @@ namespace Egui.Containers;
 /// <summary>
 /// Specifies which pointer buttons can be used to pan the scene by dragging.
 /// </summary>
-public readonly partial struct DragPanButtons
+public readonly partial record struct DragPanButtons
 {
     /// <summary>
     /// No flags.
@@ -108,37 +108,12 @@ public readonly partial struct DragPanButtons
     public static DragPanButtons operator |(DragPanButtons lhs, DragPanButtons rhs) => new DragPanButtons((byte)(lhs._value | rhs._value));
 
     /// <summary>
-    /// Determines whether two sets are equal.
+    /// Restricts the compiler-synthesized <see cref="ToString"/> to just the underlying
+    /// flags value, rather than every convenience property defined on this type.
     /// </summary>
-    /// <param name="lhs">The first set of flags.</param>
-    /// <param name="rhs">The second set of flags.</param>
-    /// <returns>Whether the two were the same.</returns>
-    public static bool operator ==(DragPanButtons lhs, DragPanButtons rhs) => lhs._value == rhs._value;
-
-    /// <summary>
-    /// Determines whether two sets are not equal.
-    /// </summary>
-    /// <param name="lhs">The first set of flags.</param>
-    /// <param name="rhs">The second set of flags.</param>
-    /// <returns>Whether the two were different.</returns>
-    public static bool operator !=(DragPanButtons lhs, DragPanButtons rhs) => !(lhs == rhs);
-
-    /// <inheritdoc/>
-    public override bool Equals([NotNullWhen(true)] object? obj)
+    private readonly bool PrintMembers(System.Text.StringBuilder builder)
     {
-        if (obj is DragPanButtons rhs)
-        {
-            return this == rhs;
-        }
-        else
-        {
-            return false;
-        }
-    }
-
-    /// <inheritdoc/>
-    public override int GetHashCode()
-    {
-        return _value.GetHashCode();
+        builder.Append("Value = ").Append(_value);
+        return true;
     }
 }

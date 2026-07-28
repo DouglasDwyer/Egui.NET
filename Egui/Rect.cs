@@ -1,6 +1,6 @@
 namespace Egui;
 
-public partial struct Rect
+public partial record struct Rect
 {
     /// <summary>
     /// Infinite rectangle that contains every point.

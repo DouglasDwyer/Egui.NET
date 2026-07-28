@@ -1,6 +1,6 @@
 namespace Egui.Containers.Menu;
 
-public partial struct SubMenu
+public partial record struct SubMenu
 {
     /// <summary>
     /// Show the submenu.

@@ -1,6 +1,6 @@
 namespace Egui;
 
-public partial struct Shape
+public partial record struct Shape
 {
     /// <summary>
     /// Creates a gradient rectangle that transitions from <paramref name="from"/> to <paramref name="to"/>

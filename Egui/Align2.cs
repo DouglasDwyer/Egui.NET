@@ -1,6 +1,6 @@
 namespace Egui;
 
-public partial struct Align2
+public partial record struct Align2
 {
     public static readonly Align2 LeftBottom = new Align2(Align.Min, Align.Max);
     public static readonly Align2 LeftCenter = new Align2(Align.Min, Align.Center);
