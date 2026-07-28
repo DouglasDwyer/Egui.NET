@@ -58,6 +58,7 @@ use std::panic::catch_unwind;
 use std::sync::*;
 
 /// The global memory allocator to use.
+#[cfg(not(target_arch = "wasm32"))]
 #[global_allocator]
 static GLOBAL: mimalloc::MiMalloc = mimalloc::MiMalloc;
 

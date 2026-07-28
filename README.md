@@ -54,6 +54,14 @@ To use Egui.NET, the consumer is responsible for handling user input and renderi
   
 Need to add Egui.NET somewhere else? [Adding a new egui integration is easy](https://docs.rs/egui/latest/egui/#integrating-with-egui).
 
+## WebAssembly
+
+In addition to dynamic libraries for desktop platforms, the NuGet package ships a `wasm32-unknown-unknown` static library at `runtimes/browser-wasm/native/libegui_net.a`. When building a browser-wasm application with the `wasm-tools` workload installed, the .NET SDK links this archive directly into the final WebAssembly module, allowing the Rust side of Egui.NET to run in the browser. To build the archive from source, run:
+
+```bash
+cargo rustc --profile release --target wasm32-unknown-unknown --package egui_net --crate-type staticlib
+```
+
 ## Incomplete features
 
 Egui.NET aims to expose the entirety of `egui`'s functionality. Although 97% of bindings are complete, there are currently a few things missing:
