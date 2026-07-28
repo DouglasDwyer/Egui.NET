@@ -1,6 +1,6 @@
 namespace Egui;
 
-public partial struct Shadow
+public partial record struct Shadow
 {
     /// <summary>
     /// No shadow at all.

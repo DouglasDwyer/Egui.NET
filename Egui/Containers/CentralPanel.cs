@@ -1,6 +1,6 @@
 namespace Egui.Containers;
 
-public partial struct CentralPanel
+public partial record struct CentralPanel
 {
     /// <summary>
     /// Show the panel inside a <see cref="Ui"/>.

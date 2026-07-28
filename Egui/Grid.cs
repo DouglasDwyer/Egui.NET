@@ -1,7 +1,7 @@
 namespace Egui;
 
 #pragma warning disable CS0282
-public partial struct Grid
+public partial record struct Grid
 #pragma warning restore
 {
     /// <summary>

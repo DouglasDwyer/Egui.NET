@@ -2,7 +2,7 @@ using System.Collections.Immutable;
 
 namespace Egui;
 
-public partial struct Mesh
+public partial record struct Mesh
 {
     /// <summary>
     /// Iterate over the triangles of this mesh, returning vertex indices.

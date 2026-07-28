@@ -1,6 +1,6 @@
 namespace Egui.Containers;
 
-public partial struct PopupAnchor
+public partial record struct PopupAnchor
 {
     /// <summary>
     /// Get the rect the popup should be shown relative to.

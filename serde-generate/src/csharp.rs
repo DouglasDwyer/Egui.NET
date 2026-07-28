@@ -750,7 +750,7 @@ return obj.ToImmutableArray();
             self.output_comment(name)?;
             writeln!(
                 self.out,
-                "public partial struct {0} : IEquatable<{0}> {{",
+                "public partial record struct {0} {{",
                 name
             )?;
             ""
@@ -758,7 +758,7 @@ return obj.ToImmutableArray();
             self.output_comment(name)?;
             writeln!(
                 self.out,
-                "public partial struct {0} : IEquatable<{0}> {{",
+                "public partial record struct {0} {{",
                 name
             )?;
             ""
@@ -878,56 +878,29 @@ return obj.ToImmutableArray();
                 }
             }
         }
-        // Equality
-        writeln!(
-            self.out,
-            "public override bool Equals(object? obj) => obj is {} other && Equals(other);\n",
-            name
-        )?;
-        writeln!(
-            self.out,
-            "public static bool operator ==({0} left, {0} right) => Equals(left, right);\n",
-            name
-        )?;
-        writeln!(
-            self.out,
-            "public static bool operator !=({0} left, {0} right) => !Equals(left, right);\n",
-            name
-        )?;
 
-        writeln!(self.out, "public bool Equals({} other) {{", name)?;
+        // ToString
+        //
+        // The compiler-synthesized `PrintMembers`/`ToString` for a record struct include
+        // every public instance property, not just the data fields declared here. Since
+        // hand-written partial extensions add convenience properties (some of which call
+        // back into native egui code), relying on that default can trigger unwanted native
+        // calls or even recursive cycles between related types (e.g. a `ToFoo`/`ToBar` pair
+        // of conversion properties). Providing our own `PrintMembers` restricted to just the
+        // declared data fields avoids that, while still plugging into the compiler-generated
+        // `ToString()`.
+        writeln!(self.out, "private readonly bool PrintMembers(StringBuilder builder) {{")?;
         self.out.indent();
-        //writeln!(self.out, "if (other == null) return false;")?;
-        //writeln!(self.out, "if (ReferenceEquals(this, other)) return true;")?;
-        for field in fields {
-            writeln!(
-                self.out,
-                "if ({0} != other.{0}) return false;",
-                &field.name,
-            )?;
+        for (i, field) in fields.iter().enumerate() {
+            if i == 0 {
+                writeln!(self.out, "builder.Append(\"{0} = \").Append({0});", field.name)?;
+            } else {
+                writeln!(self.out, "builder.Append(\", {0} = \").Append({0});", field.name)?;
+            }
         }
-        writeln!(self.out, "return true;")?;
+        writeln!(self.out, "return {};", !fields.is_empty())?;
         self.out.unindent();
         writeln!(self.out, "}}")?;
-
-        // Hashing
-        writeln!(self.out, "\npublic override int GetHashCode() {{")?;
-        self.out.indent();
-        writeln!(self.out, "unchecked {{")?;
-        self.out.indent();
-        writeln!(self.out, "int value = 7;")?;
-        for field in fields {
-            writeln!(
-                self.out,
-                "value = 31 * value + {0}.GetHashCode();",
-                &field.name
-            )?;
-        }
-        writeln!(self.out, "return value;")?;
-        self.out.unindent();
-        writeln!(self.out, "}}")?;
-        self.out.unindent();
-        writeln!(self.out, "}}\n")?;
 
         /*
         // Clone
@@ -962,7 +935,7 @@ return obj.ToImmutableArray();
         self.output_comment(name)?;
         writeln!(
             self.out,
-            "public partial struct {0} {{",
+            "public partial record struct {0} {{",
             name
         )?;
         let reserved_names = variants
@@ -1084,14 +1057,8 @@ switch (index) {{"#,
         self.out.unindent();
         writeln!(self.out, "}}")?;
 
-        
-        // Equals
-        writeln!(
-            self.out,
-            "public override bool Equals(object? obj) => obj is {} other && Equals(other);\n",
-            name
-        )?;
 
+        // Equals
         writeln!(self.out, "public bool Equals({} other) {{", name)?;
         self.out.indent();
         writeln!(self.out, "if (_variantId != other._variantId) return false;")?;
@@ -1110,16 +1077,22 @@ switch (index) {{"#,
         self.out.unindent();
         writeln!(self.out, "}}\n")?;
 
-        writeln!(
-            self.out,
-            "public static bool operator ==({0} left, {0} right) => Equals(left, right);\n",
-            name
-        )?;
-        writeln!(
-            self.out,
-            "public static bool operator !=({0} left, {0} right) => !Equals(left, right);\n",
-            name
-        )?;
+        // ToString
+        //
+        // See the comment on the equivalent `PrintMembers` in
+        // `output_struct_or_variant_container`: we can't rely on the compiler-synthesized
+        // version here either, and additionally the default field-by-field synthesis would
+        // print every unused variant slot rather than just the active one.
+        writeln!(self.out, "private readonly bool PrintMembers(StringBuilder builder) {{")?;
+        self.out.indent();
+        writeln!(self.out, "switch (_variantId.GetValueOrDefault(-1)) {{")?;
+        for (id, _) in variants {
+            writeln!(self.out, "case {id}: builder.Append(_variant{id}); return true;")?;
+        }
+        writeln!(self.out, "default: return false;")?;
+        writeln!(self.out, "}}")?;
+        self.out.unindent();
+        writeln!(self.out, "}}\n")?;
 
         /*// Clone
         writeln!(

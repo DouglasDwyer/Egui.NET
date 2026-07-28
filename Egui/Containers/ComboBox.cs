@@ -1,6 +1,6 @@
 namespace Egui.Containers;
 
-public partial struct ComboBox
+public partial record struct ComboBox
 {
     /// <summary>
     /// Show the combo box, with the given ui code for the menu contents.<br/>

@@ -5,7 +5,7 @@ using System.Linq;
 
 namespace Egui;
 
-public partial struct SizedAtomLayout
+public partial record struct SizedAtomLayout
 {
     /// <summary>
     /// The auto-generated <c>_sizedAtoms</c> field is private (it mirrors the private Rust

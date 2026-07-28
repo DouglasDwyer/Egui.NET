@@ -2,7 +2,7 @@ using System.Collections.Immutable;
 
 namespace Egui;
 
-public partial struct Style
+public partial record struct Style
 {
     /// <summary>
     /// The default text styles of the default egui theme.

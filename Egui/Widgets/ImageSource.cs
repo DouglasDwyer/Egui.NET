@@ -1,6 +1,6 @@
 namespace Egui.Widgets;
 
-public partial struct ImageSource
+public partial record struct ImageSource
 {
     /// <summary>
     /// Get the <c>uri</c> that this image was constructed from.<br/>

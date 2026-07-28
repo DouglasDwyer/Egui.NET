@@ -1,6 +1,6 @@
 namespace Egui;
 
-public partial struct EPos2
+public partial record struct EPos2
 {
     /// <summary>
     /// The zero position, the origin. The top left corner in a GUI. Same as <see cref="EPos2()"/>.

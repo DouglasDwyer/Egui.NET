@@ -1,6 +1,6 @@
 namespace Egui.Containers;
 
-public partial struct Resize
+public partial record struct Resize
 {
     public readonly void Show(Ui ui, Action<Ui> addContents)
     {

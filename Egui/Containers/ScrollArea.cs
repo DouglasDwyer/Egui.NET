@@ -1,6 +1,6 @@
 namespace Egui.Containers;
 
-public partial struct ScrollArea
+public partial record struct ScrollArea
 {
     /// <summary>
     /// Show the <see cref="ScrollArea"/>, and add the contents to the viewport.<br/>

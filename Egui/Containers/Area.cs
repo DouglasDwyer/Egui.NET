@@ -1,6 +1,6 @@
 namespace Egui.Containers;
 
-public partial struct Area
+public partial record struct Area
 {
     public readonly InnerResponse Show(Context ctx, Action<Ui> addContents)
     {

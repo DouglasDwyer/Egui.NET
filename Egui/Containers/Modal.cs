@@ -1,6 +1,6 @@
 namespace Egui.Containers;
 
-public partial struct Modal
+public partial record struct Modal
 {
     /// <summary>
     /// Show the modal.

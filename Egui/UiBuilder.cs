@@ -1,6 +1,6 @@
 namespace Egui;
 
-public partial struct UiBuilder
+public partial record struct UiBuilder
 {
     /// <summary>
     /// Sets the CSS-like classes for the <see cref="Ui"/> created from this builder.<br/>

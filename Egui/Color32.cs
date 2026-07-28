@@ -27,7 +27,7 @@ namespace Egui;
 ///
 /// An <c>alpha=0</c> means the color is to be treated as an additive color.
 /// </summary>
-public unsafe partial struct Color32 : IEquatable<Color32>
+public unsafe partial record struct Color32
 {
     public static readonly Color32 Transparent = FromRgbaPremultiplied(0, 0, 0, 0);
     public static readonly Color32 Black = FromRgb(0, 0, 0);
@@ -124,40 +124,14 @@ public unsafe partial struct Color32 : IEquatable<Color32>
         return obj;
     }
 
-    /// <inheritdoc/>
-    public override bool Equals(object? obj) => obj is Color32 other && Equals(other);
-
     /// <summary>
-    /// Compares two objects for equality.
+    /// Restricts the compiler-synthesized <see cref="ToString"/> to just the packed
+    /// color value, rather than every convenience property defined on this type (some of
+    /// which call into native egui code).
     /// </summary>
-    /// <param name="left">The first object.</param>
-    /// <param name="right">The second object.</param>
-    /// <returns>Whether the two are the same.</returns>
-    public static bool operator ==(Color32 left, Color32 right) => Equals(left, right);
-
-    /// <summary>
-    /// Compares two objects for inequality.
-    /// </summary>
-    /// <param name="left">The first object.</param>
-    /// <param name="right">The second object.</param>
-    /// <returns>Whether the two are different.</returns>
-    public static bool operator !=(Color32 left, Color32 right) => !Equals(left, right);
-
-    /// <inheritdoc/>
-    public bool Equals(Color32 other)
+    private readonly bool PrintMembers(System.Text.StringBuilder builder)
     {
-        if (_value != other._value) return false;
+        builder.Append("Value = ").Append(_value);
         return true;
-    }
-
-    /// <inheritdoc/>
-    public override int GetHashCode()
-    {
-        unchecked
-        {
-            int value = 7;
-            value = 31 * value + _value.GetHashCode();
-            return value;
-        }
     }
 }

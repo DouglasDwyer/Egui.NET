@@ -1,6 +1,6 @@
 namespace Egui;
 
-public partial struct Atom
+public partial record struct Atom
 {
     /// <summary>
     /// Converts to this type from the input type.

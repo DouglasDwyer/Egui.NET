@@ -1,6 +1,6 @@
 namespace Egui.Containers;
 
-public partial struct CollapsingHeader
+public partial record struct CollapsingHeader
 {
     public readonly CollapsingResponse Show(Ui ui, Action<Ui> addContents)
     {

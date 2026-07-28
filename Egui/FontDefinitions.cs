@@ -2,7 +2,7 @@ using System.Collections.Immutable;
 
 namespace Egui;
 
-public partial struct FontDefinitions
+public partial record struct FontDefinitions
 {
     /// <summary>
     /// Lists all of the builtin font names used by <c>epaint</c>.

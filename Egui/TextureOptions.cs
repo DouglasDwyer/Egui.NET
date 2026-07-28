@@ -1,6 +1,6 @@
 namespace Egui;
 
-public partial struct TextureOptions
+public partial record struct TextureOptions
 {
     /// <summary>
     /// Linear magnification and minification.

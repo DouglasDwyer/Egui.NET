@@ -1,6 +1,6 @@
 namespace Egui.Viewport;
 
-public partial struct ViewportId
+public partial record struct ViewportId
 {
     /// <summary>
     /// The <see cref="ViewportId"/> of the root viewport.

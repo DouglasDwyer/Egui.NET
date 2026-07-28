@@ -2,7 +2,7 @@ using System.Collections.Immutable;
 
 namespace Egui.Layers;
 
-public partial struct GraphicLayers
+public partial record struct GraphicLayers
 {
     /// <summary>
     /// Get the <see cref="PaintList"/> for the given <see cref="LayerId"/>.

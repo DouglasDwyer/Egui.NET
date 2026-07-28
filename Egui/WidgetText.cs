@@ -1,6 +1,6 @@
 namespace Egui;
 
-public partial struct WidgetText
+public partial record struct WidgetText
 {
     public string RawText => EguiMarshal.Call<WidgetText, string>(EguiFn.egui_widget_text_WidgetText_text, this);
 

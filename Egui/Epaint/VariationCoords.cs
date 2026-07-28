@@ -4,7 +4,7 @@ using System.Linq;
 
 namespace Egui.Epaint.Text;
 
-public partial struct VariationCoords
+public partial record struct VariationCoords
 {
     /// <summary>
     /// Creates a list of variation coordinates from a sequence of (tag, value) pairs.
