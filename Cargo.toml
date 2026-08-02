@@ -48,7 +48,7 @@ mimalloc = { version = "0.1.47", default-features = false }
 rustdoc-types = { version = "0.61.0", default-features = false }
 serde = { version = "1.0.228", default-features = false, features = [ "derive" ] }
 serde_json = { version = "1.0.145", default-features = false, features = [ "std" ] }
-serde-reflection = { version = "0.5.1", default-features = false }
+serde-reflection = { version = "0.6.0", default-features = false }
 
 [workspace.metadata.cross.target]
 x86_64-pc-windows-msvc = { image = "i18nsite/x86_64-pc-windows-msvc-cross@sha256:35307f58ade2bc99c295a4f8b88d4cc43ad7617b4c7fc001beb7ee5851135810" }
