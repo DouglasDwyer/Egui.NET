@@ -363,7 +363,7 @@ impl Runtime {
     pub fn rust_package(self) -> &'static str {
         match self {
             Self::Bcs => "bcs = \"0.1.1\"",
-            Self::Bincode => "bincode = \"1.3\"",
+            Self::Bincode => "bincode = { version = \"2.0.1\", features = [\"serde\"] }",
         }
     }
 
@@ -373,7 +373,7 @@ impl Runtime {
     {
         match self {
             Self::Bcs => bcs::to_bytes(value).unwrap(),
-            Self::Bincode => bincode::serialize(value).unwrap(),
+            Self::Bincode => bincode::serde::encode_to_vec(value, bincode::config::legacy()).unwrap(),
         }
     }
 
@@ -383,7 +383,9 @@ impl Runtime {
     {
         match self {
             Self::Bcs => bcs::from_bytes(bytes).ok(),
-            Self::Bincode => bincode::deserialize(bytes).ok(),
+            Self::Bincode => bincode::serde::decode_from_slice(bytes, bincode::config::legacy())
+                .ok()
+                .map(|(value, _)| value),
         }
     }
 
@@ -432,17 +434,24 @@ impl Runtime {
         results
     }
 
-    pub fn quote_serialize(self) -> &'static str {
+    /// Returns a Rust expression serializing `value_expr`, ready to be `.unwrap()`-ed.
+    pub fn quote_serialize_call(self, value_expr: &str) -> String {
         match self {
-            Self::Bcs => "bcs::to_bytes",
-            Self::Bincode => "bincode::serialize",
+            Self::Bcs => format!("bcs::to_bytes(&{value_expr})"),
+            Self::Bincode => {
+                format!("bincode::serde::encode_to_vec(&{value_expr}, bincode::config::legacy())")
+            }
         }
     }
 
-    pub fn quote_deserialize(self) -> &'static str {
+    /// Returns a Rust expression deserializing `bytes_expr` as `type_name`, ready to be
+    /// `.unwrap()`-ed.
+    pub fn quote_deserialize_call(self, type_name: &str, bytes_expr: &str) -> String {
         match self {
-            Self::Bcs => "bcs::from_bytes",
-            Self::Bincode => "bincode::deserialize",
+            Self::Bcs => format!("bcs::from_bytes::<{type_name}>({bytes_expr})"),
+            Self::Bincode => format!(
+                "bincode::serde::decode_from_slice::<{type_name}, _>({bytes_expr}, bincode::config::legacy()).map(|(value, _)| value)"
+            ),
         }
     }
 

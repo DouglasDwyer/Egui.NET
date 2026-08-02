@@ -22,25 +22,25 @@ impl EguiFfi {
     /// Gets the most recent [`FullOutput`]. [`FullOutput::shapes`] and
     /// [`FullOutput::viewport_output`] are not included.
     pub fn full_output(&self) -> FullOutput {
-        bincode::deserialize::<FullOutput2>(&self.full_output)
-            .expect("Failed to deserialize FullOutput").into()
+        bincode::serde::decode_from_slice::<FullOutput2, _>(&self.full_output, bincode::config::legacy())
+            .expect("Failed to deserialize FullOutput").0.into()
     }
 
     /// Sets the most recent [`FullOutput`].
     pub fn set_full_output(&mut self, full_output: FullOutput) {
-        self.full_output = bincode::serialize(&FullOutput2::from(full_output))
+        self.full_output = bincode::serde::encode_to_vec(&FullOutput2::from(full_output), bincode::config::legacy())
             .expect("Failed to serialize FullOutput").into();
     }
 
     /// Gets the most recent [`RawInput`].
     pub fn raw_input(&self) -> RawInput {
-        bincode::deserialize(&self.raw_input)
-            .expect("Failed to deserialize RawInput")
+        bincode::serde::decode_from_slice(&self.raw_input, bincode::config::legacy())
+            .expect("Failed to deserialize RawInput").0
     }
 
     /// Sets the most recent [`RawInput`].
     pub fn set_raw_input(&mut self, raw_input: RawInput) {
-        self.raw_input = bincode::serialize(&raw_input)
+        self.raw_input = bincode::serde::encode_to_vec(&raw_input, bincode::config::legacy())
             .expect("Failed to serialize RawInput").into();
     }
 
