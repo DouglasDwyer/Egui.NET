@@ -45,7 +45,7 @@ egui_extras = { version = "0.35.0", default-features = false, features = [ "date
 image = { version = "0.25.9", default-features = false, features = [ "default-formats" ] }
 jiff = { version = "0.2.29", default-features = false, features = [ "std", "tz-system" ] }
 mimalloc = { version = "0.1.47", default-features = false }
-rustdoc-types = { version = "0.56.0", default-features = false }
+rustdoc-types = { version = "0.61.0", default-features = false }
 serde = { version = "1.0.228", default-features = false, features = [ "derive" ] }
 serde_json = { version = "1.0.145", default-features = false, features = [ "std" ] }
 serde-reflection = { version = "0.5.1", default-features = false }
