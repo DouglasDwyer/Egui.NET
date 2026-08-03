@@ -1034,11 +1034,11 @@ impl EguiFnInvoker {
     /// For this function call to be sound, `ptr` must refer to a valid instance
     /// of the invoker function's type. 
     unsafe fn call_fn<A: DeserializeOwned + Tuple, F: Copy + Fn<A, Output: Serialize>>(fn_id: EguiFn, f: &F, args: *const [u8], ret: *mut Vec<u8>) {
-        let deserialized_args = bincode::deserialize(&*args)
+        let (deserialized_args, _) = bincode::serde::decode_from_slice(&*args, bincode::config::legacy())
             .unwrap_or_else(|_| panic!("Failed to decode args for call {fn_id:?}"));
         let result = f.call(deserialized_args);
         (*ret).clear();
-        bincode::serialize_into(&mut *ret, &result)
+        bincode::serde::encode_into_std_write(&result, &mut *ret, bincode::config::legacy())
             .unwrap_or_else(|_| panic!("Failed to encode result for call {fn_id:?}"));
     }
 }

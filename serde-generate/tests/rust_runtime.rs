@@ -59,15 +59,15 @@ serde_bytes = "0.11"
         r#"
 fn main() {{
     for encoding in vec![{}] {{
-        let value = {}::<SerdeData>(&encoding).unwrap();
-        let s = {}(&value).unwrap();
+        let value = {}.unwrap();
+        let s = {}.unwrap();
         assert_eq!(s, encoding);
     }}
 }}
 "#,
         encodings.join(", "),
-        runtime.quote_deserialize(),
-        runtime.quote_serialize(),
+        runtime.quote_deserialize_call("SerdeData", "&encoding"),
+        runtime.quote_serialize_call("value"),
     )
     .unwrap();
 
