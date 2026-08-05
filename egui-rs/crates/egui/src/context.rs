@@ -32,7 +32,7 @@ use crate::{
     load::{self, Bytes, Loaders, SizedTexture},
     memory::{Options, Theme},
     os::OperatingSystem,
-    output::FullOutput,
+    output::{FullOutput, LogicOutput},
     pass_state::PassState,
     plugin::{self, TypedPluginHandle},
     resize, response, scroll_area,
@@ -243,6 +243,12 @@ pub struct ViewportState {
     // ----------------------
     // Cross-frame statistics:
     pub num_multipass_in_row: usize,
+
+    /// The last theme we sent to the native window via [`ViewportCommand::SetTheme`],
+    /// used to avoid sending redundant commands.
+    ///
+    /// See [`crate::Options::sync_window_theme`].
+    pub(crate) last_sent_window_theme: Option<crate::SystemTheme>,
 }
 
 /// What called [`Context::request_repaint`] or [`Context::request_discard`]?
@@ -469,7 +475,13 @@ impl ContextImpl {
         viewport.this_pass.begin_pass();
 
         {
-            let mut layers: Vec<LayerId> = viewport.prev_pass.widgets.layer_ids().collect();
+            // Areas that are not interactable are click-through: skip them in the hit-test.
+            let mut layers: Vec<LayerId> = viewport
+                .prev_pass
+                .widgets
+                .layer_ids()
+                .filter(|layer_id| self.memory.areas().is_interactable(*layer_id))
+                .collect();
             layers.sort_by(|&a, &b| self.memory.areas().compare_order(a, b));
 
             viewport.hits = if let Some(pos) = viewport.input.pointer.interact_pos() {
@@ -778,6 +790,7 @@ impl Context {
     ///     ui.label("Hello egui!");
     /// });
     /// // handle full_output
+    /// # full_output.drop_without_applying_deltas();
     /// ```
     #[must_use]
     pub fn run_ui(&self, new_input: RawInput, mut run_ui: impl FnMut(&mut Ui)) -> FullOutput {
@@ -878,6 +891,57 @@ impl Context {
         output
     }
 
+    /// Run app logic without showing any ui.
+    ///
+    /// Use this instead of [`Self::run_ui`] when nothing will be shown,
+    /// e.g. because the window is minimized or occluded,
+    /// but you still want to let the app tick its logic
+    /// (so that it can e.g. ask to be shown again with [`ViewportCommand::Focus`]).
+    ///
+    /// No pass is run, so `f` must not show any ui.
+    /// This means everything egui knows about the ui is left untouched:
+    /// no widget state is garbage-collected, no animation advances,
+    /// and nothing loses focus.
+    ///
+    /// Of `new_input`, only the window state ([`RawInput::viewports`] and
+    /// [`RawInput::focused`]) is used, so that `f` can tell that the window is hidden.
+    /// The ui input (events, time, …) is _not_ interpreted, and is left for the next
+    /// call to [`Self::run_ui`]: [`Self::input`] is otherwise still that of the last pass.
+    ///
+    /// The returned [`LogicOutput`] is what [`FullOutput`] would have carried:
+    /// anything `f` asked the integration to do.
+    /// There is nothing to paint.
+    #[must_use]
+    pub fn run_logic(&self, new_input: &RawInput, logic: impl FnOnce(&Self)) -> LogicOutput {
+        profiling::function_scope!();
+
+        let viewport_id = new_input.viewport_id;
+
+        self.write(|ctx| {
+            // Consume any outstanding repaint request, so that a new request from `logic`
+            // reaches the integration instead of being considered already served:
+            ctx.begin_pass_repaint_logic(viewport_id);
+
+            // Tell `logic` about the windows, but leave the ui input alone:
+            let raw = &mut ctx.viewport_for(viewport_id).input.raw;
+            raw.viewport_id = viewport_id;
+            raw.viewports = new_input.viewports.clone();
+            raw.focused = new_input.focused;
+        });
+
+        logic(self);
+
+        self.write(|ctx| LogicOutput {
+            platform_output: std::mem::take(&mut ctx.viewport_for(viewport_id).output),
+            viewport_commands: ctx
+                .viewports
+                .iter_mut()
+                .filter(|(_, viewport)| !viewport.commands.is_empty())
+                .map(|(&id, viewport)| (id, std::mem::take(&mut viewport.commands)))
+                .collect(),
+        })
+    }
+
     /// An alternative to calling [`Self::run_ui`].
     ///
     /// It is usually better to use [`Self::run_ui`], because
@@ -895,6 +959,7 @@ impl Context {
     ///
     /// let full_output = ctx.end_pass();
     /// // handle full_output
+    /// # full_output.drop_without_applying_deltas();
     /// ```
     pub fn begin_pass(&self, mut new_input: RawInput) {
         profiling::function_scope!();
@@ -2388,6 +2453,8 @@ impl Context {
             }
         }
 
+        self.sync_window_theme();
+
         #[cfg(debug_assertions)]
         self.debug_painting();
 
@@ -2397,6 +2464,38 @@ impl Context {
         plugins.on_output(self, &mut output);
 
         output
+    }
+
+    /// Keep the native window theme in sync with the egui [`crate::ThemePreference`],
+    /// if [`crate::Options::sync_window_theme`] is enabled.
+    ///
+    /// Sends a [`ViewportCommand::SetTheme`] to the current viewport whenever the
+    /// derived theme changes, so the native window decorations match the egui theme.
+    fn sync_window_theme(&self) {
+        if !self.options(|o| o.sync_window_theme) {
+            return;
+        }
+
+        use crate::{SystemTheme, ThemePreference};
+        let window_theme = match self.options(|o| o.theme_preference) {
+            ThemePreference::System => SystemTheme::SystemDefault,
+            ThemePreference::Dark => SystemTheme::Dark,
+            ThemePreference::Light => SystemTheme::Light,
+        };
+
+        let changed = self.write(|ctx| {
+            let viewport = ctx.viewport();
+            if viewport.last_sent_window_theme == Some(window_theme) {
+                false
+            } else {
+                viewport.last_sent_window_theme = Some(window_theme);
+                true
+            }
+        });
+
+        if changed {
+            self.send_viewport_cmd(ViewportCommand::SetTheme(window_theme));
+        }
     }
 
     /// Called at the end of the pass.
@@ -3507,7 +3606,7 @@ impl Context {
                     if !is_visible {
                         continue;
                     }
-                    let text = format!("{} - {:?}", layer_id.short_debug_format(), area.rect(),);
+                    let text = format!("{} - {:?}", layer_id.short_debug_format(), area.rect());
                     // TODO(emilk): `Sense::hover_highlight()`
                     let response =
                         ui.add(Label::new(RichText::new(text).monospace()).sense(Sense::click()));
@@ -4297,6 +4396,7 @@ mod test {
             assert_eq!(num_calls, 1);
             assert_eq!(output.platform_output.num_completed_passes, 1);
             assert!(!output.platform_output.requested_discard());
+            output.drop_without_applying_deltas();
         }
 
         // A single call, with a denied request to discard:
@@ -4322,6 +4422,7 @@ mod test {
                     .reason,
                 "test"
             );
+            output.drop_without_applying_deltas();
         }
     }
 
@@ -4342,6 +4443,7 @@ mod test {
             assert_eq!(num_calls, 1);
             assert_eq!(output.platform_output.num_completed_passes, 1);
             assert!(!output.platform_output.requested_discard());
+            output.drop_without_applying_deltas();
         }
 
         // Request discard once:
@@ -4364,6 +4466,7 @@ mod test {
                 !output.platform_output.requested_discard(),
                 "The request should have been cleared when fulfilled"
             );
+            output.drop_without_applying_deltas();
         }
 
         // Request discard twice:
@@ -4388,6 +4491,7 @@ mod test {
                 output.platform_output.requested_discard(),
                 "The unfulfilled request should be reported"
             );
+            output.drop_without_applying_deltas();
         }
     }
 
@@ -4416,6 +4520,7 @@ mod test {
                 !output.platform_output.requested_discard(),
                 "The request should have been cleared when fulfilled"
             );
+            output.drop_without_applying_deltas();
         }
     }
 }

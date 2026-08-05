@@ -184,6 +184,7 @@ pub struct Popup<'a> {
     /// Default width passed to the Area
     pub width: Option<f32>,
     pub sense: Sense,
+    pub interactable: bool,
     pub layout: Layout,
     pub frame: Option<Frame>,
     pub style: StyleModifier,
@@ -206,6 +207,7 @@ impl<'a> Popup<'a> {
             gap: 0.0,
             width: None,
             sense: Sense::click(),
+            interactable: true,
             layout: Layout::default(),
             frame: None,
             style: StyleModifier::default(),
@@ -370,6 +372,15 @@ impl<'a> Popup<'a> {
     #[inline]
     pub fn frame(mut self, frame: Frame) -> Self {
         self.frame = Some(frame);
+        self
+    }
+
+    /// If `false`, the pointer goes straight through the popup and it's widgets to whatever is behind it.
+    ///
+    /// Default: `true`.
+    #[inline]
+    pub fn interactable(mut self, interactable: bool) -> Self {
+        self.interactable = interactable;
         self
     }
 
@@ -550,6 +561,7 @@ impl<'a> Popup<'a> {
             gap,
             width,
             sense,
+            interactable,
             layout,
             frame,
             style,
@@ -574,7 +586,9 @@ impl<'a> Popup<'a> {
             .pivot(pivot)
             .fixed_pos(anchor)
             .sense(sense)
+            .interactable(interactable)
             .layout(layout)
+            .sizing_pass(!was_open_last_frame)
             .info(info.unwrap_or_else(|| {
                 UiStackInfo::new(kind.into()).with_tag_value(
                     MenuConfig::MENU_CONFIG_TAG,
