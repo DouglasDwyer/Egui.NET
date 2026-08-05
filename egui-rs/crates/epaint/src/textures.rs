@@ -332,16 +332,10 @@ impl TexturesDelta {
     }
 }
 
-impl Drop for TexturesDelta {
-    fn drop(&mut self) {
-        debug_assert!(
-            self.is_empty(),
-            "Dropped TexturesDelta with {} unapplied deltas. Deltas need to be handled. \
-            If you want to drop this intentionally call `clear` before dropping.",
-            self.free.len() + self.set.len()
-        );
-    }
-}
+// Upstream's `Drop` impl (a debug_assert that panics on a non-empty, unapplied
+// `TexturesDelta`) is dropped in this fork: the reflection-based tracer used to
+// generate bindings constructs and immediately drops dummy, non-empty instances
+// of every serializable type, which would trip the assertion.
 
 impl std::fmt::Debug for TexturesDelta {
     fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {

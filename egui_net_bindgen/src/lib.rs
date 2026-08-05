@@ -900,6 +900,7 @@ const IGNORE_FNS: &[&str] = &[
     "egui_containers_popup_Popup_gap",
     "egui_containers_popup_Popup_id",
     "egui_containers_popup_Popup_info",
+    "egui_containers_popup_Popup_interactable",
     "egui_containers_popup_Popup_open",
     "egui_containers_popup_Popup_open_bool",
     "egui_containers_popup_Popup_id",
@@ -1017,6 +1018,7 @@ const IGNORE_FNS: &[&str] = &[
     "egui_containers_window_Window_scroll",
     "egui_containers_window_Window_scroll_bar_visibility",
     "egui_containers_window_Window_title_bar",
+    "egui_containers_window_Window_title_frame",
     "egui_containers_window_Window_vscroll",
     "egui_containers_window_Window_mutate",
 

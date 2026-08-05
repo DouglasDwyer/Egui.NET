@@ -256,7 +256,10 @@ public unsafe class SilkGlIntegration : SilkIntegration
     private void RenderAndUpdateTextures(uint width, uint height, float pixelsPerPoint, ReadOnlySpan<ClippedPrimitive> clippedPrimitives, TexturesDelta texturesDelta)
     {
         CheckGlErrors();
-        foreach (var (id, delta) in texturesDelta.Set) SetTexture(id, delta);
+        foreach (var (id, deltas) in texturesDelta.Set)
+        {
+            foreach (var delta in deltas) SetTexture(id, delta);
+        }
         CheckGlErrors();
         RenderPrimitives(width, height, pixelsPerPoint, clippedPrimitives);
         CheckGlErrors();
