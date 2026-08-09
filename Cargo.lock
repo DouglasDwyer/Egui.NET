@@ -1143,7 +1143,7 @@ dependencies = [
 
 [[package]]
 name = "ecolor"
-version = "0.36.0"
+version = "0.36.1"
 dependencies = [
  "emath",
  "serde",
@@ -1163,7 +1163,7 @@ dependencies = [
 
 [[package]]
 name = "egui"
-version = "0.36.0"
+version = "0.36.1"
 dependencies = [
  "accesskit",
  "ahash",
@@ -1182,7 +1182,7 @@ dependencies = [
 
 [[package]]
 name = "egui_extras"
-version = "0.36.0"
+version = "0.36.1"
 dependencies = [
  "ahash",
  "egui",
@@ -1199,7 +1199,7 @@ dependencies = [
 
 [[package]]
 name = "egui_net"
-version = "0.8.2+0.36.0"
+version = "0.8.2+0.36.1"
 dependencies = [
  "ahash",
  "bincode 2.0.1",
@@ -1217,7 +1217,7 @@ dependencies = [
 
 [[package]]
 name = "egui_net_bindgen"
-version = "0.8.2+0.36.0"
+version = "0.8.2+0.36.1"
 dependencies = [
  "convert_case 0.11.0",
  "egui",
@@ -1231,7 +1231,7 @@ dependencies = [
 
 [[package]]
 name = "egui_net_ffi"
-version = "0.8.2+0.36.0"
+version = "0.8.2+0.36.1"
 dependencies = [
  "bincode 2.0.1",
  "egui",
@@ -1265,7 +1265,7 @@ dependencies = [
 
 [[package]]
 name = "emath"
-version = "0.36.0"
+version = "0.36.1"
 dependencies = [
  "serde",
 ]
@@ -1324,7 +1324,7 @@ dependencies = [
 
 [[package]]
 name = "epaint"
-version = "0.36.0"
+version = "0.36.1"
 dependencies = [
  "ahash",
  "ecolor",
@@ -1347,7 +1347,7 @@ dependencies = [
 
 [[package]]
 name = "epaint_default_fonts"
-version = "0.36.0"
+version = "0.36.1"
 
 [[package]]
 name = "equator"
