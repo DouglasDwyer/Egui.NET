@@ -82,6 +82,7 @@ impl FullOutput {
 /// There is nothing to paint, but the app may still have asked the integration to do things,
 /// e.g. to show a hidden window again with [`crate::ViewportCommand::Focus`].
 #[derive(Clone, Default)]
+#[cfg_attr(feature = "serde", derive(serde::Deserialize, serde::Serialize))]
 pub struct LogicOutput {
     /// Non-rendering related output.
     pub platform_output: PlatformOutput,

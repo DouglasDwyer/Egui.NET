@@ -329,6 +329,10 @@ const IGNORE_FNS: &[&str] = &[
     "core_str_pattern_MultiCharEqSearcher",
     "core_str_pattern_SearchStep",
     "epaint_texture_handle_TextureHandle_drop",
+    // `Drop::drop` cannot be called manually; `TextureManager`'s heap allocation (like any
+    // `EguiHandle`-backed object) is freed via `egui_drop` once the C# wrapper is collected,
+    // which runs this `Drop` impl automatically.
+    "epaint_textures_TextureManager_drop",
     "epaint_shapes_paint_callback_PaintCallbackInfo_clip_rect_in_pixels",
     "epaint_shapes_paint_callback_PaintCallbackInfo_viewport_in_pixels",
     "egui_containers_frame_Frame_show_dyn",
