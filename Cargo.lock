@@ -1199,7 +1199,7 @@ dependencies = [
 
 [[package]]
 name = "egui_net"
-version = "0.8.2+0.36.1"
+version = "0.9.0+0.36.1"
 dependencies = [
  "ahash",
  "bincode 2.0.1",
@@ -1217,7 +1217,7 @@ dependencies = [
 
 [[package]]
 name = "egui_net_bindgen"
-version = "0.8.2+0.36.1"
+version = "0.9.0+0.36.1"
 dependencies = [
  "convert_case 0.11.0",
  "egui",
@@ -1231,7 +1231,7 @@ dependencies = [
 
 [[package]]
 name = "egui_net_ffi"
-version = "0.8.2+0.36.1"
+version = "0.9.0+0.36.1"
 dependencies = [
  "bincode 2.0.1",
  "egui",
@@ -2150,8 +2150,7 @@ checksum = "b6d2cec3eae94f9f509c767b45932f1ada8350c4bdb85af2fcab4a3c14807981"
 [[package]]
 name = "libmimalloc-sys"
 version = "0.1.49"
-source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "6a45a52f43e1c16f667ccfe4dd8c85b7f7c204fd5e3bf46c5b0db9a5c3c0b8e9"
+source = "git+https://github.com/DouglasDwyer/mimalloc_rust?rev=851088d4e2b02f0c7347fa9d5f898dcc6e75d8ed#851088d4e2b02f0c7347fa9d5f898dcc6e75d8ed"
 dependencies = [
  "cc",
 ]
@@ -2239,8 +2238,7 @@ checksum = "cf8baf1c55e62ffcace7a9f06f4bd9cd3f0c4beb022d3b367256b91b87513d98"
 [[package]]
 name = "mimalloc"
 version = "0.1.52"
-source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "2d4139bb28d14ad1facf21d5eb8825051b326e172d216b39f6d31df53cc97862"
+source = "git+https://github.com/DouglasDwyer/mimalloc_rust?rev=851088d4e2b02f0c7347fa9d5f898dcc6e75d8ed#851088d4e2b02f0c7347fa9d5f898dcc6e75d8ed"
 dependencies = [
  "libmimalloc-sys",
 ]
