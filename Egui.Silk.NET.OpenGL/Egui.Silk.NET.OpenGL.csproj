@@ -8,7 +8,7 @@
     <PackageId>Egui.Silk.NET.OpenGL</PackageId>
     <Title>Egui.Silk.NET.OpenGL</Title>
     <Description>An easy-to-use immediate mode GUI</Description>
-    <Version>0.8.0+0.35.0</Version>
+    <Version>0.8.0+0.36.1</Version>
     <Authors>Douglas Dwyer</Authors>
     <RepositoryUrl>https://github.com/DouglasDwyer/Egui.NET</RepositoryUrl>
     <PackageReadmeFile>README.md</PackageReadmeFile>
