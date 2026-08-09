@@ -7,7 +7,7 @@
     <PackageId>Egui.Silk.NET</PackageId>
     <Title>Egui.Silk.NET</Title>
     <Description>An easy-to-use immediate mode GUI</Description>
-    <Version>0.8.0+0.36.1</Version>
+    <Version>0.9.0+0.36.1</Version>
     <Authors>Douglas Dwyer</Authors>
     <RepositoryUrl>https://github.com/DouglasDwyer/Egui.NET</RepositoryUrl>
     <PackageReadmeFile>README.md</PackageReadmeFile>
