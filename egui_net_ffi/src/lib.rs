@@ -10,49 +10,27 @@ use serde::*;
 /// Allows for passing `egui` data back and forth with C#.
 #[repr(C)]
 pub struct EguiFfi {
-    /// The serialized bytes of the most recent [`FullOutput::platform_output`].
-    platform_output: FfiVec<u8>,
-    /// The serialized bytes of the most recent [`FullOutput::textures_delta`].
-    textures_delta: FfiVec<u8>,
-    /// The most recent [`FullOutput::pixels_per_point`].
-    pixels_per_point: f32,
     /// The meshes from the most recent call to [`Context::tessellate`].
     meshes: FfiVec<(Rect, FfiTextureId, FfiVec<u32>, FfiVec<Vertex>)>,
+    /// The most recent [`FullOutput::pixels_per_point`].
+    pixels_per_point: f32,
+    /// The serialized bytes of the most recent [`FullOutput::platform_output`].
+    platform_output: FfiVec<u8>,
     /// The most recent raw input.
     raw_input: FfiVec<u8>,
+    /// The serialized bytes of the most recent [`FullOutput::textures_delta`].
+    textures_delta: FfiVec<u8>,
 }
 
 impl EguiFfi {
-    /// Gets the most recent [`FullOutput::platform_output`].
-    ///
-    /// This is a separate call from [`Self::textures_delta`] so that a caller
-    /// that only needs one of the two does not have to pay for decoding
-    /// (and copying) the other.
-    pub fn platform_output(&self) -> PlatformOutput {
-        bincode::serde::decode_from_slice::<PlatformOutput2, _>(&self.platform_output, bincode::config::legacy())
-            .expect("Failed to deserialize PlatformOutput").0.into()
-    }
-
-    /// Sets the most recent [`FullOutput::platform_output`].
-    pub fn set_platform_output(&mut self, platform_output: PlatformOutput) {
-        self.platform_output = bincode::serde::encode_to_vec(&PlatformOutput2::from(platform_output), bincode::config::legacy())
-            .expect("Failed to serialize PlatformOutput").into();
-    }
-
-    /// Gets the most recent [`FullOutput::textures_delta`].
-    ///
-    /// This is a separate call from [`Self::platform_output`] so that a caller
-    /// that only needs one of the two does not have to pay for decoding
-    /// (and copying) the other.
-    pub fn textures_delta(&self) -> TexturesDelta {
-        bincode::serde::decode_from_slice(&self.textures_delta, bincode::config::legacy())
-            .expect("Failed to deserialize TexturesDelta").0
-    }
-
-    /// Sets the most recent [`FullOutput::textures_delta`].
-    pub fn set_textures_delta(&mut self, textures_delta: &TexturesDelta) {
-        self.textures_delta = bincode::serde::encode_to_vec(textures_delta, bincode::config::legacy())
-            .expect("Failed to serialize TexturesDelta").into();
+    /// Gets the most recent output of [`Context::tessellate`].
+    pub fn meshes(&self) -> Vec<(Rect, Mesh)> {
+        self.meshes.iter().map(|(clip_rect, texture_id, indices, vertices)|
+            (*clip_rect, Mesh {
+                indices: indices.to_vec(),
+                texture_id: (*texture_id).into(),
+                vertices: vertices.to_vec()
+            })).collect()
     }
 
     /// Gets the most recent [`FullOutput::pixels_per_point`].
@@ -60,9 +38,16 @@ impl EguiFfi {
         self.pixels_per_point
     }
 
-    /// Sets the most recent [`FullOutput::pixels_per_point`].
-    pub fn set_pixels_per_point(&mut self, pixels_per_point: f32) {
-        self.pixels_per_point = pixels_per_point;
+    /// Gets the most recent [`FullOutput::platform_output`].
+    pub fn platform_output(&self) -> PlatformOutput {
+        bincode::serde::decode_from_slice::<PlatformOutput2, _>(&self.platform_output, bincode::config::legacy())
+            .expect("Failed to deserialize PlatformOutput").0.into()
+    }
+
+    /// Gets the most recent [`RawInput`].
+    pub fn raw_input(&self) -> RawInput {
+        bincode::serde::decode_from_slice(&self.raw_input, bincode::config::legacy())
+            .expect("Failed to deserialize RawInput").0
     }
 
     /// Sets the most recent [`FullOutput`], by dispatching to
@@ -75,10 +60,22 @@ impl EguiFfi {
         self.set_pixels_per_point(full_output.pixels_per_point);
     }
 
-    /// Gets the most recent [`RawInput`].
-    pub fn raw_input(&self) -> RawInput {
-        bincode::serde::decode_from_slice(&self.raw_input, bincode::config::legacy())
-            .expect("Failed to deserialize RawInput").0
+    /// Sets the most recent output of [`Context::tessellate`].
+    pub fn set_meshes(&mut self, meshes: impl IntoIterator<Item = (Rect, Mesh)>) {
+        self.meshes = meshes.into_iter()
+            .map(|(clip_rect, mesh)| (clip_rect, mesh.texture_id.into(), mesh.indices.into(), mesh.vertices.into()))
+            .collect::<Vec<_>>().into()
+    }
+
+    /// Sets the most recent [`FullOutput::pixels_per_point`].
+    pub fn set_pixels_per_point(&mut self, pixels_per_point: f32) {
+        self.pixels_per_point = pixels_per_point;
+    }
+
+    /// Sets the most recent [`FullOutput::platform_output`].
+    pub fn set_platform_output(&mut self, platform_output: PlatformOutput) {
+        self.platform_output = bincode::serde::encode_to_vec(&PlatformOutput2::from(platform_output), bincode::config::legacy())
+            .expect("Failed to serialize PlatformOutput").into();
     }
 
     /// Sets the most recent [`RawInput`].
@@ -87,32 +84,27 @@ impl EguiFfi {
             .expect("Failed to serialize RawInput").into();
     }
 
-    /// Gets the most recent output of [`Context::tessellate`].
-    pub fn meshes(&self) -> Vec<(Rect, Mesh)> {
-        self.meshes.iter().map(|(clip_rect, texture_id, indices, vertices)|
-            (*clip_rect, Mesh {
-                indices: indices.to_vec(),
-                texture_id: (*texture_id).into(),
-                vertices: vertices.to_vec()
-            })).collect()
+    /// Sets the most recent [`FullOutput::textures_delta`].
+    pub fn set_textures_delta(&mut self, textures_delta: &TexturesDelta) {
+        self.textures_delta = bincode::serde::encode_to_vec(textures_delta, bincode::config::legacy())
+            .expect("Failed to serialize TexturesDelta").into();
     }
 
-    /// Sets the most recent output of [`Context::tessellate`].
-    pub fn set_meshes(&mut self, meshes: impl IntoIterator<Item = (Rect, Mesh)>) {
-        self.meshes = meshes.into_iter()
-            .map(|(clip_rect, mesh)| (clip_rect, mesh.texture_id.into(), mesh.indices.into(), mesh.vertices.into()))
-            .collect::<Vec<_>>().into()
+    /// Gets the most recent [`FullOutput::textures_delta`].
+    pub fn textures_delta(&self) -> TexturesDelta {
+        bincode::serde::decode_from_slice(&self.textures_delta, bincode::config::legacy())
+            .expect("Failed to deserialize TexturesDelta").0
     }
 }
 
 impl Default for EguiFfi {
     fn default() -> Self {
         let mut result = Self {
-            platform_output: Vec::new().into(),
-            textures_delta: Vec::new().into(),
-            pixels_per_point: 1.0,
             meshes: Vec::new().into(),
-            raw_input: Vec::new().into()
+            pixels_per_point: 1.0,
+            platform_output: Vec::new().into(),
+            raw_input: Vec::new().into(),
+            textures_delta: Vec::new().into()
         };
 
         result.set_full_output(FullOutput::default());
