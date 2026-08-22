@@ -639,7 +639,7 @@ internal static class EguiMarshal
         /// Returns true if the stream can seek; otherwise returns false.
         /// </summary>
         public override bool CanSeek => true;
-        
+
         /// <summary>
         /// Creates a new, uninitialized stream.
         /// </summary>

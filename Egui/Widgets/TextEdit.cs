@@ -34,7 +34,7 @@ public ref partial struct TextEdit : IWidget
         result._inner.ClipText = true;
         return result;
     }
-    
+
     /// <inheritdoc cref="Singleline"/>
     public static TextEdit Singleline(ref string text)
     {
@@ -265,7 +265,7 @@ public ref partial struct TextEdit : IWidget
         var result = this;
         if (!result._inner.Multiline)
         {
-            result._inner.ClipText = b;   
+            result._inner.ClipText = b;
         }
         return result;
     }

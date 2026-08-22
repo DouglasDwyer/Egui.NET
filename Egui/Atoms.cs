@@ -126,7 +126,7 @@ public partial record struct Atoms : IEnumerable<Atom>
         result.PushRight(value.Item2);
         return result;
     }
-    
+
     /// <summary>
     /// Converts to this type from the input type.
     /// </summary>
@@ -138,7 +138,7 @@ public partial record struct Atoms : IEnumerable<Atom>
         result.PushRight(value.Item3);
         return result;
     }
-    
+
     /// <summary>
     /// Converts to this type from the input type.
     /// </summary>
@@ -151,7 +151,7 @@ public partial record struct Atoms : IEnumerable<Atom>
         result.PushRight(value.Item4);
         return result;
     }
-    
+
     /// <summary>
     /// Converts to this type from the input type.
     /// </summary>

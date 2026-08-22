@@ -8,12 +8,12 @@ public partial record struct WidgetText
     /// Converts to this type from the input type.
     /// </summary>
     public static implicit operator WidgetText(Egui.RichText value) => new WidgetText.RichText { Value = value };
-    
+
     /// <summary>
     /// Converts to this type from the input type.
     /// </summary>
     public static implicit operator WidgetText(Egui.Text.LayoutJob value) => new WidgetText.LayoutJob { Value = value };
-    
+
     /// <summary>
     /// Converts to this type from the input type.
     /// </summary>

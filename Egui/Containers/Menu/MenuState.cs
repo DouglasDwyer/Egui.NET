@@ -31,7 +31,7 @@ public partial record struct MenuState
         var stack = MenuHelpers.FindMenuRoot(ui);
         return FromId(ui.Ctx, stack.Id, (ref MenuState state) => f(ref state, stack));
     }
-    
+
     public static void FromId(Context ctx, Id id, MutateDelegate<MenuState> f)
     {
         FromId(ctx, id, (ref MenuState state) =>
@@ -40,7 +40,7 @@ public partial record struct MenuState
             return false;
         });
     }
-    
+
     public static R FromId<R>(Context ctx, Id id, MutateDelegate<MenuState, R> f)
     {
         throw new NotImplementedException();

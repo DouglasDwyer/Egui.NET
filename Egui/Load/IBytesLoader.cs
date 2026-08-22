@@ -49,5 +49,5 @@ public interface IBytesLoader
     /// Implementations may use this to perform work at the end of a frame,
     /// such as evicting unused entries from a cache.
     /// </summary>
-    void EndPass(ulong passIndex) {}
+    void EndPass(ulong passIndex) { }
 }

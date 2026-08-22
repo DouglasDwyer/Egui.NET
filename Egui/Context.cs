@@ -61,7 +61,7 @@ public sealed partial class Context : EguiObject
             _contexts.Add(Id, new WeakReference<Context>(this));
         }
     }
-    
+
     /// <summary>
     /// Retrieves an existing context.
     /// The result of this method is only defined if <see cref="ptr"/>
@@ -366,7 +366,7 @@ public sealed partial class Context : EguiObject
             return result;
         });
     }
-    
+
     /// <summary>
     /// Read-only access to <see cref="Egui.Epaint.TessellationOptions"/>. 
     /// </summary>

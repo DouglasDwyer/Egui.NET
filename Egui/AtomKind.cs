@@ -16,12 +16,12 @@ public partial record struct AtomKind
     /// Converts to this type from the input type.
     /// </summary>
     public static implicit operator AtomKind(WidgetText value) => new AtomKind.Text(value);
-    
+
     /// <summary>
     /// Converts to this type from the input type.
     /// </summary>
     public static implicit operator AtomKind(Egui.Text.LayoutJob value) => new AtomKind.Text(value);
-    
+
     /// <summary>
     /// Converts to this type from the input type.
     /// </summary>

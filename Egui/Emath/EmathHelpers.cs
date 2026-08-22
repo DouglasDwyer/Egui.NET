@@ -44,7 +44,7 @@ public static partial class EmathHelpers
 
     /// <summary>
     /// Where in the range is this value? Returns 0-1 if within the range.<br/>
-    /// Returns <0 if before and >1 if after.<br/>
+    /// Returns &lt;0 if before and &gt;1 if after.<br/>
     /// Returns <c>null</c> if the input range is zero-width.
     /// </summary>
     public static R? InverseLerp<R>((R, R) range, R value) where R : struct, INumber<R>
@@ -63,7 +63,7 @@ public static partial class EmathHelpers
 
     /// <summary>
     /// Linearly remap a value from one range to another,
-    /// so that when <c>x == from.Item1</c> returns <c>to.Item1`
+    /// so that when <c>x == from.Item1</c> returns <c>to.Item1</c>
     /// and when <c>x == from.Item2</c> returns <c>to.Item2</c>.
     /// </summary>
     public static R Remap<R>(R x, (R, R) from, (R, R) to) where R : INumber<R>

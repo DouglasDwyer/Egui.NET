@@ -53,7 +53,7 @@ public struct ModalResponse<T>
     /// was open when checking if the escape key was clicked.
     /// </summary>
     public required bool AnyPopupOpen;
-    
+
     /// <summary>
     /// Should the modal be closed? Returns true if:<br/>
     /// - the backdrop was clicked<br/>

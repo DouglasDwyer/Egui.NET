@@ -61,12 +61,14 @@ namespace Egui.Util
         {
             return _values.GetHashCode();
         }
-        
-        private static ImmutableArray<(double, EPos2)> deserialize_vector_tuple_double_EPos2(Bincode.BincodeDeserializer deserializer) {
+
+        private static ImmutableArray<(double, EPos2)> deserialize_vector_tuple_double_EPos2(Bincode.BincodeDeserializer deserializer)
+        {
             return deserializer.deserialize_seq_unmanaged<(double, EPos2)>();
         }
 
-        private static void serialize_vector_tuple_double_EPos2(ImmutableArray<(double, EPos2)> value, Bincode.BincodeSerializer serializer) {
+        private static void serialize_vector_tuple_double_EPos2(ImmutableArray<(double, EPos2)> value, Bincode.BincodeSerializer serializer)
+        {
             serializer.serialize_seq_unmanaged(value.AsSpan());
         }
     }

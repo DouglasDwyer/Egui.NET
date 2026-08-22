@@ -157,7 +157,7 @@ public ref struct Slider<T> : IWidget where T : INumber<T>
     /// <summary>
     /// For logarithmic sliders, the largest positive value we are interested in
     /// before the slider switches to <see cref="double.PositiveInfinity"/> , if that is the higher end.
-    /// Default: <see cref="double.PositiveInfinity">.
+    /// Default: <see cref="double.PositiveInfinity"/>.
     /// </summary>
     public readonly Slider<T> LargestFinite(double smallestPositive)
     {
@@ -271,7 +271,7 @@ public ref struct Slider<T> : IWidget where T : INumber<T>
     /// <summary>
     /// Display trailing color behind the slider's circle. Default is OFF.
     ///
-    /// This setting can be enabled globally for all sliders with <see cref="Visuals.SliderTrailingFill">.
+    /// This setting can be enabled globally for all sliders with <see cref="Visuals.SliderTrailingFill"/>.
     /// Toggling it here will override the above setting ONLY for this individual slider.
     ///
     /// The fill color will be taken from <c>Selection.BgFill</c> in your <see cref="Visuals"/>, the same as a <see cref="ProgressBar"/>. 
@@ -475,11 +475,15 @@ public ref struct Slider<T> : IWidget where T : INumber<T>
 
         internal static SerializableSlider Deserialize(Bincode.BincodeDeserializer deserializer) => throw new NotSupportedException();
 
-        private static void serialize_option_HandleShape(HandleShape? value, Bincode.BincodeSerializer serializer) {
-            if (value is not null) {
+        private static void serialize_option_HandleShape(HandleShape? value, Bincode.BincodeSerializer serializer)
+        {
+            if (value is not null)
+            {
                 serializer.serialize_option_tag(true);
                 value.Value.Serialize(serializer);
-            } else {
+            }
+            else
+            {
                 serializer.serialize_option_tag(false);
             }
         }

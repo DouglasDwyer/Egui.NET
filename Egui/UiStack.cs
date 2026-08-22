@@ -21,7 +21,8 @@ namespace Egui;
 /// that stack. Most of its methods are about the specific node, but some methods walk up the
 /// hierarchy to provide information about the entire stack.
 /// </summary>
-public partial record struct UiStack : IEnumerable<UiStack> {
+public partial record struct UiStack : IEnumerable<UiStack>
+{
     public Id Id;
     public UiStackInfo Info;
     public Direction LayoutDirection;
@@ -31,7 +32,8 @@ public partial record struct UiStack : IEnumerable<UiStack> {
 
     internal static void Serialize(BincodeSerializer serializer, UiStack value) => value.Serialize(serializer);
 
-    internal void Serialize(BincodeSerializer serializer) {
+    internal void Serialize(BincodeSerializer serializer)
+    {
         serializer.increase_container_depth();
         Id.Serialize(serializer);
         Info.Serialize(serializer);
@@ -42,16 +44,17 @@ public partial record struct UiStack : IEnumerable<UiStack> {
         serializer.decrease_container_depth();
     }
 
-    internal static UiStack Deserialize(BincodeDeserializer deserializer) {
+    internal static UiStack Deserialize(BincodeDeserializer deserializer)
+    {
         deserializer.increase_container_depth();
         UiStack obj = default;
-            obj.Id = Id.Deserialize(deserializer);
-            obj.Info = UiStackInfo.Deserialize(deserializer);
-            obj.LayoutDirection = DirectionSerdeExtensions.Deserialize(deserializer);
-            obj.MinRect = Rect.Deserialize(deserializer);
-            obj.MaxRect = Rect.Deserialize(deserializer);
-            obj.Parent = TraitHelpers.deserialize_option_UiStack(deserializer);
-            
+        obj.Id = Id.Deserialize(deserializer);
+        obj.Info = UiStackInfo.Deserialize(deserializer);
+        obj.LayoutDirection = DirectionSerdeExtensions.Deserialize(deserializer);
+        obj.MinRect = Rect.Deserialize(deserializer);
+        obj.MaxRect = Rect.Deserialize(deserializer);
+        obj.Parent = TraitHelpers.deserialize_option_UiStack(deserializer);
+
         deserializer.decrease_container_depth();
         return obj;
     }
