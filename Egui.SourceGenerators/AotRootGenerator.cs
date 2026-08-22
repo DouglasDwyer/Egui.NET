@@ -21,6 +21,10 @@ namespace Egui.SourceGenerators;
 [Generator(LanguageNames.CSharp)]
 public sealed class AotRootGenerator : IIncrementalGenerator
 {
+    /// <summary>
+    /// Collects type arguments from every candidate call site, then emits the roots file once
+    /// per compilation.
+    /// </summary>
     public void Initialize(IncrementalGeneratorInitializationContext context)
     {
         var typeArgumentLists = context.SyntaxProvider.CreateSyntaxProvider(
@@ -120,8 +124,16 @@ public sealed class AotRootGenerator : IIncrementalGenerator
         // Serialize/Deserialize methods, or an unsupported compound type - nothing to root.
     }
 
+    /// <summary>
+    /// Renders <paramref name="type"/> as a `global::`-qualified name, so it compiles correctly
+    /// in the emitted file regardless of which usings are in scope there.
+    /// </summary>
     private static string FullyQualify(ITypeSymbol type) => type.ToDisplayString(SymbolDisplayFormat.FullyQualifiedFormat);
 
+    /// <summary>
+    /// Decomposes every collected type argument list into <see cref="AotRoot"/>s and writes the
+    /// deduplicated result as a module initializer.
+    /// </summary>
     private static void Emit(SourceProductionContext context, ImmutableArray<ImmutableArray<ITypeSymbol>> typeArgumentLists, Compilation compilation)
     {
         var shapes = ResolveWrapperShapes(compilation);
