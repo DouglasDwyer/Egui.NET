@@ -34,6 +34,17 @@
         <PackageReference Include="DouglasDwyer.FixedArray" Version="0.1.1" />
     </ItemGroup>
 
+    <!-- Egui.SourceGenerators roots EguiMarshal's compound-type generic instantiations for
+         Native AOT (see its README/source for details). It's a build-time compiler plugin
+         only: OutputItemType="Analyzer" makes it run as part of this compilation instead of
+         being referenced as an assembly, and ReferenceOutputAssembly="false" plus the
+         generator project's own IsPackable=false keep it out of the Egui NuGet package. -->
+    <ItemGroup>
+        <ProjectReference Include="../Egui.SourceGenerators/Egui.SourceGenerators.csproj"
+            OutputItemType="Analyzer"
+            ReferenceOutputAssembly="false" />
+    </ItemGroup>
+
     <PropertyGroup>
         <CargoExecutable Condition="'$(Configuration)'=='Debug'">cargo</CargoExecutable>
         <CargoExecutable Condition="'$(Configuration)'=='Release'">cross</CargoExecutable>
