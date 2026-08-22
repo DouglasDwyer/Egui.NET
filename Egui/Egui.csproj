@@ -16,9 +16,6 @@
         <NoWarn>1591</NoWarn>
         <Nullable>enable</Nullable>
 
-        <!-- Enables the trim/single-file/AOT analyzers so that any future reflection usage
-             that isn't safely rooted (see EguiMarshal.AotRoot and the generated AotRoots.g.cs)
-             is caught as a build warning instead of a Native AOT runtime crash. -->
         <IsAotCompatible>true</IsAotCompatible>
 
         <RuntimeIdentifiers Condition="$([MSBuild]::IsOSPlatform('Windows')) AND $([System.Runtime.InteropServices.RuntimeInformation]::ProcessArchitecture) == 'Arm64'">win-arm64</RuntimeIdentifiers>
@@ -34,11 +31,6 @@
         <PackageReference Include="DouglasDwyer.FixedArray" Version="0.1.1" />
     </ItemGroup>
 
-    <!-- Egui.SourceGenerators roots EguiMarshal's compound-type generic instantiations for
-         Native AOT (see its README/source for details). It's a build-time compiler plugin
-         only: OutputItemType="Analyzer" makes it run as part of this compilation instead of
-         being referenced as an assembly, and ReferenceOutputAssembly="false" plus the
-         generator project's own IsPackable=false keep it out of the Egui NuGet package. -->
     <ItemGroup>
         <ProjectReference Include="../Egui.SourceGenerators/Egui.SourceGenerators.csproj"
             OutputItemType="Analyzer"

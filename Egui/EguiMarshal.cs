@@ -5,7 +5,6 @@ using System.Runtime.CompilerServices;
 using System.Text;
 using Bincode;
 using Serde;
-using static System.Diagnostics.CodeAnalysis.DynamicallyAccessedMemberTypes;
 
 namespace Egui;
 
@@ -39,73 +38,73 @@ internal static class EguiMarshal
     }
 
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
-    public static R Call<[DynamicallyAccessedMembers(NonPublicMethods)] R>(EguiFn func)
+    public static R Call<[DynamicallyAccessedMembers(DynamicallyAccessedMemberTypes.NonPublicMethods)] R>(EguiFn func)
     {
         return Call<NoArgument, R>(func, default);
     }
 
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
-    public static void Call<[DynamicallyAccessedMembers(NonPublicMethods)] A0>(EguiFn func, A0 arg0)
+    public static void Call<[DynamicallyAccessedMembers(DynamicallyAccessedMemberTypes.NonPublicMethods)] A0>(EguiFn func, A0 arg0)
     {
         Call<A0, NoArgument>(func, arg0, default);
     }
 
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
-    public static R Call<[DynamicallyAccessedMembers(NonPublicMethods)] A0, [DynamicallyAccessedMembers(NonPublicMethods)] R>(EguiFn func, A0 arg0)
+    public static R Call<[DynamicallyAccessedMembers(DynamicallyAccessedMemberTypes.NonPublicMethods)] A0, [DynamicallyAccessedMembers(DynamicallyAccessedMemberTypes.NonPublicMethods)] R>(EguiFn func, A0 arg0)
     {
         return Call<A0, NoArgument, R>(func, arg0, default);
     }
 
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
-    public static void Call<[DynamicallyAccessedMembers(NonPublicMethods)] A0, [DynamicallyAccessedMembers(NonPublicMethods)] A1>(EguiFn func, A0 arg0, A1 arg1)
+    public static void Call<[DynamicallyAccessedMembers(DynamicallyAccessedMemberTypes.NonPublicMethods)] A0, [DynamicallyAccessedMembers(DynamicallyAccessedMemberTypes.NonPublicMethods)] A1>(EguiFn func, A0 arg0, A1 arg1)
     {
         Call<A0, A1, NoArgument>(func, arg0, arg1, default);
     }
 
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
-    public static R Call<[DynamicallyAccessedMembers(NonPublicMethods)] A0, [DynamicallyAccessedMembers(NonPublicMethods)] A1, [DynamicallyAccessedMembers(NonPublicMethods)] R>(EguiFn func, A0 arg0, A1 arg1)
+    public static R Call<[DynamicallyAccessedMembers(DynamicallyAccessedMemberTypes.NonPublicMethods)] A0, [DynamicallyAccessedMembers(DynamicallyAccessedMemberTypes.NonPublicMethods)] A1, [DynamicallyAccessedMembers(DynamicallyAccessedMemberTypes.NonPublicMethods)] R>(EguiFn func, A0 arg0, A1 arg1)
     {
         return Call<A0, A1, NoArgument, R>(func, arg0, arg1, default);
     }
 
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
-    public static void Call<[DynamicallyAccessedMembers(NonPublicMethods)] A0, [DynamicallyAccessedMembers(NonPublicMethods)] A1, [DynamicallyAccessedMembers(NonPublicMethods)] A2>(EguiFn func, A0 arg0, A1 arg1, A2 arg2)
+    public static void Call<[DynamicallyAccessedMembers(DynamicallyAccessedMemberTypes.NonPublicMethods)] A0, [DynamicallyAccessedMembers(DynamicallyAccessedMemberTypes.NonPublicMethods)] A1, [DynamicallyAccessedMembers(DynamicallyAccessedMemberTypes.NonPublicMethods)] A2>(EguiFn func, A0 arg0, A1 arg1, A2 arg2)
     {
         Call<A0, A1, A2, NoArgument>(func, arg0, arg1, arg2, default);
     }
 
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
-    public static R Call<[DynamicallyAccessedMembers(NonPublicMethods)] A0, [DynamicallyAccessedMembers(NonPublicMethods)] A1, [DynamicallyAccessedMembers(NonPublicMethods)] A2, [DynamicallyAccessedMembers(NonPublicMethods)] R>(EguiFn func, A0 arg0, A1 arg1, A2 arg2)
+    public static R Call<[DynamicallyAccessedMembers(DynamicallyAccessedMemberTypes.NonPublicMethods)] A0, [DynamicallyAccessedMembers(DynamicallyAccessedMemberTypes.NonPublicMethods)] A1, [DynamicallyAccessedMembers(DynamicallyAccessedMemberTypes.NonPublicMethods)] A2, [DynamicallyAccessedMembers(DynamicallyAccessedMemberTypes.NonPublicMethods)] R>(EguiFn func, A0 arg0, A1 arg1, A2 arg2)
     {
         return Call<A0, A1, A2, NoArgument, R>(func, arg0, arg1, arg2, default);
     }
 
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
-    public static void Call<[DynamicallyAccessedMembers(NonPublicMethods)] A0, [DynamicallyAccessedMembers(NonPublicMethods)] A1, [DynamicallyAccessedMembers(NonPublicMethods)] A2, [DynamicallyAccessedMembers(NonPublicMethods)] A3>(EguiFn func, A0 arg0, A1 arg1, A2 arg2, A3 arg3)
+    public static void Call<[DynamicallyAccessedMembers(DynamicallyAccessedMemberTypes.NonPublicMethods)] A0, [DynamicallyAccessedMembers(DynamicallyAccessedMemberTypes.NonPublicMethods)] A1, [DynamicallyAccessedMembers(DynamicallyAccessedMemberTypes.NonPublicMethods)] A2, [DynamicallyAccessedMembers(DynamicallyAccessedMemberTypes.NonPublicMethods)] A3>(EguiFn func, A0 arg0, A1 arg1, A2 arg2, A3 arg3)
     {
         Call<A0, A1, A2, A3, NoArgument>(func, arg0, arg1, arg2, arg3, default);
     }
 
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
-    public static R Call<[DynamicallyAccessedMembers(NonPublicMethods)] A0, [DynamicallyAccessedMembers(NonPublicMethods)] A1, [DynamicallyAccessedMembers(NonPublicMethods)] A2, [DynamicallyAccessedMembers(NonPublicMethods)] A3, [DynamicallyAccessedMembers(NonPublicMethods)] R>(EguiFn func, A0 arg0, A1 arg1, A2 arg2, A3 arg3)
+    public static R Call<[DynamicallyAccessedMembers(DynamicallyAccessedMemberTypes.NonPublicMethods)] A0, [DynamicallyAccessedMembers(DynamicallyAccessedMemberTypes.NonPublicMethods)] A1, [DynamicallyAccessedMembers(DynamicallyAccessedMemberTypes.NonPublicMethods)] A2, [DynamicallyAccessedMembers(DynamicallyAccessedMemberTypes.NonPublicMethods)] A3, [DynamicallyAccessedMembers(DynamicallyAccessedMemberTypes.NonPublicMethods)] R>(EguiFn func, A0 arg0, A1 arg1, A2 arg2, A3 arg3)
     {
         return Call<A0, A1, A2, A3, NoArgument, R>(func, arg0, arg1, arg2, arg3, default);
     }
 
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
-    public static void Call<[DynamicallyAccessedMembers(NonPublicMethods)] A0, [DynamicallyAccessedMembers(NonPublicMethods)] A1, [DynamicallyAccessedMembers(NonPublicMethods)] A2, [DynamicallyAccessedMembers(NonPublicMethods)] A3, [DynamicallyAccessedMembers(NonPublicMethods)] A4>(EguiFn func, A0 arg0, A1 arg1, A2 arg2, A3 arg3, A4 arg4)
+    public static void Call<[DynamicallyAccessedMembers(DynamicallyAccessedMemberTypes.NonPublicMethods)] A0, [DynamicallyAccessedMembers(DynamicallyAccessedMemberTypes.NonPublicMethods)] A1, [DynamicallyAccessedMembers(DynamicallyAccessedMemberTypes.NonPublicMethods)] A2, [DynamicallyAccessedMembers(DynamicallyAccessedMemberTypes.NonPublicMethods)] A3, [DynamicallyAccessedMembers(DynamicallyAccessedMemberTypes.NonPublicMethods)] A4>(EguiFn func, A0 arg0, A1 arg1, A2 arg2, A3 arg3, A4 arg4)
     {
         Call<A0, A1, A2, A3, A4, NoArgument>(func, arg0, arg1, arg2, arg3, arg4, default);
     }
 
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
-    public static R Call<[DynamicallyAccessedMembers(NonPublicMethods)] A0, [DynamicallyAccessedMembers(NonPublicMethods)] A1, [DynamicallyAccessedMembers(NonPublicMethods)] A2, [DynamicallyAccessedMembers(NonPublicMethods)] A3, [DynamicallyAccessedMembers(NonPublicMethods)] A4, [DynamicallyAccessedMembers(NonPublicMethods)] R>(EguiFn func, A0 arg0, A1 arg1, A2 arg2, A3 arg3, A4 arg4)
+    public static R Call<[DynamicallyAccessedMembers(DynamicallyAccessedMemberTypes.NonPublicMethods)] A0, [DynamicallyAccessedMembers(DynamicallyAccessedMemberTypes.NonPublicMethods)] A1, [DynamicallyAccessedMembers(DynamicallyAccessedMemberTypes.NonPublicMethods)] A2, [DynamicallyAccessedMembers(DynamicallyAccessedMemberTypes.NonPublicMethods)] A3, [DynamicallyAccessedMembers(DynamicallyAccessedMemberTypes.NonPublicMethods)] A4, [DynamicallyAccessedMembers(DynamicallyAccessedMemberTypes.NonPublicMethods)] R>(EguiFn func, A0 arg0, A1 arg1, A2 arg2, A3 arg3, A4 arg4)
     {
         return Call<A0, A1, A2, A3, A4, NoArgument, R>(func, arg0, arg1, arg2, arg3, arg4, default);
     }
 
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
-    public static void Call<[DynamicallyAccessedMembers(NonPublicMethods)] A0, [DynamicallyAccessedMembers(NonPublicMethods)] A1, [DynamicallyAccessedMembers(NonPublicMethods)] A2, [DynamicallyAccessedMembers(NonPublicMethods)] A3, [DynamicallyAccessedMembers(NonPublicMethods)] A4, [DynamicallyAccessedMembers(NonPublicMethods)] A5>(EguiFn func, A0 arg0, A1 arg1, A2 arg2, A3 arg3, A4 arg4, A5 arg5)
+    public static void Call<[DynamicallyAccessedMembers(DynamicallyAccessedMemberTypes.NonPublicMethods)] A0, [DynamicallyAccessedMembers(DynamicallyAccessedMemberTypes.NonPublicMethods)] A1, [DynamicallyAccessedMembers(DynamicallyAccessedMemberTypes.NonPublicMethods)] A2, [DynamicallyAccessedMembers(DynamicallyAccessedMemberTypes.NonPublicMethods)] A3, [DynamicallyAccessedMembers(DynamicallyAccessedMemberTypes.NonPublicMethods)] A4, [DynamicallyAccessedMembers(DynamicallyAccessedMemberTypes.NonPublicMethods)] A5>(EguiFn func, A0 arg0, A1 arg1, A2 arg2, A3 arg3, A4 arg4, A5 arg5)
     {
         unsafe
         {
@@ -132,7 +131,7 @@ internal static class EguiMarshal
     }
 
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
-    public static R Call<[DynamicallyAccessedMembers(NonPublicMethods)] A0, [DynamicallyAccessedMembers(NonPublicMethods)] A1, [DynamicallyAccessedMembers(NonPublicMethods)] A2, [DynamicallyAccessedMembers(NonPublicMethods)] A3, [DynamicallyAccessedMembers(NonPublicMethods)] A4, [DynamicallyAccessedMembers(NonPublicMethods)] A5, [DynamicallyAccessedMembers(NonPublicMethods)] R>(EguiFn func, A0 arg0, A1 arg1, A2 arg2, A3 arg3, A4 arg4, A5 arg5)
+    public static R Call<[DynamicallyAccessedMembers(DynamicallyAccessedMemberTypes.NonPublicMethods)] A0, [DynamicallyAccessedMembers(DynamicallyAccessedMemberTypes.NonPublicMethods)] A1, [DynamicallyAccessedMembers(DynamicallyAccessedMemberTypes.NonPublicMethods)] A2, [DynamicallyAccessedMembers(DynamicallyAccessedMemberTypes.NonPublicMethods)] A3, [DynamicallyAccessedMembers(DynamicallyAccessedMemberTypes.NonPublicMethods)] A4, [DynamicallyAccessedMembers(DynamicallyAccessedMemberTypes.NonPublicMethods)] A5, [DynamicallyAccessedMembers(DynamicallyAccessedMemberTypes.NonPublicMethods)] R>(EguiFn func, A0 arg0, A1 arg1, A2 arg2, A3 arg3, A4 arg4, A5 arg5)
     {
         unsafe
         {
@@ -159,7 +158,7 @@ internal static class EguiMarshal
     }
 
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
-    private unsafe static R DeserializeResult<[DynamicallyAccessedMembers(NonPublicMethods)] R>(EguiInvokeResult result)
+    private unsafe static R DeserializeResult<[DynamicallyAccessedMembers(DynamicallyAccessedMemberTypes.NonPublicMethods)] R>(EguiInvokeResult result)
     {
         AssertSuccess(result);
         var deserializer = GetDeserializer(result.return_value);
@@ -212,7 +211,8 @@ internal static class EguiMarshal
     }
 
     /// <summary>
-    /// Serializers for generic types.
+    /// Serializers for generic types. <c>Egui.SourceGenerators</c> reads these <c>typeof(...)</c>
+    /// keys directly to know which shapes need rooting for Native AOT.
     /// </summary>
     private static Dictionary<Type, (string, string)> SerializerPrototypes = new Dictionary<Type, (string, string)> {
         { typeof(ImmutableArray<>), (nameof(ImmutableArraySerializer), nameof(ImmutableArrayDeserializer)) },
@@ -231,7 +231,7 @@ internal static class EguiMarshal
     /// Caches serialization and deserialization methods for a type.
     /// </summary>
     /// <typeparam name="T">The type to cache.</typeparam>
-    internal static class SerializerCache<[DynamicallyAccessedMembers(NonPublicMethods)] T>
+    internal static class SerializerCache<[DynamicallyAccessedMembers(DynamicallyAccessedMemberTypes.NonPublicMethods)] T>
     {
         /// <summary>
         /// The serialization function to use.
@@ -247,20 +247,12 @@ internal static class EguiMarshal
         /// Initializes the serialization methods.
         /// </summary>
         /// <remarks>
-        /// The branch below for compound generic wrapper types (<see cref="ImmutableArray{T}"/>,
-        /// tuples, <see cref="Nullable{T}"/>, <c>ArrayN&lt;T&gt;</c>) uses <see cref="MethodInfo.MakeGenericMethod"/>
-        /// to build a serializer for a generic instantiation that isn't known until runtime. Native AOT
-        /// cannot JIT new generic instantiations, so this only works because the source generator that
-        /// emits <c>EguiMarshal.Call&lt;...&gt;</c> call sites also emits a companion <c>AotRoots.g.cs</c>
-        /// file (see <see cref="AotRoot"/>) that ordinarily references every concrete instantiation the
-        /// generated bindings actually use, forcing the AOT compiler to compile them ahead of time. The
-        /// warnings suppressed here are only unsound for instantiations that no generated or hand-written
-        /// call site ever uses - which, if they existed, would already fail with an <see cref="EguiException"/>
-        /// at first use even outside of AOT.
+        /// The compound-type branch below uses <see cref="MethodInfo.MakeGenericMethod"/>, which Native AOT
+        /// can only satisfy for instantiations rooted elsewhere - see <see cref="AotRoot"/>.
         /// </remarks>
-        [UnconditionalSuppressMessage("Trimming", "IL2075", Justification = "The target method is rooted via the generated AotRoots.g.cs file; see remarks.")]
-        [UnconditionalSuppressMessage("Trimming", "IL2060", Justification = "The target method is rooted via the generated AotRoots.g.cs file; see remarks.")]
-        [UnconditionalSuppressMessage("AOT", "IL3050", Justification = "The requested generic instantiation is rooted via the generated AotRoots.g.cs file; see remarks.")]
+        [UnconditionalSuppressMessage("Trimming", "IL2075", Justification = "The target method is rooted; see AotRoot.")]
+        [UnconditionalSuppressMessage("Trimming", "IL2060", Justification = "The target method is rooted; see AotRoot.")]
+        [UnconditionalSuppressMessage("AOT", "IL3050", Justification = "The requested instantiation is rooted; see AotRoot.")]
         static SerializerCache()
         {
             if (typeof(T) == typeof(NoArgument))
@@ -401,7 +393,7 @@ internal static class EguiMarshal
     /// <summary>
     /// Serializes an immutable array.
     /// </summary>
-    private static void ImmutableArraySerializer<[DynamicallyAccessedMembers(NonPublicMethods)] T>(BincodeSerializer serializer, ImmutableArray<T> value)
+    private static void ImmutableArraySerializer<[DynamicallyAccessedMembers(DynamicallyAccessedMemberTypes.NonPublicMethods)] T>(BincodeSerializer serializer, ImmutableArray<T> value)
     {
         serializer.serialize_len(value.Length);
         foreach (var item in value)
@@ -413,7 +405,7 @@ internal static class EguiMarshal
     /// <summary>
     /// Deserializes an immutable array.
     /// </summary>
-    private static ImmutableArray<T> ImmutableArrayDeserializer<[DynamicallyAccessedMembers(NonPublicMethods)] T>(BincodeDeserializer deserializer)
+    private static ImmutableArray<T> ImmutableArrayDeserializer<[DynamicallyAccessedMembers(DynamicallyAccessedMemberTypes.NonPublicMethods)] T>(BincodeDeserializer deserializer)
     {
         var length = deserializer.deserialize_len();
         T[] obj = new T[length];
@@ -427,7 +419,7 @@ internal static class EguiMarshal
     /// <summary>
     /// Serializes a tuple.
     /// </summary>
-    private static void Tuple2Serializer<[DynamicallyAccessedMembers(NonPublicMethods)] A0, [DynamicallyAccessedMembers(NonPublicMethods)] A1>(BincodeSerializer serializer, (A0, A1) value)
+    private static void Tuple2Serializer<[DynamicallyAccessedMembers(DynamicallyAccessedMemberTypes.NonPublicMethods)] A0, [DynamicallyAccessedMembers(DynamicallyAccessedMemberTypes.NonPublicMethods)] A1>(BincodeSerializer serializer, (A0, A1) value)
     {
         SerializerCache<A0>.Serialize(serializer, value.Item1);
         SerializerCache<A1>.Serialize(serializer, value.Item2);
@@ -436,7 +428,7 @@ internal static class EguiMarshal
     /// <summary>
     /// Deserializes a tuple.
     /// </summary>
-    private static (A0, A1) Tuple2Deserializer<[DynamicallyAccessedMembers(NonPublicMethods)] A0, [DynamicallyAccessedMembers(NonPublicMethods)] A1>(BincodeDeserializer deserializer)
+    private static (A0, A1) Tuple2Deserializer<[DynamicallyAccessedMembers(DynamicallyAccessedMemberTypes.NonPublicMethods)] A0, [DynamicallyAccessedMembers(DynamicallyAccessedMemberTypes.NonPublicMethods)] A1>(BincodeDeserializer deserializer)
     {
         return (SerializerCache<A0>.Deserialize(deserializer), SerializerCache<A1>.Deserialize(deserializer));
     }
@@ -444,7 +436,7 @@ internal static class EguiMarshal
     /// <summary>
     /// Serializes a tuple.
     /// </summary>
-    private static void Tuple3Serializer<[DynamicallyAccessedMembers(NonPublicMethods)] A0, [DynamicallyAccessedMembers(NonPublicMethods)] A1, [DynamicallyAccessedMembers(NonPublicMethods)] A2>(BincodeSerializer serializer, (A0, A1, A2) value)
+    private static void Tuple3Serializer<[DynamicallyAccessedMembers(DynamicallyAccessedMemberTypes.NonPublicMethods)] A0, [DynamicallyAccessedMembers(DynamicallyAccessedMemberTypes.NonPublicMethods)] A1, [DynamicallyAccessedMembers(DynamicallyAccessedMemberTypes.NonPublicMethods)] A2>(BincodeSerializer serializer, (A0, A1, A2) value)
     {
         SerializerCache<A0>.Serialize(serializer, value.Item1);
         SerializerCache<A1>.Serialize(serializer, value.Item2);
@@ -454,7 +446,7 @@ internal static class EguiMarshal
     /// <summary>
     /// Deserializes a tuple.
     /// </summary>
-    private static (A0, A1, A2) Tuple3Deserializer<[DynamicallyAccessedMembers(NonPublicMethods)] A0, [DynamicallyAccessedMembers(NonPublicMethods)] A1, [DynamicallyAccessedMembers(NonPublicMethods)] A2>(BincodeDeserializer deserializer)
+    private static (A0, A1, A2) Tuple3Deserializer<[DynamicallyAccessedMembers(DynamicallyAccessedMemberTypes.NonPublicMethods)] A0, [DynamicallyAccessedMembers(DynamicallyAccessedMemberTypes.NonPublicMethods)] A1, [DynamicallyAccessedMembers(DynamicallyAccessedMemberTypes.NonPublicMethods)] A2>(BincodeDeserializer deserializer)
     {
         return (
             SerializerCache<A0>.Deserialize(deserializer),
@@ -466,7 +458,7 @@ internal static class EguiMarshal
     /// <summary>
     /// Serializes a tuple.
     /// </summary>
-    private static void Tuple4Serializer<[DynamicallyAccessedMembers(NonPublicMethods)] A0, [DynamicallyAccessedMembers(NonPublicMethods)] A1, [DynamicallyAccessedMembers(NonPublicMethods)] A2, [DynamicallyAccessedMembers(NonPublicMethods)] A3>(BincodeSerializer serializer, (A0, A1, A2, A3) value)
+    private static void Tuple4Serializer<[DynamicallyAccessedMembers(DynamicallyAccessedMemberTypes.NonPublicMethods)] A0, [DynamicallyAccessedMembers(DynamicallyAccessedMemberTypes.NonPublicMethods)] A1, [DynamicallyAccessedMembers(DynamicallyAccessedMemberTypes.NonPublicMethods)] A2, [DynamicallyAccessedMembers(DynamicallyAccessedMemberTypes.NonPublicMethods)] A3>(BincodeSerializer serializer, (A0, A1, A2, A3) value)
     {
         SerializerCache<A0>.Serialize(serializer, value.Item1);
         SerializerCache<A1>.Serialize(serializer, value.Item2);
@@ -477,7 +469,7 @@ internal static class EguiMarshal
     /// <summary>
     /// Deserializes a tuple.
     /// </summary>
-    private static (A0, A1, A2, A3) Tuple4Deserializer<[DynamicallyAccessedMembers(NonPublicMethods)] A0, [DynamicallyAccessedMembers(NonPublicMethods)] A1, [DynamicallyAccessedMembers(NonPublicMethods)] A2, [DynamicallyAccessedMembers(NonPublicMethods)] A3>(BincodeDeserializer deserializer)
+    private static (A0, A1, A2, A3) Tuple4Deserializer<[DynamicallyAccessedMembers(DynamicallyAccessedMemberTypes.NonPublicMethods)] A0, [DynamicallyAccessedMembers(DynamicallyAccessedMemberTypes.NonPublicMethods)] A1, [DynamicallyAccessedMembers(DynamicallyAccessedMemberTypes.NonPublicMethods)] A2, [DynamicallyAccessedMembers(DynamicallyAccessedMemberTypes.NonPublicMethods)] A3>(BincodeDeserializer deserializer)
     {
         return (
             SerializerCache<A0>.Deserialize(deserializer),
@@ -490,7 +482,7 @@ internal static class EguiMarshal
     /// <summary>
     /// Serializes a nullable.
     /// </summary>
-    private static void NullableSerializer<[DynamicallyAccessedMembers(NonPublicMethods)] T>(BincodeSerializer serializer, T? value) where T : struct
+    private static void NullableSerializer<[DynamicallyAccessedMembers(DynamicallyAccessedMemberTypes.NonPublicMethods)] T>(BincodeSerializer serializer, T? value) where T : struct
     {
         serializer.serialize_option_tag(value.HasValue);
         if (value.HasValue)
@@ -502,7 +494,7 @@ internal static class EguiMarshal
     /// <summary>
     /// Deserializes a nullable.
     /// </summary>
-    private static T? NullableDeserializer<[DynamicallyAccessedMembers(NonPublicMethods)] T>(BincodeDeserializer deserializer) where T : struct
+    private static T? NullableDeserializer<[DynamicallyAccessedMembers(DynamicallyAccessedMemberTypes.NonPublicMethods)] T>(BincodeDeserializer deserializer) where T : struct
     {
         if (deserializer.deserialize_option_tag())
         {
@@ -517,7 +509,7 @@ internal static class EguiMarshal
     /// <summary>
     /// Serializes a fixed-size array.
     /// </summary>
-    private static void Array2Serializer<[DynamicallyAccessedMembers(NonPublicMethods)] T>(BincodeSerializer serializer, Array2<T> value)
+    private static void Array2Serializer<[DynamicallyAccessedMembers(DynamicallyAccessedMemberTypes.NonPublicMethods)] T>(BincodeSerializer serializer, Array2<T> value)
     {
         foreach (var item in value)
         {
@@ -528,7 +520,7 @@ internal static class EguiMarshal
     /// <summary>
     /// Deserializes a fixed-size array.
     /// </summary>
-    private static Array2<T> Array2Deserializer<[DynamicallyAccessedMembers(NonPublicMethods)] T>(BincodeDeserializer deserializer)
+    private static Array2<T> Array2Deserializer<[DynamicallyAccessedMembers(DynamicallyAccessedMemberTypes.NonPublicMethods)] T>(BincodeDeserializer deserializer)
     {
         Array2<T> result = default;
         for (var i = 0; i < result.Length; i++)
@@ -541,7 +533,7 @@ internal static class EguiMarshal
     /// <summary>
     /// Serializes a fixed-size array.
     /// </summary>
-    private static void Array3Serializer<[DynamicallyAccessedMembers(NonPublicMethods)] T>(BincodeSerializer serializer, Array3<T> value)
+    private static void Array3Serializer<[DynamicallyAccessedMembers(DynamicallyAccessedMemberTypes.NonPublicMethods)] T>(BincodeSerializer serializer, Array3<T> value)
     {
         foreach (var item in value)
         {
@@ -552,7 +544,7 @@ internal static class EguiMarshal
     /// <summary>
     /// Deserializes a fixed-size array.
     /// </summary>
-    private static Array3<T> Array3Deserializer<[DynamicallyAccessedMembers(NonPublicMethods)] T>(BincodeDeserializer deserializer)
+    private static Array3<T> Array3Deserializer<[DynamicallyAccessedMembers(DynamicallyAccessedMemberTypes.NonPublicMethods)] T>(BincodeDeserializer deserializer)
     {
         Array3<T> result = default;
         for (var i = 0; i < result.Length; i++)
@@ -565,7 +557,7 @@ internal static class EguiMarshal
     /// <summary>
     /// Serializes a fixed-size array.
     /// </summary>
-    private static void Array4Serializer<[DynamicallyAccessedMembers(NonPublicMethods)] T>(BincodeSerializer serializer, Array4<T> value)
+    private static void Array4Serializer<[DynamicallyAccessedMembers(DynamicallyAccessedMemberTypes.NonPublicMethods)] T>(BincodeSerializer serializer, Array4<T> value)
     {
         foreach (var item in value)
         {
@@ -576,7 +568,7 @@ internal static class EguiMarshal
     /// <summary>
     /// Deserializes a fixed-size array.
     /// </summary>
-    private static Array4<T> Array4Deserializer<[DynamicallyAccessedMembers(NonPublicMethods)] T>(BincodeDeserializer deserializer)
+    private static Array4<T> Array4Deserializer<[DynamicallyAccessedMembers(DynamicallyAccessedMemberTypes.NonPublicMethods)] T>(BincodeDeserializer deserializer)
     {
         Array4<T> result = default;
         for (var i = 0; i < result.Length; i++)
@@ -589,7 +581,7 @@ internal static class EguiMarshal
     /// <summary>
     /// Serializes a fixed-size array.
     /// </summary>
-    private static void Array5Serializer<[DynamicallyAccessedMembers(NonPublicMethods)] T>(BincodeSerializer serializer, Array5<T> value)
+    private static void Array5Serializer<[DynamicallyAccessedMembers(DynamicallyAccessedMemberTypes.NonPublicMethods)] T>(BincodeSerializer serializer, Array5<T> value)
     {
         foreach (var item in value)
         {
@@ -600,7 +592,7 @@ internal static class EguiMarshal
     /// <summary>
     /// Deserializes a fixed-size array.
     /// </summary>
-    private static Array5<T> Array5Deserializer<[DynamicallyAccessedMembers(NonPublicMethods)] T>(BincodeDeserializer deserializer)
+    private static Array5<T> Array5Deserializer<[DynamicallyAccessedMembers(DynamicallyAccessedMemberTypes.NonPublicMethods)] T>(BincodeDeserializer deserializer)
     {
         Array5<T> result = default;
         for (var i = 0; i < result.Length; i++)
@@ -613,7 +605,7 @@ internal static class EguiMarshal
     /// <summary>
     /// Serializes a fixed-size array.
     /// </summary>
-    private static void Array6Serializer<[DynamicallyAccessedMembers(NonPublicMethods)] T>(BincodeSerializer serializer, Array6<T> value)
+    private static void Array6Serializer<[DynamicallyAccessedMembers(DynamicallyAccessedMemberTypes.NonPublicMethods)] T>(BincodeSerializer serializer, Array6<T> value)
     {
         foreach (var item in value)
         {
@@ -624,7 +616,7 @@ internal static class EguiMarshal
     /// <summary>
     /// Deserializes a fixed-size array.
     /// </summary>
-    private static Array6<T> Array6Deserializer<[DynamicallyAccessedMembers(NonPublicMethods)] T>(BincodeDeserializer deserializer)
+    private static Array6<T> Array6Deserializer<[DynamicallyAccessedMembers(DynamicallyAccessedMemberTypes.NonPublicMethods)] T>(BincodeDeserializer deserializer)
     {
         Array6<T> result = default;
         for (var i = 0; i < result.Length; i++)
@@ -635,76 +627,72 @@ internal static class EguiMarshal
     }
 
     /// <summary>
-    /// Roots closed generic instantiations of the compound-type serializer/deserializer
-    /// pairs above (<see cref="ImmutableArraySerializer{T}"/>, <see cref="Tuple2Serializer{A0, A1}"/>,
-    /// <see cref="NullableSerializer{T}"/>, <see cref="Array2Serializer{T}"/>, etc.) so that
-    /// Native AOT compiles them ahead of time instead of only ever discovering them through
-    /// <see cref="SerializerCache{T}"/>'s reflection-based dispatch.
+    /// Roots closed generic instantiations of the compound-type serializer/deserializer pairs
+    /// above, so Native AOT compiles them ahead of time instead of only discovering them
+    /// through <see cref="SerializerCache{T}"/>'s reflection-based dispatch.
     /// </summary>
     /// <remarks>
-    /// None of these methods are meant to be called by hand. The generated <c>AotRoots.g.cs</c>
-    /// file (produced alongside the rest of the C# bindings) calls one of them, from a module
-    /// initializer, for every concrete instantiation the generated and hand-written bindings
-    /// actually use. An ordinary generic method reference like the ones below is enough to make
-    /// the AOT compiler compile that instantiation - the methods never need to actually run.
+    /// Not meant to be called by hand: <c>Egui.SourceGenerators</c> emits a module initializer
+    /// that calls one of these methods for every closed instantiation the compilation actually
+    /// uses. The reference alone is enough to root it - the methods never need to run.
     /// </remarks>
     internal static class AotRoot
     {
-        internal static void ImmutableArray<[DynamicallyAccessedMembers(NonPublicMethods)] T>()
+        internal static void ImmutableArray<[DynamicallyAccessedMembers(DynamicallyAccessedMemberTypes.NonPublicMethods)] T>()
         {
             _ = (Action<BincodeSerializer, ImmutableArray<T>>)ImmutableArraySerializer<T>;
             _ = (Func<BincodeDeserializer, ImmutableArray<T>>)ImmutableArrayDeserializer<T>;
         }
 
-        internal static void Nullable<[DynamicallyAccessedMembers(NonPublicMethods)] T>() where T : struct
+        internal static void Nullable<[DynamicallyAccessedMembers(DynamicallyAccessedMemberTypes.NonPublicMethods)] T>() where T : struct
         {
             _ = (Action<BincodeSerializer, T?>)NullableSerializer<T>;
             _ = (Func<BincodeDeserializer, T?>)NullableDeserializer<T>;
         }
 
-        internal static void Tuple2<[DynamicallyAccessedMembers(NonPublicMethods)] A0, [DynamicallyAccessedMembers(NonPublicMethods)] A1>()
+        internal static void ValueTuple<[DynamicallyAccessedMembers(DynamicallyAccessedMemberTypes.NonPublicMethods)] A0, [DynamicallyAccessedMembers(DynamicallyAccessedMemberTypes.NonPublicMethods)] A1>()
         {
             _ = (Action<BincodeSerializer, (A0, A1)>)Tuple2Serializer<A0, A1>;
             _ = (Func<BincodeDeserializer, (A0, A1)>)Tuple2Deserializer<A0, A1>;
         }
 
-        internal static void Tuple3<[DynamicallyAccessedMembers(NonPublicMethods)] A0, [DynamicallyAccessedMembers(NonPublicMethods)] A1, [DynamicallyAccessedMembers(NonPublicMethods)] A2>()
+        internal static void ValueTuple<[DynamicallyAccessedMembers(DynamicallyAccessedMemberTypes.NonPublicMethods)] A0, [DynamicallyAccessedMembers(DynamicallyAccessedMemberTypes.NonPublicMethods)] A1, [DynamicallyAccessedMembers(DynamicallyAccessedMemberTypes.NonPublicMethods)] A2>()
         {
             _ = (Action<BincodeSerializer, (A0, A1, A2)>)Tuple3Serializer<A0, A1, A2>;
             _ = (Func<BincodeDeserializer, (A0, A1, A2)>)Tuple3Deserializer<A0, A1, A2>;
         }
 
-        internal static void Tuple4<[DynamicallyAccessedMembers(NonPublicMethods)] A0, [DynamicallyAccessedMembers(NonPublicMethods)] A1, [DynamicallyAccessedMembers(NonPublicMethods)] A2, [DynamicallyAccessedMembers(NonPublicMethods)] A3>()
+        internal static void ValueTuple<[DynamicallyAccessedMembers(DynamicallyAccessedMemberTypes.NonPublicMethods)] A0, [DynamicallyAccessedMembers(DynamicallyAccessedMemberTypes.NonPublicMethods)] A1, [DynamicallyAccessedMembers(DynamicallyAccessedMemberTypes.NonPublicMethods)] A2, [DynamicallyAccessedMembers(DynamicallyAccessedMemberTypes.NonPublicMethods)] A3>()
         {
             _ = (Action<BincodeSerializer, (A0, A1, A2, A3)>)Tuple4Serializer<A0, A1, A2, A3>;
             _ = (Func<BincodeDeserializer, (A0, A1, A2, A3)>)Tuple4Deserializer<A0, A1, A2, A3>;
         }
 
-        internal static void Array2<[DynamicallyAccessedMembers(NonPublicMethods)] T>()
+        internal static void Array2<[DynamicallyAccessedMembers(DynamicallyAccessedMemberTypes.NonPublicMethods)] T>()
         {
             _ = (Action<BincodeSerializer, Array2<T>>)Array2Serializer<T>;
             _ = (Func<BincodeDeserializer, Array2<T>>)Array2Deserializer<T>;
         }
 
-        internal static void Array3<[DynamicallyAccessedMembers(NonPublicMethods)] T>()
+        internal static void Array3<[DynamicallyAccessedMembers(DynamicallyAccessedMemberTypes.NonPublicMethods)] T>()
         {
             _ = (Action<BincodeSerializer, Array3<T>>)Array3Serializer<T>;
             _ = (Func<BincodeDeserializer, Array3<T>>)Array3Deserializer<T>;
         }
 
-        internal static void Array4<[DynamicallyAccessedMembers(NonPublicMethods)] T>()
+        internal static void Array4<[DynamicallyAccessedMembers(DynamicallyAccessedMemberTypes.NonPublicMethods)] T>()
         {
             _ = (Action<BincodeSerializer, Array4<T>>)Array4Serializer<T>;
             _ = (Func<BincodeDeserializer, Array4<T>>)Array4Deserializer<T>;
         }
 
-        internal static void Array5<[DynamicallyAccessedMembers(NonPublicMethods)] T>()
+        internal static void Array5<[DynamicallyAccessedMembers(DynamicallyAccessedMemberTypes.NonPublicMethods)] T>()
         {
             _ = (Action<BincodeSerializer, Array5<T>>)Array5Serializer<T>;
             _ = (Func<BincodeDeserializer, Array5<T>>)Array5Deserializer<T>;
         }
 
-        internal static void Array6<[DynamicallyAccessedMembers(NonPublicMethods)] T>()
+        internal static void Array6<[DynamicallyAccessedMembers(DynamicallyAccessedMemberTypes.NonPublicMethods)] T>()
         {
             _ = (Action<BincodeSerializer, Array6<T>>)Array6Serializer<T>;
             _ = (Func<BincodeDeserializer, Array6<T>>)Array6Deserializer<T>;
