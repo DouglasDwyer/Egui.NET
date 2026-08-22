@@ -10,8 +10,12 @@ use serde::*;
 /// Allows for passing `egui` data back and forth with C#.
 #[repr(C)]
 pub struct EguiFfi {
-    /// The serialized bytes of the most recent [`FullOutput`].
-    full_output: FfiVec<u8>,
+    /// The serialized bytes of the most recent [`FullOutput::platform_output`].
+    platform_output: FfiVec<u8>,
+    /// The serialized bytes of the most recent [`FullOutput::textures_delta`].
+    textures_delta: FfiVec<u8>,
+    /// The most recent [`FullOutput::pixels_per_point`].
+    pixels_per_point: f32,
     /// The meshes from the most recent call to [`Context::tessellate`].
     meshes: FfiVec<(Rect, FfiTextureId, FfiVec<u32>, FfiVec<Vertex>)>,
     /// The most recent raw input.
@@ -19,17 +23,56 @@ pub struct EguiFfi {
 }
 
 impl EguiFfi {
-    /// Gets the most recent [`FullOutput`]. [`FullOutput::shapes`] and
-    /// [`FullOutput::viewport_output`] are not included.
-    pub fn full_output(&self) -> FullOutput {
-        bincode::serde::decode_from_slice::<FullOutput2, _>(&self.full_output, bincode::config::legacy())
-            .expect("Failed to deserialize FullOutput").0.into()
+    /// Gets the most recent [`FullOutput::platform_output`].
+    ///
+    /// This is a separate call from [`Self::textures_delta`] so that a caller
+    /// that only needs one of the two does not have to pay for decoding
+    /// (and copying) the other.
+    pub fn platform_output(&self) -> PlatformOutput {
+        bincode::serde::decode_from_slice::<PlatformOutput2, _>(&self.platform_output, bincode::config::legacy())
+            .expect("Failed to deserialize PlatformOutput").0.into()
     }
 
-    /// Sets the most recent [`FullOutput`].
+    /// Sets the most recent [`FullOutput::platform_output`].
+    pub fn set_platform_output(&mut self, platform_output: PlatformOutput) {
+        self.platform_output = bincode::serde::encode_to_vec(&PlatformOutput2::from(platform_output), bincode::config::legacy())
+            .expect("Failed to serialize PlatformOutput").into();
+    }
+
+    /// Gets the most recent [`FullOutput::textures_delta`].
+    ///
+    /// This is a separate call from [`Self::platform_output`] so that a caller
+    /// that only needs one of the two does not have to pay for decoding
+    /// (and copying) the other.
+    pub fn textures_delta(&self) -> TexturesDelta {
+        bincode::serde::decode_from_slice(&self.textures_delta, bincode::config::legacy())
+            .expect("Failed to deserialize TexturesDelta").0
+    }
+
+    /// Sets the most recent [`FullOutput::textures_delta`].
+    pub fn set_textures_delta(&mut self, textures_delta: &TexturesDelta) {
+        self.textures_delta = bincode::serde::encode_to_vec(textures_delta, bincode::config::legacy())
+            .expect("Failed to serialize TexturesDelta").into();
+    }
+
+    /// Gets the most recent [`FullOutput::pixels_per_point`].
+    pub fn pixels_per_point(&self) -> f32 {
+        self.pixels_per_point
+    }
+
+    /// Sets the most recent [`FullOutput::pixels_per_point`].
+    pub fn set_pixels_per_point(&mut self, pixels_per_point: f32) {
+        self.pixels_per_point = pixels_per_point;
+    }
+
+    /// Sets the most recent [`FullOutput`], by dispatching to
+    /// [`Self::set_platform_output`], [`Self::set_textures_delta`], and
+    /// [`Self::set_pixels_per_point`]. [`FullOutput::shapes`] and
+    /// [`FullOutput::viewport_output`] are not stored.
     pub fn set_full_output(&mut self, full_output: FullOutput) {
-        self.full_output = bincode::serde::encode_to_vec(&FullOutput2::from(full_output), bincode::config::legacy())
-            .expect("Failed to serialize FullOutput").into();
+        self.set_platform_output(full_output.platform_output);
+        self.set_textures_delta(&full_output.textures_delta);
+        self.set_pixels_per_point(full_output.pixels_per_point);
     }
 
     /// Gets the most recent [`RawInput`].
@@ -65,48 +108,17 @@ impl EguiFfi {
 impl Default for EguiFfi {
     fn default() -> Self {
         let mut result = Self {
-            full_output: Vec::new().into(),
+            platform_output: Vec::new().into(),
+            textures_delta: Vec::new().into(),
+            pixels_per_point: 1.0,
             meshes: Vec::new().into(),
             raw_input: Vec::new().into()
         };
 
         result.set_full_output(FullOutput::default());
         result.set_raw_input(RawInput::default());
-        
+
         result
-    }
-}
-
-/// Holds the serializable members of [`FullOutput`]
-/// (since [`FullOutput`] is not serializable).
-#[derive(Clone, Serialize, Deserialize)]
-struct FullOutput2 {
-    /// The [`FullOutput::platform_output`] field.
-    pub platform_output: PlatformOutput2,
-    /// The [`FullOutput::textures_delta`] field.
-    pub textures_delta: TexturesDelta,
-    /// The [`FullOutput::pixels_per_point`] field.
-    pub pixels_per_point: f32
-}
-
-impl From<FullOutput2> for FullOutput {
-    fn from(value: FullOutput2) -> Self {
-        Self {
-            pixels_per_point: value.pixels_per_point,
-            platform_output: value.platform_output.into(),
-            textures_delta: value.textures_delta,
-            ..Default::default()
-        }
-    }
-}
-
-impl From<FullOutput> for FullOutput2 {
-    fn from(value: FullOutput) -> Self {
-        Self {
-            pixels_per_point: value.pixels_per_point,
-            platform_output: value.platform_output.into(),
-            textures_delta: value.textures_delta
-        }
     }
 }
 
