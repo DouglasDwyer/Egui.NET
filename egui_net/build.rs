@@ -31,12 +31,12 @@ fn main() {
     }
     
     println!("cargo::rerun-if-changed=../egui_net_bindgen");
-    
-    let output_dir = PathBuf::from(std::env::var("CARGO_MANIFEST_DIR").expect("Failed to get target directory"))
-        .join("../target")
-        .join("bindings");
-    
-    BindingsGenerator::generate(&output_dir);
+
+    let manifest_dir = PathBuf::from(std::env::var("CARGO_MANIFEST_DIR").expect("Failed to get target directory"));
+    let output_dir = manifest_dir.join("../target").join("bindings");
+    let hand_written_dir = manifest_dir.join("../Egui");
+
+    BindingsGenerator::generate(&output_dir, &hand_written_dir);
     
     let mut builder = Builder::default()
         .csharp_namespace("Egui")
