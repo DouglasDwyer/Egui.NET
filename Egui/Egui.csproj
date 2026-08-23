@@ -3,7 +3,7 @@
         <PackageId>Egui</PackageId>
         <Title>Egui</Title>
         <Description>An easy-to-use immediate mode GUI</Description>
-        <Version>0.8.1+0.35.0</Version>
+        <Version>0.9.0+0.36.1</Version>
         <Authors>Douglas Dwyer</Authors>
         <RepositoryUrl>https://github.com/DouglasDwyer/Egui.NET</RepositoryUrl>
         <PackageReadmeFile>README.md</PackageReadmeFile>
@@ -16,6 +16,8 @@
         <NoWarn>1591</NoWarn>
         <Nullable>enable</Nullable>
 
+        <IsAotCompatible>true</IsAotCompatible>
+
         <RuntimeIdentifiers Condition="$([MSBuild]::IsOSPlatform('Windows')) AND $([System.Runtime.InteropServices.RuntimeInformation]::ProcessArchitecture) == 'Arm64'">win-arm64</RuntimeIdentifiers>
         <RuntimeIdentifiers Condition="$([MSBuild]::IsOSPlatform('Windows')) AND $([System.Runtime.InteropServices.RuntimeInformation]::ProcessArchitecture) == 'x64'">win-x64</RuntimeIdentifiers>
         <RuntimeIdentifiers Condition="$([MSBuild]::IsOSPlatform('OSX')) AND $([System.Runtime.InteropServices.RuntimeInformation]::ProcessArchitecture) == 'Arm64'">osx-arm64</RuntimeIdentifiers>
@@ -27,6 +29,12 @@
 
     <ItemGroup>
         <PackageReference Include="DouglasDwyer.FixedArray" Version="0.1.1" />
+    </ItemGroup>
+
+    <ItemGroup>
+        <ProjectReference Include="../Egui.SourceGenerators/Egui.SourceGenerators.csproj"
+            OutputItemType="Analyzer"
+            ReferenceOutputAssembly="false" />
     </ItemGroup>
 
     <PropertyGroup>

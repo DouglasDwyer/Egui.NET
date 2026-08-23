@@ -309,6 +309,10 @@ const IGNORE_FNS: &[&str] = &[
     "core_str_pattern_MultiCharEqSearcher",
     "core_str_pattern_SearchStep",
     "epaint_texture_handle_TextureHandle_drop",
+    // `Drop::drop` cannot be called manually; `TextureManager`'s heap allocation (like any
+    // `EguiHandle`-backed object) is freed via `egui_drop` once the C# wrapper is collected,
+    // which runs this `Drop` impl automatically.
+    "epaint_textures_TextureManager_drop",
     "epaint_shapes_paint_callback_PaintCallbackInfo_clip_rect_in_pixels",
     "epaint_shapes_paint_callback_PaintCallbackInfo_viewport_in_pixels",
     "egui_containers_frame_Frame_show_dyn",
@@ -824,6 +828,7 @@ const IGNORE_FNS: &[&str] = &[
     "egui_containers_popup_Popup_gap",
     "egui_containers_popup_Popup_id",
     "egui_containers_popup_Popup_info",
+    "egui_containers_popup_Popup_interactable",
     "egui_containers_popup_Popup_open",
     "egui_containers_popup_Popup_open_bool",
     "egui_containers_popup_Popup_id",
@@ -933,6 +938,7 @@ const IGNORE_FNS: &[&str] = &[
     "egui_containers_window_Window_scroll",
     "egui_containers_window_Window_scroll_bar_visibility",
     "egui_containers_window_Window_title_bar",
+    "egui_containers_window_Window_title_frame",
     "egui_containers_window_Window_vscroll",
     "egui_containers_window_Window_mutate",
     // FramePublisher: not possible to bind to C# due to generics

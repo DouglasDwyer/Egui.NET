@@ -102,6 +102,7 @@ public ref partial struct Popup
     private float _gap;
     private float? _width;
     private Sense _sense;
+    private bool _interactable;
     private Layout _layout;
     private Frame? _frame;
     private Style? _style;
@@ -124,6 +125,7 @@ public ref partial struct Popup
         _alternativeAligns = null;
         _width = null;
         _sense = Egui.Sense.Click;
+        _interactable = true;
         _layout = new Layout();
         _frame = null;
         _style = null;
@@ -399,6 +401,19 @@ public ref partial struct Popup
     }
 
     /// <summary>
+    /// Set whether the popup should be interactable (default: <c>true</c>).
+    ///
+    /// Set this to <c>false</c> for e.g. non-interactive tooltips, so they don't block clicks
+    /// or hover events on whatever is behind them.
+    /// </summary>
+    public readonly Popup Interactable(bool interactable)
+    {
+        var result = this;
+        result._interactable = interactable;
+        return result;
+    }
+
+    /// <summary>
     /// Set the layout of the popup.
     /// </summary>
     public readonly Popup Layout(Layout layout)
@@ -558,6 +573,7 @@ public ref partial struct Popup
         public float Gap;
         public float? Width;
         public Egui.Sense Sense;
+        public bool Interactable;
         public Egui.Layout Layout;
         public Egui.Containers.Frame? Frame;
         public Egui.Style? Style;
@@ -578,6 +594,7 @@ public ref partial struct Popup
             Gap = popup._gap;
             Width = popup._width;
             Sense = popup._sense;
+            Interactable = popup._interactable;
             Layout = popup._layout;
             Frame = popup._frame;
             Style = popup._style;
@@ -602,6 +619,7 @@ public ref partial struct Popup
             serializer.serialize_f32(Gap);
             Egui.TraitHelpers.serialize_option_f32(Width, serializer);
             Sense.Serialize(serializer);
+            serializer.serialize_bool(Interactable);
             Layout.Serialize(serializer);
             Egui.TraitHelpers.serialize_option_Frame(Frame, serializer);
             Egui.TraitHelpers.serialize_option_Style(Style, serializer);

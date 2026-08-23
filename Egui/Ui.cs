@@ -117,6 +117,11 @@ public readonly ref partial struct Ui
         Ptr = ptr;
     }
 
+    /// <summary>
+    /// Gets the <see cref="Context"/> that owns this <see cref="Ui"/>. Equivalent to <see cref="Ctx"/>.
+    /// </summary>
+    public static implicit operator Context(Ui ui) => ui.Ctx;
+
     /// <inheritdoc cref="Context.Fonts"/>
     public void Fonts(Action<FontsView> reader) => Ctx.Fonts(reader);
 

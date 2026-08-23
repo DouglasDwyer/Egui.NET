@@ -170,6 +170,23 @@ public sealed partial class Context : EguiObject
     }
 
     /// <summary>
+    /// Run only the "logic" for one tick, without producing any ui or painting anything.<br/>
+    ///
+    /// Only the window state (<see cref="RawInput.Viewports"/> and <see cref="RawInput.Focused"/>)
+    /// of <paramref name="input"/> is used, so that <paramref name="logic"/> can tell that the
+    /// window is hidden. The ui input (events, time, …) is not interpreted, and is left for the
+    /// next call to <see cref="Run"/>: <see cref="Input"/> is otherwise still that of the last pass.<br/>
+    ///
+    /// The returned <see cref="LogicOutput"/> is what <see cref="FullOutput"/> would have carried:
+    /// anything <paramref name="logic"/> asked the integration to do. There is nothing to paint.
+    /// </summary>
+    public LogicOutput RunLogic(RawInput input, Action<Context> logic)
+    {
+        using var callback = new EguiCallback(_ => logic(this));
+        return EguiMarshal.Call<nuint, RawInput, EguiCallback, LogicOutput>(EguiFn.egui_context_Context_run_logic, Ptr, input, callback);
+    }
+
+    /// <summary>
     /// Mutate the currently active <see cref="Egui.Style"/> used by all subsequent windows, panels etc. Use <see cref="AllStylesMut"/> to mutate both dark and light mode styles.
     /// </summary>
     /// <param name="mutateStyle"></param>

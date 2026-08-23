@@ -17,7 +17,7 @@ pub struct FullOutput {
 
     /// Texture changes since last frame (including the font texture).
     ///
-    /// The backend needs to apply [`crate::TexturesDelta::set`] _before_ painting,
+    /// The backend needs to apply [`crate::TexturesDelta::push`] _before_ painting,
     /// and free any texture in [`crate::TexturesDelta::free`] _after_ painting.
     ///
     /// It is assumed that all egui viewports share the same painter and texture namespace.
@@ -69,6 +69,29 @@ impl FullOutput {
             }
         }
     }
+
+    /// [`epaint::textures::TexturesDelta`] will panic when dropped with still unapplied deltas,
+    /// this is a helper to clear the deltas.
+    pub fn drop_without_applying_deltas(mut self) {
+        self.textures_delta.clear();
+    }
+}
+
+/// What egui emits from [`crate::Context::run_logic`], i.e. from a tick where no ui was shown.
+///
+/// There is nothing to paint, but the app may still have asked the integration to do things,
+/// e.g. to show a hidden window again with [`crate::ViewportCommand::Focus`].
+#[derive(Clone, Default)]
+#[cfg_attr(feature = "serde", derive(serde::Deserialize, serde::Serialize))]
+pub struct LogicOutput {
+    /// Non-rendering related output.
+    pub platform_output: PlatformOutput,
+
+    /// The commands sent with [`crate::Context::send_viewport_cmd`] and friends.
+    ///
+    /// Note that this contains no information about which viewports exist:
+    /// the integration should leave its viewports as they are.
+    pub viewport_commands: OrderedViewportIdMap<Vec<crate::ViewportCommand>>,
 }
 
 /// Information about text being edited.
@@ -77,6 +100,9 @@ impl FullOutput {
 #[derive(Copy, Clone, Debug, PartialEq, Eq)]
 #[cfg_attr(feature = "serde", derive(serde::Deserialize, serde::Serialize))]
 pub struct IMEOutput {
+    /// IME's purpose.
+    pub purpose: crate::IMEPurpose,
+
     /// Where the [`crate::TextEdit`] is located on screen.
     pub rect: crate::Rect,
 

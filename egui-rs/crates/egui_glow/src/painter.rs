@@ -1,6 +1,7 @@
 #![expect(clippy::unwrap_used)]
 #![expect(unsafe_code)]
 
+use core::mem::offset_of;
 use std::{collections::HashMap, sync::Arc};
 
 use egui::{
@@ -8,7 +9,6 @@ use egui::{
     epaint::{Mesh, PaintCallbackInfo, Primitive, Vertex},
 };
 use glow::HasContext as _;
-use memoffset::offset_of;
 
 use crate::check_for_gl_error;
 use crate::misc_util::{compile_shader, link_program};
@@ -358,17 +358,21 @@ impl Painter {
         screen_size_px: [u32; 2],
         pixels_per_point: f32,
         clipped_primitives: &[egui::ClippedPrimitive],
-        textures_delta: &egui::TexturesDelta,
+        textures_delta: &mut egui::TexturesDelta,
     ) {
         profiling::function_scope!();
 
-        for (id, image_delta) in &textures_delta.set {
-            self.set_texture(*id, image_delta);
+        #[expect(clippy::iter_over_hash_type)] // Order doesn't matter here
+        for (id, image_deltas) in textures_delta.set.drain() {
+            for image_delta in image_deltas {
+                self.set_texture(id, &image_delta);
+            }
         }
 
         self.paint_primitives(screen_size_px, pixels_per_point, clipped_primitives);
 
-        for &id in &textures_delta.free {
+        #[expect(clippy::iter_over_hash_type)] // Order doesn't matter here
+        for id in textures_delta.free.drain() {
             self.free_texture(id);
         }
     }

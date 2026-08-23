@@ -13,6 +13,8 @@ Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Egui.Silk.NET", "Egui.Silk.
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Egui.Silk.NET.OpenGL", "Egui.Silk.NET.OpenGL\Egui.Silk.NET.OpenGL.csproj", "{D7BC16EB-7680-4E36-A526-975693EFF5FF}"
 EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Egui.SourceGenerators", "Egui.SourceGenerators\Egui.SourceGenerators.csproj", "{300E0561-798D-449F-9BCB-991391A0F9D6}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
@@ -71,6 +73,18 @@ Global
 		{D7BC16EB-7680-4E36-A526-975693EFF5FF}.Release|x64.Build.0 = Release|Any CPU
 		{D7BC16EB-7680-4E36-A526-975693EFF5FF}.Release|x86.ActiveCfg = Release|Any CPU
 		{D7BC16EB-7680-4E36-A526-975693EFF5FF}.Release|x86.Build.0 = Release|Any CPU
+		{300E0561-798D-449F-9BCB-991391A0F9D6}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{300E0561-798D-449F-9BCB-991391A0F9D6}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{300E0561-798D-449F-9BCB-991391A0F9D6}.Debug|x64.ActiveCfg = Debug|Any CPU
+		{300E0561-798D-449F-9BCB-991391A0F9D6}.Debug|x64.Build.0 = Debug|Any CPU
+		{300E0561-798D-449F-9BCB-991391A0F9D6}.Debug|x86.ActiveCfg = Debug|Any CPU
+		{300E0561-798D-449F-9BCB-991391A0F9D6}.Debug|x86.Build.0 = Debug|Any CPU
+		{300E0561-798D-449F-9BCB-991391A0F9D6}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{300E0561-798D-449F-9BCB-991391A0F9D6}.Release|Any CPU.Build.0 = Release|Any CPU
+		{300E0561-798D-449F-9BCB-991391A0F9D6}.Release|x64.ActiveCfg = Release|Any CPU
+		{300E0561-798D-449F-9BCB-991391A0F9D6}.Release|x64.Build.0 = Release|Any CPU
+		{300E0561-798D-449F-9BCB-991391A0F9D6}.Release|x86.ActiveCfg = Release|Any CPU
+		{300E0561-798D-449F-9BCB-991391A0F9D6}.Release|x86.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
