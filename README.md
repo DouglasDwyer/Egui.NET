@@ -54,10 +54,6 @@ To use Egui.NET, the consumer is responsible for handling user input and renderi
   
 Need to add Egui.NET somewhere else? [Adding a new egui integration is easy](https://docs.rs/egui/latest/egui/#integrating-with-egui).
 
-## WebAssembly
-
-Egui.NET also targets `wasm32-unknown-emscripten` (single-threaded), for use in browser-wasm C# applications.
-
 ## Incomplete features
 
 Egui.NET aims to expose the entirety of `egui`'s functionality. Although 97% of bindings are complete, there are currently a few things missing:
@@ -103,6 +99,7 @@ To pull in a newer `egui` release: `git subtree pull --prefix=egui-rs <egui remo
 - `x86_64-apple-darwin`
 - `aarch64-unknown-linux-gnu`
 - `x86_64-unknown-linux-gnu`
+- `wasm32-unknown-emscripten` (single-threaded), for use in browser-wasm C# applications
 
 ### Building from source
 
