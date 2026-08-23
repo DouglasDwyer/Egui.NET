@@ -13,10 +13,4 @@
     <ItemGroup Condition="'$(RuntimeIdentifier)' == 'browser-wasm' AND '$(WasmEnableThreads)' != 'true'">
         <NativeFileReference Include="$(MSBuildThisFileDirectory)../runtimes/browser-wasm/native/egui_net.a" />
     </ItemGroup>
-
-    <!-- EguiMarshal.SerializerCache<T> reaches most of its Serialize/Deserialize methods only
-         via reflection; TrimmerRootAssembly keeps them from being removed on trimmed publishes. -->
-    <ItemGroup>
-        <TrimmerRootAssembly Include="Egui" />
-    </ItemGroup>
 </Project>

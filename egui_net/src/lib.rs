@@ -58,8 +58,47 @@ use std::panic::catch_unwind;
 use std::sync::*;
 
 /// The global memory allocator to use.
+#[cfg(not(all(target_arch = "wasm32", target_os = "unknown")))]
 #[global_allocator]
 static GLOBAL: mimalloc::MiMalloc = mimalloc::MiMalloc;
+
+/// `wasm32-unknown-unknown` has no C toolchain to build mimalloc's C sources against, so
+/// this forwards directly to the host's own `posix_memalign`/`free` - resolved at the
+/// consumer's final link against the Emscripten runtime pack's libc, which already shares
+/// this linear memory with the rest of the module.
+#[cfg(all(target_arch = "wasm32", target_os = "unknown"))]
+mod wasm_unknown_alloc {
+    use std::alloc::{GlobalAlloc, Layout};
+    use std::ptr;
+
+    unsafe extern "C" {
+        fn posix_memalign(memptr: *mut *mut u8, alignment: usize, size: usize) -> i32;
+        fn free(ptr: *mut u8);
+    }
+
+    struct ExternAlloc;
+
+    unsafe impl GlobalAlloc for ExternAlloc {
+        unsafe fn alloc(&self, layout: Layout) -> *mut u8 {
+            // posix_memalign requires alignment to be a multiple of sizeof(void*); Rust's
+            // Layout only guarantees a power of two, which can be smaller than that.
+            let alignment = layout.align().max(size_of::<usize>());
+            let mut out: *mut u8 = ptr::null_mut();
+            if unsafe { posix_memalign(&mut out, alignment, layout.size()) } == 0 {
+                out
+            } else {
+                ptr::null_mut()
+            }
+        }
+
+        unsafe fn dealloc(&self, ptr: *mut u8, _layout: Layout) {
+            unsafe { free(ptr) }
+        }
+    }
+
+    #[global_allocator]
+    static GLOBAL: ExternAlloc = ExternAlloc;
+}
 
 include!(concat!(env!("CARGO_MANIFEST_DIR"), "/../target/bindings/egui_fn.rs"));
 
