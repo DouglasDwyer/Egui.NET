@@ -16,6 +16,19 @@
         <NoWarn>1591</NoWarn>
         <Nullable>enable</Nullable>
 
+        <!-- EguiMarshal.SerializerCache<T> locates each type's Serialize/Deserialize
+             methods via reflection (Type.GetMethod + Delegate.CreateDelegate), which the
+             linker cannot see as reachable. TrimmerRootAssembly (buildTransitive/Egui.targets)
+             keeps every member reachable, which is enough to stop the linker from removing
+             them outright, but it does NOT stop other trimmer analysis/substitution passes
+             from still rewriting this assembly's IL - which was independently confirmed to
+             corrupt something the interpreter chokes on the first time it JIT-transforms a
+             method post-Main (RuntimeError: memory access out of bounds, in the
+               EguiObject.ObjectFreeEvent finalizer path). IsTrimmable=false opts the whole
+             assembly out of every linker pass, not just member removal, and is required in
+             addition to TrimmerRootAssembly, not redundant with it. -->
+        <IsTrimmable>false</IsTrimmable>
+
         <RuntimeIdentifiers Condition="$([MSBuild]::IsOSPlatform('Windows')) AND $([System.Runtime.InteropServices.RuntimeInformation]::ProcessArchitecture) == 'Arm64'">win-arm64</RuntimeIdentifiers>
         <RuntimeIdentifiers Condition="$([MSBuild]::IsOSPlatform('Windows')) AND $([System.Runtime.InteropServices.RuntimeInformation]::ProcessArchitecture) == 'x64'">win-x64</RuntimeIdentifiers>
         <RuntimeIdentifiers Condition="$([MSBuild]::IsOSPlatform('OSX')) AND $([System.Runtime.InteropServices.RuntimeInformation]::ProcessArchitecture) == 'Arm64'">osx-arm64</RuntimeIdentifiers>

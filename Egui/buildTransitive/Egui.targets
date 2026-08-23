@@ -15,4 +15,16 @@
     <ItemGroup Condition="'$(RuntimeIdentifier)' == 'browser-wasm'">
         <NativeFileReference Include="$(MSBuildThisFileDirectory)../runtimes/browser-wasm/native/egui_net.a" />
     </ItemGroup>
+
+    <!--
+      EguiMarshal.SerializerCache<T> locates each type's Serialize/Deserialize methods via
+      reflection (Type.GetMethod + Delegate.CreateDelegate), which the trimmer cannot see as
+      reachable. Egui.csproj already sets IsTrimmable=false, but browser-wasm apps default to
+      TrimMode=full, which trims every assembly regardless of its own opt-out - so the
+      assembly must also be rooted here to force the linker to preserve it whole for any
+      consumer, matching the standard pattern for non-trim-safe NuGet dependencies.
+    -->
+    <ItemGroup>
+        <TrimmerRootAssembly Include="Egui" />
+    </ItemGroup>
 </Project>
