@@ -3,6 +3,7 @@
     "path": "Egui.NET.sln",
     "projects": [
       "Egui/Egui.csproj",
+      "Egui.SourceGenerators/Egui.SourceGenerators.csproj",
       "Egui.Silk.NET/Egui.Silk.NET.csproj",
       "Egui.Silk.NET.OpenGL/Egui.Silk.NET.OpenGL.csproj"
     ]
