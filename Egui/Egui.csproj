@@ -31,46 +31,6 @@
         <PackageReference Include="DouglasDwyer.FixedArray" Version="0.1.1" />
     </ItemGroup>
 
-    <!-- wasm32-unknown-emscripten links via emcc, so building for it needs an Emscripten
-         toolchain matching the .NET WebAssembly SDK's own. PackageReference avoids requiring
-         the wasm-tools workload just to build. Two toolchain versions: 3.1.56 (single-threaded,
-         matches the non-experimental runtime pack) and 6.0.2 (multithreaded, matches the
-         wasm-experimental multithread.browser-wasm pack). -->
-    <PropertyGroup Condition="$([System.String]::new('$(RuntimeIdentifiers)').Contains('browser-wasm'))">
-        <_WasmHostRid Condition="$([MSBuild]::IsOSPlatform('Windows'))">win-x64</_WasmHostRid>
-        <_WasmHostRid Condition="$([MSBuild]::IsOSPlatform('Linux'))">linux-x64</_WasmHostRid>
-        <_WasmHostRid Condition="$([MSBuild]::IsOSPlatform('OSX')) AND $([System.Runtime.InteropServices.RuntimeInformation]::ProcessArchitecture) == 'Arm64'">osx-arm64</_WasmHostRid>
-        <_WasmHostRid Condition="$([MSBuild]::IsOSPlatform('OSX')) AND $([System.Runtime.InteropServices.RuntimeInformation]::ProcessArchitecture) == 'x64'">osx-x64</_WasmHostRid>
-    </PropertyGroup>
-
-    <ItemGroup Condition="$([System.String]::new('$(RuntimeIdentifiers)').Contains('browser-wasm'))">
-        <PackageReference Include="Microsoft.NET.Runtime.Emscripten.3.1.56.Sdk.$(_WasmHostRid)" Version="10.0.10" PrivateAssets="All" />
-        <PackageReference Include="Microsoft.NET.Runtime.Emscripten.3.1.56.Node.$(_WasmHostRid)" Version="10.0.10" PrivateAssets="All" />
-        <PackageReference Include="Microsoft.NET.Runtime.Emscripten.3.1.56.Cache.$(_WasmHostRid)" Version="10.0.10" PrivateAssets="All" />
-        <PackageReference Include="Microsoft.NET.Runtime.Emscripten.6.0.2.Sdk.$(_WasmHostRid)" Version="11.0.0-preview.7.26381.103" PrivateAssets="All" />
-        <PackageReference Include="Microsoft.NET.Runtime.Emscripten.6.0.2.Node.$(_WasmHostRid)" Version="11.0.0-preview.7.26381.103" PrivateAssets="All" />
-        <PackageReference Include="Microsoft.NET.Runtime.Emscripten.6.0.2.Cache.$(_WasmHostRid)" Version="11.0.0-preview.7.26381.103" PrivateAssets="All" />
-    </ItemGroup>
-
-    <PropertyGroup Condition="$([System.String]::new('$(RuntimeIdentifiers)').Contains('browser-wasm'))">
-        <_Emscripten>$(NuGetPackageRoot)microsoft.net.runtime.emscripten.3.1.56</_Emscripten>
-        <_EmscriptenMt>$(NuGetPackageRoot)microsoft.net.runtime.emscripten.6.0.2</_EmscriptenMt>
-        <_EmscriptenSdk>$(_Emscripten).sdk.$(_WasmHostRid)/10.0.10/tools</_EmscriptenSdk>
-        <_EmscriptenSdkMt>$(_EmscriptenMt).sdk.$(_WasmHostRid)/11.0.0-preview.7.26381.103/tools</_EmscriptenSdkMt>
-        <_EmscriptenNode>$(_Emscripten).node.$(_WasmHostRid)/10.0.10/tools/bin</_EmscriptenNode>
-        <_EmscriptenNodeMt>$(_EmscriptenMt).node.$(_WasmHostRid)/11.0.0-preview.7.26381.103/tools/bin</_EmscriptenNodeMt>
-        <_EmscriptenCache>$(_Emscripten).cache.$(_WasmHostRid)/10.0.10/tools/emscripten/cache</_EmscriptenCache>
-        <_EmscriptenCacheMt>$(_EmscriptenMt).cache.$(_WasmHostRid)/11.0.0-preview.7.26381.103/tools/emscripten/cache</_EmscriptenCacheMt>
-
-        <WasmCargoVariables>PATH=$(_EmscriptenSdk)/bin$([System.IO.Path]::PathSeparator)$(_EmscriptenSdk)/emscripten$([System.IO.Path]::PathSeparator)$(_EmscriptenNode)$([System.IO.Path]::PathSeparator)$(PATH);DOTNET_EMSCRIPTEN_LLVM_ROOT=$(_EmscriptenSdk)/bin;DOTNET_EMSCRIPTEN_BINARYEN_ROOT=$(_EmscriptenSdk);DOTNET_EMSCRIPTEN_NODE_JS=$(_EmscriptenNode)/node;EM_CACHE=$(_EmscriptenCache);EM_FROZEN_CACHE=1;PYTHONUTF8=1;EM_WORKAROUND_PYTHON_BUG_34780=1;CARGO_TARGET_WASM32_UNKNOWN_EMSCRIPTEN_LINKER=emcc;CC_wasm32_unknown_emscripten=emcc;AR_wasm32_unknown_emscripten=emar</WasmCargoVariables>
-        <!-- The multithreaded runtime pack links with the new (non-legacy) wasm exception-handling
-             encoding; -wasm-use-legacy-eh=false on both the C and Rust sides matches that (the
-             default LLVM lowering otherwise mixes the two encodings within the same module, which
-             the linker rejects), keeping normal panic=unwind so catch_unwind at the FFI boundary
-             (egui_invoke) still works. -->
-        <WasmCargoVariablesMt>PATH=$(_EmscriptenSdkMt)/bin$([System.IO.Path]::PathSeparator)$(_EmscriptenSdkMt)/emscripten$([System.IO.Path]::PathSeparator)$(_EmscriptenNodeMt)$([System.IO.Path]::PathSeparator)$(PATH);DOTNET_EMSCRIPTEN_LLVM_ROOT=$(_EmscriptenSdkMt)/bin;DOTNET_EMSCRIPTEN_BINARYEN_ROOT=$(_EmscriptenSdkMt);DOTNET_EMSCRIPTEN_NODE_JS=$(_EmscriptenNodeMt)/node;EM_CACHE=$(_EmscriptenCacheMt);EM_FROZEN_CACHE=1;PYTHONUTF8=1;EM_WORKAROUND_PYTHON_BUG_34780=1;CARGO_TARGET_WASM32_UNKNOWN_EMSCRIPTEN_LINKER=emcc;CC_wasm32_unknown_emscripten=emcc;AR_wasm32_unknown_emscripten=emar;CFLAGS_wasm32_unknown_emscripten=-matomics -mbulk-memory -fwasm-exceptions -mllvm -wasm-use-legacy-eh=false;RUSTFLAGS=-C target-feature=+atomics,+bulk-memory,+mutable-globals -C llvm-args=-wasm-use-legacy-eh=false</WasmCargoVariablesMt>
-    </PropertyGroup>
-
     <ItemGroup>
         <ProjectReference Include="../Egui.SourceGenerators/Egui.SourceGenerators.csproj"
             OutputItemType="Analyzer"
@@ -121,14 +81,21 @@
             <CargoBuild Include="$(MSBuildProjectFile)" Condition="'%(RIDList.Identity)' == 'linux-x64'">
                 <Properties>CargoTarget=x86_64-unknown-linux-gnu</Properties>
             </CargoBuild>
-            <!-- No cross image exists for wasm, so these use plain cargo. cargo rustc overrides
-                 the crate type to staticlib; the multithreaded build also rebuilds std with
-                 atomics via -Zbuild-std, since the prebuilt std lacks it. -->
+            <!-- No cross image exists for wasm, so these use plain cargo. wasm32-unknown-unknown
+                 needs no C toolchain at all - it links directly into consumers' Emscripten-built
+                 dotnet.native.wasm, which is what provides posix_memalign/free for the allocator
+                 in lib.rs. -Zbuild-std rebuilds std from source because the prebuilt copy defaults
+                 to panic=abort (its target spec hardcodes panic-strategy: abort) and, for the
+                 multithreaded build, lacks atomics; -C panic=unwind overrides that default so
+                 catch_unwind at the FFI boundary (egui_invoke) still works. Listing every std
+                 component explicitly avoids a cargo bug where -Zbuild-std can pull in both the
+                 freshly-built and the ambient prebuilt copy of core, tripping E0152 (see
+                 https://github.com/rust-lang/rust/issues/144840). -->
             <CargoBuild Include="$(MSBuildProjectFile)" Condition="'%(RIDList.Identity)' == 'browser-wasm'">
-                <Properties>CargoTarget=wasm32-unknown-emscripten;CargoExecutable=cargo;CargoCommand=rustc;CargoExtraOptions=--package egui_net --crate-type staticlib</Properties>
+                <Properties>CargoTarget=wasm32-unknown-unknown;CargoExecutable=cargo;CargoCommand=rustc;CargoUnstableOptions=-Zbuild-std=core,alloc,panic_unwind,std;CargoVariables=RUSTFLAGS=-C panic=unwind;CargoExtraOptions=--package egui_net --crate-type staticlib</Properties>
             </CargoBuild>
             <CargoBuild Include="$(MSBuildProjectFile)" Condition="'%(RIDList.Identity)' == 'browser-wasm'">
-                <Properties>CargoTarget=wasm32-unknown-emscripten;CargoExecutable=cargo;CargoCommand=rustc;CargoWasmThreads=true;CargoUnstableOptions=-Zbuild-std=std,panic_unwind;CargoExtraOptions=--package egui_net --crate-type staticlib --target-dir target-mt</Properties>
+                <Properties>CargoTarget=wasm32-unknown-unknown;CargoExecutable=cargo;CargoCommand=rustc;CargoUnstableOptions=-Zbuild-std=core,alloc,panic_unwind,std;CargoVariables=RUSTFLAGS=-C panic=unwind -C target-feature=+atomics,+bulk-memory,+mutable-globals;CargoExtraOptions=--package egui_net --crate-type staticlib --target-dir target-mt</Properties>
             </CargoBuild>
         </ItemGroup>
 
@@ -142,11 +109,6 @@
     <Target Name="CargoBuild">
         <PropertyGroup>
             <CargoCommand Condition="'$(CargoCommand)' == ''">build</CargoCommand>
-            <!-- Recomputed rather than passed in: MSBuild's Properties metadata can't carry a
-                 value containing semicolons (like an env var list), but this target is a fresh
-                 evaluation of the same project file, so WasmCargoVariables is available here too. -->
-            <CargoVariables Condition="'$(CargoTarget)' == 'wasm32-unknown-emscripten' AND '$(CargoWasmThreads)' != 'true'">$(WasmCargoVariables)</CargoVariables>
-            <CargoVariables Condition="'$(CargoWasmThreads)' == 'true'">$(WasmCargoVariablesMt)</CargoVariables>
         </PropertyGroup>
         <Exec Command="$(CargoExecutable) $(CargoCommand) --profile $(CargoProfile) --target $(CargoTarget) $(CargoUnstableOptions) $(CargoFeatures) $(CargoExtraOptions)"
             EnvironmentVariables="$(CargoVariables)"
@@ -194,14 +156,14 @@
              which picks single- or multi-threaded based on WasmEnableThreads. Packed without
              cargo's "lib" prefix: the wasm SDK derives each NativeFileReference's P/Invoke
              module name from the archive's filename, and the bindings declare DllImport("egui_net"). -->
-        <None Include="../target/wasm32-unknown-emscripten/$(CargoProfileOutput)/libegui_net.a"
+        <None Include="../target/wasm32-unknown-unknown/$(CargoProfileOutput)/libegui_net.a"
             Condition="$([System.String]::new('$(RuntimeIdentifiers)').Contains('browser-wasm'))"
             Pack="true"
             PackagePath="runtimes/browser-wasm/native/egui_net.a"/>
         <!-- Named native-mt, not native/multithread: NuGet auto-copies everything under a
              literal runtimes/{rid}/native/ folder as a generic asset, flattening subdirectories,
              which collided with the archive above once both were named egui_net.a. -->
-        <None Include="../target-mt/wasm32-unknown-emscripten/$(CargoProfileOutput)/libegui_net.a"
+        <None Include="../target-mt/wasm32-unknown-unknown/$(CargoProfileOutput)/libegui_net.a"
             Condition="$([System.String]::new('$(RuntimeIdentifiers)').Contains('browser-wasm'))"
             Pack="true"
             PackagePath="runtimes/browser-wasm/native-mt/egui_net.a"/>
