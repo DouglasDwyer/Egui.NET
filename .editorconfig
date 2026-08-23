@@ -1,0 +1,7 @@
+root = true
+
+[target/bindings/**.cs]
+generated_code = true
+
+[serde-generate/runtime/csharp/**.cs]
+generated_code = true

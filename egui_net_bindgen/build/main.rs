@@ -27,7 +27,9 @@ fn doc_features(crate_name: &str) -> &'static str {
 /// Determines whether `x` implements the trait with `path`.
 fn impls_contains(krate: &Crate, impls: &[Id], path: &str) -> bool {
     for id in impls {
-        let ItemEnum::Impl(impl_block) = &krate.index[id].inner else { unreachable!() };
+        let ItemEnum::Impl(impl_block) = &krate.index[id].inner else {
+            unreachable!()
+        };
         if impl_block.trait_.as_ref().is_some_and(|x| x.path == path) {
             return true;
         }
@@ -44,16 +46,21 @@ fn gather_serde_tys(krate: &Crate, exclude_tys: &[&str]) -> Vec<Id> {
         let impls = match &item.inner {
             ItemEnum::Enum(x) => &x.impls,
             ItemEnum::Struct(x) => &x.impls,
-            _ => continue
+            _ => continue,
         };
 
-        if item.name.as_deref().is_some_and(|x| exclude_tys.contains(&x)) {
+        if item
+            .name
+            .as_deref()
+            .is_some_and(|x| exclude_tys.contains(&x))
+        {
             continue;
         }
 
         if krate.paths[id].crate_id == 0
             && impls_contains(&krate, impls, "Serialize")
-            && impls_contains(&krate, impls, "Deserialize") {
+            && impls_contains(&krate, impls, "Deserialize")
+        {
             result.push(id.clone());
         }
     }
@@ -71,11 +78,17 @@ fn emit_tracer(name: &str, krate: &Crate, exclude_tys: &[&str]) -> String {
 
     result.push_str("/// Registers all serializable `egui` types with the reflection system.\n");
     result.push_str("#[allow(warnings)]\n");
-    result.push_str(&format!("fn trace_auto_{name}_types(tracer: &mut ::serde_reflection::Tracer) {{\n"));
+    result.push_str(&format!(
+        "fn trace_auto_{name}_types(tracer: &mut ::serde_reflection::Tracer) {{\n"
+    ));
 
     for id in ids {
         let name = krate.index[&id].name.clone().unwrap_or_default();
-        write!(&mut result, "    tracer.trace_simple_type::<{name}>().expect(\"Failed to trace {name}\");\n").expect("Failed to write to string");
+        write!(
+            &mut result,
+            "    tracer.trace_simple_type::<{name}>().expect(\"Failed to trace {name}\");\n"
+        )
+        .expect("Failed to write to string");
     }
 
     result.push_str("}\n");
@@ -86,7 +99,11 @@ fn emit_tracer(name: &str, krate: &Crate, exclude_tys: &[&str]) -> String {
 /// each of [`DOC_CRATES`], parses the results, and writes the raw JSON into
 /// `out_dir` (as `<crate>.json`) for `src/lib.rs` to embed via
 /// `include_str!(concat!(env!("OUT_DIR"), ...))`.
-fn regenerate_json_docs(manifest_dir: &Path, egui_rs: &Path, out_dir: &Path) -> HashMap<&'static str, Crate> {
+fn regenerate_json_docs(
+    manifest_dir: &Path,
+    egui_rs: &Path,
+    out_dir: &Path,
+) -> HashMap<&'static str, Crate> {
     let cargo = std::env::var("CARGO").unwrap_or_else(|_| "cargo".to_string());
     let mut docs = HashMap::new();
 
@@ -100,13 +117,17 @@ fn regenerate_json_docs(manifest_dir: &Path, egui_rs: &Path, out_dir: &Path) -> 
             .current_dir(manifest_dir)
             .args([
                 "rustdoc",
-                "--manifest-path", crate_manifest.to_str().expect("non-UTF8 path"),
+                "--manifest-path",
+                crate_manifest.to_str().expect("non-UTF8 path"),
                 // Overrides any inherited CARGO_TARGET_DIR (e.g. set by `cross`).
-                "--target-dir", egui_rs_target.to_str().expect("non-UTF8 path"),
+                "--target-dir",
+                egui_rs_target.to_str().expect("non-UTF8 path"),
                 "--lib",
-                "--features", doc_features(crate_name),
+                "--features",
+                doc_features(crate_name),
                 "--",
-                "-Z", "unstable-options",
+                "-Z",
+                "unstable-options",
                 "--output-format=json",
             ])
             .status()
@@ -116,7 +137,9 @@ fn regenerate_json_docs(manifest_dir: &Path, egui_rs: &Path, out_dir: &Path) -> 
             panic!("`cargo rustdoc` failed for crate `{crate_name}`");
         }
 
-        let doc_path = egui_rs.join("target/doc").join(format!("{crate_name}.json"));
+        let doc_path = egui_rs
+            .join("target/doc")
+            .join(format!("{crate_name}.json"));
         let contents = std::fs::read_to_string(&doc_path)
             .unwrap_or_else(|e| panic!("Failed to read {}: {e}", doc_path.display()));
 
@@ -141,9 +164,18 @@ fn main() {
     // Deliberately not the whole egui-rs/ dir: `cargo rustdoc` below writes
     // into egui-rs/target/, which is nested inside it.
     println!("cargo::rerun-if-changed=build/main.rs");
-    println!("cargo::rerun-if-changed={}", egui_rs.join("crates").display());
-    println!("cargo::rerun-if-changed={}", egui_rs.join("Cargo.toml").display());
-    println!("cargo::rerun-if-changed={}", egui_rs.join("Cargo.lock").display());
+    println!(
+        "cargo::rerun-if-changed={}",
+        egui_rs.join("crates").display()
+    );
+    println!(
+        "cargo::rerun-if-changed={}",
+        egui_rs.join("Cargo.toml").display()
+    );
+    println!(
+        "cargo::rerun-if-changed={}",
+        egui_rs.join("Cargo.lock").display()
+    );
 
     let out_dir = PathBuf::from(std::env::var("OUT_DIR").expect("Failed to get output directory"));
     let docs = regenerate_json_docs(&manifest_dir, &egui_rs, &out_dir);
@@ -156,5 +188,11 @@ fn main() {
     let ecolor_tracer = emit_tracer("ecolor", &docs["ecolor"], EXCLUDE_TYPES);
     let egui_extras_tracer = emit_tracer("egui_extras", &docs["egui_extras"], EXCLUDE_TYPES);
 
-    std::fs::write(out_file, format!("{egui_tracer}\n{emath_tracer}\n{epaint_tracer}\n{ecolor_tracer}\n{egui_extras_tracer}")).expect("Failed to write tracer bindings");
+    std::fs::write(
+        out_file,
+        format!(
+            "{egui_tracer}\n{emath_tracer}\n{epaint_tracer}\n{ecolor_tracer}\n{egui_extras_tracer}"
+        ),
+    )
+    .expect("Failed to write tracer bindings");
 }

@@ -201,7 +201,7 @@ public readonly ref partial struct Ui
         else
         {
             return Add(widget);
-        }         
+        }
 #pragma warning restore CS8500
     }
 
@@ -373,12 +373,12 @@ public readonly ref partial struct Ui
     }
 
     /// <inheritdoc cref="Group"/>
-    public readonly InnerResponse<R> Group<R>(Func<Ui, R> addContents)       
+    public readonly InnerResponse<R> Group<R>(Func<Ui, R> addContents)
     {
         AssertInitialized();
         R result = default!;
         var ctx = Ctx;
-        using var callback = new EguiCallback(ui => result = addContents(new Ui(ctx, ui))); 
+        using var callback = new EguiCallback(ui => result = addContents(new Ui(ctx, ui)));
         var response = EguiMarshal.Call<nuint, EguiCallback, Response>(EguiFn.egui_ui_Ui_group, Ptr, callback);
         return new InnerResponse<R>
         {
@@ -405,12 +405,12 @@ public readonly ref partial struct Ui
     }
 
     /// <inheritdoc cref="CenteredAndJustified"/>
-    public readonly InnerResponse<R> CenteredAndJustified<R>(Func<Ui, R> addContents)       
+    public readonly InnerResponse<R> CenteredAndJustified<R>(Func<Ui, R> addContents)
     {
         AssertInitialized();
         R result = default!;
         var ctx = Ctx;
-        using var callback = new EguiCallback(ui => result = addContents(new Ui(ctx, ui))); 
+        using var callback = new EguiCallback(ui => result = addContents(new Ui(ctx, ui)));
         var response = EguiMarshal.Call<nuint, EguiCallback, Response>(EguiFn.egui_ui_Ui_centered_and_justified, Ptr, callback);
         return new InnerResponse<R>
         {
@@ -715,11 +715,12 @@ public readonly ref partial struct Ui
     {
         return ScopeBuilder(new UiBuilder(), addContents);
     }
-    
+
     /// <summary>
     /// This is the <see cref="Id"/> that will be assigned to the next widget added to this <c>Ui</c>.
     /// </summary>
-    public readonly Id NextAutoId() {
+    public readonly Id NextAutoId()
+    {
         return EguiMarshal.Call<nuint, Id>(EguiFn.egui_ui_Ui_next_auto_id, Ptr);
     }
 
@@ -888,13 +889,15 @@ public readonly ref partial struct Ui
     /// 
     /// See also <see cref="Widgets.Spinner"/>.
     /// </summary>
-    public readonly Response Spinner() {
+    public readonly Response Spinner()
+    {
         return EguiMarshal.Call<nuint, Response>(EguiFn.egui_ui_Ui_spinner, Ptr);
     }
 
     /// <summary>
     /// Show a <see cref="RadioButton"/>. It is selected if <c>current_value == selected_value</c>.
     /// If clicked, <paramref name="alternative"/> is assigned to <paramref name="currentValue"/>.
+    /// </summary>
     public readonly Response RadioValue<V>(ref V currentValue, V alternative, Atoms atoms)
     {
         var equal = EqualityComparer<V>.Default.Equals(currentValue, alternative);
@@ -910,6 +913,7 @@ public readonly ref partial struct Ui
     /// <summary>
     /// Show selectable text. It is selected if <c>current_value == selected_value</c>.
     /// If clicked, <paramref name="alternative"/> is assigned to <paramref name="currentValue"/>.
+    /// </summary>
     public readonly Response SelectableValue<V>(ref V currentValue, V alternative, Atoms atoms)
     {
         var equal = EqualityComparer<V>.Default.Equals(currentValue, alternative);
@@ -1039,7 +1043,7 @@ public readonly ref partial struct Ui
             Response = response
         };
     }
-    
+
     /// <summary>
     /// Create a menu button with an image and a text that when clicked will show the given menu.<br/>
     ///

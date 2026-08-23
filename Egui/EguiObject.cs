@@ -32,7 +32,8 @@ public class EguiObject
     /// <summary>
     /// Runs a closure only after an object is well and truly dead.
     /// </summary>
-    private sealed class ObjectFreeEvent {
+    private sealed class ObjectFreeEvent
+    {
         /// <summary>
         /// The action to run.
         /// </summary>
@@ -47,7 +48,7 @@ public class EguiObject
         /// A long weak reference to the target object.
         /// </summary>
         public readonly GCHandle _target;
-        
+
         /// <inheritdoc cref="Register"/> 
         private ObjectFreeEvent(object target, Action action)
         {
@@ -65,7 +66,7 @@ public class EguiObject
         {
             new ObjectFreeEvent(target, action);
         }
-        
+
         /// <summary>
         /// Invokes the <see cref="_action"/> if the target object has been collected. 
         /// </summary>

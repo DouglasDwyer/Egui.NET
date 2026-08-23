@@ -148,14 +148,14 @@ public abstract class SilkIntegration : IDisposable
             InputContext.Keyboards[i].KeyChar -= KeyChar;
             InputContext.Keyboards[i].KeyUp -= KeyUp;
         }
-        for (int i = 0; i <  InputContext.Mice.Count; i++)
+        for (int i = 0; i < InputContext.Mice.Count; i++)
         {
             InputContext.Mice[i].MouseMove -= MouseMove;
             InputContext.Mice[i].MouseDown -= MouseDown;
             InputContext.Mice[i].MouseUp -= MouseUp;
             InputContext.Mice[i].Scroll -= MouseScroll;
         }
-        
+
         Window.FocusChanged -= FocusChanged;
 
         if (_disposeInputContext)

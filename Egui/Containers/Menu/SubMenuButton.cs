@@ -1,7 +1,7 @@
 namespace Egui.Containers.Menu;
 
 public partial record struct SubMenuButton
-{   
+{
     /// <summary>
     /// The default right arrow symbol: "⏵"
     /// </summary>
