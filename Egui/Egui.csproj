@@ -31,6 +31,48 @@
         <PackageReference Include="DouglasDwyer.FixedArray" Version="0.1.1" />
     </ItemGroup>
 
+    <!-- The wasm32-unknown-emscripten Rust target links via emcc, so building for it needs
+         the same Emscripten toolchain the .NET WebAssembly SDK uses. PackageReference (rather
+         than requiring the wasm-tools workload) makes this reproducible from a plain restore. -->
+    <ItemGroup Condition="$([System.String]::new('$(RuntimeIdentifiers)').Contains('browser-wasm'))">
+        <PackageReference Include="Microsoft.NET.Runtime.Emscripten.3.1.56.Sdk.win-x64" Version="10.0.10" Condition="$([MSBuild]::IsOSPlatform('Windows'))" />
+        <PackageReference Include="Microsoft.NET.Runtime.Emscripten.3.1.56.Node.win-x64" Version="10.0.10" Condition="$([MSBuild]::IsOSPlatform('Windows'))" />
+        <PackageReference Include="Microsoft.NET.Runtime.Emscripten.3.1.56.Cache.win-x64" Version="10.0.10" Condition="$([MSBuild]::IsOSPlatform('Windows'))" />
+        <PackageReference Include="Microsoft.NET.Runtime.Emscripten.3.1.56.Sdk.osx-arm64" Version="10.0.10" Condition="$([MSBuild]::IsOSPlatform('OSX')) AND $([System.Runtime.InteropServices.RuntimeInformation]::ProcessArchitecture) == 'Arm64'" />
+        <PackageReference Include="Microsoft.NET.Runtime.Emscripten.3.1.56.Node.osx-arm64" Version="10.0.10" Condition="$([MSBuild]::IsOSPlatform('OSX')) AND $([System.Runtime.InteropServices.RuntimeInformation]::ProcessArchitecture) == 'Arm64'" />
+        <PackageReference Include="Microsoft.NET.Runtime.Emscripten.3.1.56.Cache.osx-arm64" Version="10.0.10" Condition="$([MSBuild]::IsOSPlatform('OSX')) AND $([System.Runtime.InteropServices.RuntimeInformation]::ProcessArchitecture) == 'Arm64'" />
+        <PackageReference Include="Microsoft.NET.Runtime.Emscripten.3.1.56.Sdk.osx-x64" Version="10.0.10" Condition="$([MSBuild]::IsOSPlatform('OSX')) AND $([System.Runtime.InteropServices.RuntimeInformation]::ProcessArchitecture) == 'x64'" />
+        <PackageReference Include="Microsoft.NET.Runtime.Emscripten.3.1.56.Node.osx-x64" Version="10.0.10" Condition="$([MSBuild]::IsOSPlatform('OSX')) AND $([System.Runtime.InteropServices.RuntimeInformation]::ProcessArchitecture) == 'x64'" />
+        <PackageReference Include="Microsoft.NET.Runtime.Emscripten.3.1.56.Cache.osx-x64" Version="10.0.10" Condition="$([MSBuild]::IsOSPlatform('OSX')) AND $([System.Runtime.InteropServices.RuntimeInformation]::ProcessArchitecture) == 'x64'" />
+        <PackageReference Include="Microsoft.NET.Runtime.Emscripten.3.1.56.Sdk.linux-x64" Version="10.0.10" Condition="$([MSBuild]::IsOSPlatform('Linux'))" />
+        <PackageReference Include="Microsoft.NET.Runtime.Emscripten.3.1.56.Node.linux-x64" Version="10.0.10" Condition="$([MSBuild]::IsOSPlatform('Linux'))" />
+        <PackageReference Include="Microsoft.NET.Runtime.Emscripten.3.1.56.Cache.linux-x64" Version="10.0.10" Condition="$([MSBuild]::IsOSPlatform('Linux'))" />
+    </ItemGroup>
+
+    <PropertyGroup Condition="$([System.String]::new('$(RuntimeIdentifiers)').Contains('browser-wasm'))">
+        <_EmscriptenSdkPkg Condition="$([MSBuild]::IsOSPlatform('Windows'))">$(PkgMicrosoft_NET_Runtime_Emscripten_3_1_56_Sdk_win-x64)</_EmscriptenSdkPkg>
+        <_EmscriptenNodePkg Condition="$([MSBuild]::IsOSPlatform('Windows'))">$(PkgMicrosoft_NET_Runtime_Emscripten_3_1_56_Node_win-x64)</_EmscriptenNodePkg>
+        <_EmscriptenCachePkg Condition="$([MSBuild]::IsOSPlatform('Windows'))">$(PkgMicrosoft_NET_Runtime_Emscripten_3_1_56_Cache_win-x64)</_EmscriptenCachePkg>
+        <_EmscriptenSdkPkg Condition="$([MSBuild]::IsOSPlatform('OSX')) AND $([System.Runtime.InteropServices.RuntimeInformation]::ProcessArchitecture) == 'Arm64'">$(PkgMicrosoft_NET_Runtime_Emscripten_3_1_56_Sdk_osx-arm64)</_EmscriptenSdkPkg>
+        <_EmscriptenNodePkg Condition="$([MSBuild]::IsOSPlatform('OSX')) AND $([System.Runtime.InteropServices.RuntimeInformation]::ProcessArchitecture) == 'Arm64'">$(PkgMicrosoft_NET_Runtime_Emscripten_3_1_56_Node_osx-arm64)</_EmscriptenNodePkg>
+        <_EmscriptenCachePkg Condition="$([MSBuild]::IsOSPlatform('OSX')) AND $([System.Runtime.InteropServices.RuntimeInformation]::ProcessArchitecture) == 'Arm64'">$(PkgMicrosoft_NET_Runtime_Emscripten_3_1_56_Cache_osx-arm64)</_EmscriptenCachePkg>
+        <_EmscriptenSdkPkg Condition="$([MSBuild]::IsOSPlatform('OSX')) AND $([System.Runtime.InteropServices.RuntimeInformation]::ProcessArchitecture) == 'x64'">$(PkgMicrosoft_NET_Runtime_Emscripten_3_1_56_Sdk_osx-x64)</_EmscriptenSdkPkg>
+        <_EmscriptenNodePkg Condition="$([MSBuild]::IsOSPlatform('OSX')) AND $([System.Runtime.InteropServices.RuntimeInformation]::ProcessArchitecture) == 'x64'">$(PkgMicrosoft_NET_Runtime_Emscripten_3_1_56_Node_osx-x64)</_EmscriptenNodePkg>
+        <_EmscriptenCachePkg Condition="$([MSBuild]::IsOSPlatform('OSX')) AND $([System.Runtime.InteropServices.RuntimeInformation]::ProcessArchitecture) == 'x64'">$(PkgMicrosoft_NET_Runtime_Emscripten_3_1_56_Cache_osx-x64)</_EmscriptenCachePkg>
+        <_EmscriptenSdkPkg Condition="$([MSBuild]::IsOSPlatform('Linux'))">$(PkgMicrosoft_NET_Runtime_Emscripten_3_1_56_Sdk_linux-x64)</_EmscriptenSdkPkg>
+        <_EmscriptenNodePkg Condition="$([MSBuild]::IsOSPlatform('Linux'))">$(PkgMicrosoft_NET_Runtime_Emscripten_3_1_56_Node_linux-x64)</_EmscriptenNodePkg>
+        <_EmscriptenCachePkg Condition="$([MSBuild]::IsOSPlatform('Linux'))">$(PkgMicrosoft_NET_Runtime_Emscripten_3_1_56_Cache_linux-x64)</_EmscriptenCachePkg>
+
+        <_EmscriptenBinPath>$(_EmscriptenSdkPkg)/tools/bin</_EmscriptenBinPath>
+        <_EmscriptenEmscriptenPath>$(_EmscriptenSdkPkg)/tools/emscripten</_EmscriptenEmscriptenPath>
+        <_EmscriptenNodeBinPath>$(_EmscriptenNodePkg)/tools/bin</_EmscriptenNodeBinPath>
+        <_EmscriptenCacheDir>$(_EmscriptenCachePkg)/tools/emscripten/cache</_EmscriptenCacheDir>
+
+        <_EmscriptenPathPrepend>$(_EmscriptenBinPath)$([System.IO.Path]::PathSeparator)$(_EmscriptenEmscriptenPath)$([System.IO.Path]::PathSeparator)$(_EmscriptenNodeBinPath)$([System.IO.Path]::PathSeparator)</_EmscriptenPathPrepend>
+
+        <WasmCargoVariables>PATH=$(_EmscriptenPathPrepend)$(PATH);DOTNET_EMSCRIPTEN_LLVM_ROOT=$(_EmscriptenBinPath);DOTNET_EMSCRIPTEN_BINARYEN_ROOT=$(_EmscriptenSdkPkg)/tools;DOTNET_EMSCRIPTEN_NODE_JS=$(_EmscriptenNodeBinPath)/node;EM_CACHE=$(_EmscriptenCacheDir);EM_FROZEN_CACHE=1;PYTHONUTF8=1;EM_WORKAROUND_PYTHON_BUG_34780=1;CARGO_TARGET_WASM32_UNKNOWN_EMSCRIPTEN_LINKER=emcc;CC_wasm32_unknown_emscripten=emcc;AR_wasm32_unknown_emscripten=emar</WasmCargoVariables>
+    </PropertyGroup>
+
     <ItemGroup>
         <ProjectReference Include="../Egui.SourceGenerators/Egui.SourceGenerators.csproj"
             OutputItemType="Analyzer"
@@ -84,7 +126,7 @@
             <!-- Uses plain cargo (no cross image exists for wasm) and cargo rustc, which can
                  override the crate type to staticlib for just this target. -->
             <CargoBuild Include="$(MSBuildProjectFile)" Condition="'%(RIDList.Identity)' == 'browser-wasm'">
-                <Properties>CargoTarget=wasm32-unknown-unknown;CargoExecutable=cargo;CargoCommand=rustc;CargoExtraOptions=--package egui_net --crate-type staticlib</Properties>
+                <Properties>CargoTarget=wasm32-unknown-emscripten;CargoExecutable=cargo;CargoCommand=rustc;CargoExtraOptions=--package egui_net --crate-type staticlib</Properties>
             </CargoBuild>
         </ItemGroup>
 
@@ -98,6 +140,11 @@
     <Target Name="CargoBuild">
         <PropertyGroup>
             <CargoCommand Condition="'$(CargoCommand)' == ''">build</CargoCommand>
+            <!-- Recomputed here rather than passed in from BuildNativeLibrary: this target
+                 runs as a fresh evaluation of this same project file (nested MSBuild call), so
+                 WasmCargoVariables is already available, and MSBuild global-property passing
+                 can't carry a value containing semicolons through anyway. -->
+            <CargoVariables Condition="'$(CargoTarget)' == 'wasm32-unknown-emscripten'">$(WasmCargoVariables)</CargoVariables>
         </PropertyGroup>
         <Exec Command="$(CargoExecutable) $(CargoCommand) --profile $(CargoProfile) --target $(CargoTarget) $(CargoUnstableOptions) $(CargoFeatures) $(CargoExtraOptions)"
             EnvironmentVariables="$(CargoVariables)"
@@ -148,7 +195,7 @@
              "lib" prefix cargo gives it: the wasm SDK derives each NativeFileReference's P/Invoke
              module name from the archive's filename (no "lib"/extension stripping like desktop
              dynamic loading does), and the generated bindings declare DllImport("egui_net"). -->
-        <None Include="../target/wasm32-unknown-unknown/$(CargoProfileOutput)/libegui_net.a"
+        <None Include="../target/wasm32-unknown-emscripten/$(CargoProfileOutput)/libegui_net.a"
             Condition="$([System.String]::new('$(RuntimeIdentifiers)').Contains('browser-wasm'))"
             Pack="true"
             PackagePath="runtimes/browser-wasm/native/egui_net.a"/>
