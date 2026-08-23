@@ -8,16 +8,11 @@ using Microsoft.CodeAnalysis.Text;
 namespace Egui.SourceGenerators;
 
 /// <summary>
-/// Roots every closed generic instantiation that <c>EguiMarshal.SerializerCache&lt;T&gt;</c>
-/// dispatches to reflectively (<c>ImmutableArray&lt;T&gt;</c>, <c>Nullable&lt;T&gt;</c>, tuples,
-/// <c>ArrayN&lt;T&gt;</c>), so Native AOT compiles them ahead of time instead of only ever
-/// discovering them through <see cref="System.Reflection.MethodInfo.MakeGenericMethod"/>.
+/// Finds every <c>EguiMarshal.Call&lt;...&gt;</c>/<c>SerializerCache&lt;...&gt;</c> usage in the
+/// compilation and emits a module initializer that references each closed generic instantiation
+/// through <c>EguiMarshal.AotRoot</c>, so Native AOT compiles them ahead of time instead of only
+/// discovering them via <see cref="System.Reflection.MethodInfo.MakeGenericMethod"/>.
 /// </summary>
-/// <remarks>
-/// Finds every <c>EguiMarshal.Call&lt;...&gt;</c> and <c>EguiMarshal.SerializerCache&lt;...&gt;</c>
-/// usage in the compilation via the semantic model, and emits a module initializer that
-/// ordinarily references each closed instantiation through <c>EguiMarshal.AotRoot</c>.
-/// </remarks>
 [Generator(LanguageNames.CSharp)]
 public sealed class AotRootGenerator : IIncrementalGenerator
 {
