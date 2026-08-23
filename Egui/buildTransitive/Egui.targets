@@ -1,29 +1,21 @@
 <Project>
-    <!--
-      The .NET WebAssembly SDK only static-links a package's native library into
-      dotnet.native.wasm when told to via a NativeFileReference item; simply shipping
-      runtimes/browser-wasm/native/*.a is not enough (NuGet's RID-asset selection, which
-      populates NativeLibrary/NativeFileReference automatically for other RIDs, does not
-      apply to browser-wasm static libraries). So this package adds the reference itself
-      for any consumer targeting browser-wasm.
-
-      The archive is packed as egui_net.a, not cargo's own libegui_net.a: the wasm SDK
-      derives each NativeFileReference's P/Invoke module name from the filename alone (no
-      "lib"/extension stripping like desktop dynamic loading does), and the generated
-      bindings declare DllImport("egui_net").
-    -->
-    <ItemGroup Condition="'$(RuntimeIdentifier)' == 'browser-wasm'">
+    <!-- NuGet's RID-asset selection doesn't cover browser-wasm static libraries, so the SDK
+         never discovers runtimes/browser-wasm/native on its own; a NativeFileReference is
+         required to statically link it into dotnet.native.wasm. WasmBuildNative is set
+         explicitly rather than left to the SDK's own NativeFileReference-count auto-detection,
+         which isn't reliable across SDK/workload versions. -->
+    <PropertyGroup Condition="'$(RuntimeIdentifier)' == 'browser-wasm'">
+        <WasmBuildNative>true</WasmBuildNative>
+    </PropertyGroup>
+    <ItemGroup Condition="'$(RuntimeIdentifier)' == 'browser-wasm' AND '$(WasmEnableThreads)' == 'true'">
+        <NativeFileReference Include="$(MSBuildThisFileDirectory)../runtimes/browser-wasm/native-mt/egui_net.a" />
+    </ItemGroup>
+    <ItemGroup Condition="'$(RuntimeIdentifier)' == 'browser-wasm' AND '$(WasmEnableThreads)' != 'true'">
         <NativeFileReference Include="$(MSBuildThisFileDirectory)../runtimes/browser-wasm/native/egui_net.a" />
     </ItemGroup>
 
-    <!--
-      EguiMarshal.SerializerCache<T> locates each type's Serialize/Deserialize methods via
-      reflection (Type.GetMethod + Delegate.CreateDelegate), which the trimmer cannot see as
-      reachable. Egui.csproj already sets IsTrimmable=false, but browser-wasm apps default to
-      TrimMode=full, which trims every assembly regardless of its own opt-out - so the
-      assembly must also be rooted here to force the linker to preserve it whole for any
-      consumer, matching the standard pattern for non-trim-safe NuGet dependencies.
-    -->
+    <!-- EguiMarshal.SerializerCache<T> reaches most of its Serialize/Deserialize methods only
+         via reflection; TrimmerRootAssembly keeps them from being removed on trimmed publishes. -->
     <ItemGroup>
         <TrimmerRootAssembly Include="Egui" />
     </ItemGroup>

@@ -56,11 +56,7 @@ Need to add Egui.NET somewhere else? [Adding a new egui integration is easy](htt
 
 ## WebAssembly
 
-In addition to dynamic libraries for desktop platforms, the NuGet package ships a `wasm32-unknown-emscripten` static library at `runtimes/browser-wasm/native/egui_net.a`, along with a `buildTransitive` targets file that adds it as a `NativeFileReference` whenever a consuming project builds with `RuntimeIdentifier=browser-wasm`. `wasm32-unknown-emscripten` (rather than the freestanding `wasm32-unknown-unknown`) matches the toolchain the .NET WebAssembly SDK itself builds with, since both link through `emcc`. When building such a project with the `wasm-tools` workload installed, the .NET SDK links this archive directly into `dotnet.native.wasm`, allowing the Rust side of Egui.NET to run in the browser. To build the archive from source, an Emscripten install matching the one the .NET SDK uses must be on `PATH` (`Egui.csproj` pulls this in automatically via `PackageReference` when `RuntimeIdentifiers` includes `browser-wasm`); then run:
-
-```bash
-cargo rustc --profile release --target wasm32-unknown-emscripten --package egui_net --crate-type staticlib
-```
+Egui.NET also targets `wasm32-unknown-emscripten` (single-threaded), for use in browser-wasm C# applications.
 
 ## Incomplete features
 
