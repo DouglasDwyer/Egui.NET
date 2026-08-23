@@ -26,6 +26,7 @@ public ref struct Window
     private bool _hasOpen;
     private Area _area;
     private Frame? _frame;
+    private Frame? _titleFrame;
     private Resize _resize;
     private ScrollArea _scroll;
     private bool _collapsible;
@@ -51,6 +52,7 @@ public ref struct Window
         _hasOpen = false;
         _area = area;
         _frame = null;
+        _titleFrame = null;
         _resize = new Resize()
             .WithStroke(false)
             .MinSize(new EVec2(96.0f, 32.0f))
@@ -237,6 +239,16 @@ public ref struct Window
     {
         var result = this;
         result._frame = frame;
+        return result;
+    }
+
+    /// <summary>
+    /// Change the background color, margins, etc. of the title.
+    /// </summary>
+    public readonly Window TitleFrame(Frame frame)
+    {
+        var result = this;
+        result._titleFrame = frame;
         return result;
     }
 
@@ -588,6 +600,7 @@ public ref struct Window
         private Egui.Atoms _title;
         private Egui.Containers.Area _area;
         private Egui.Containers.Frame? _frame;
+        private Egui.Containers.Frame? _titleFrame;
         private Egui.Containers.Resize _resize;
         private Egui.Containers.ScrollArea _scroll;
         private bool _collapsible;
@@ -602,6 +615,7 @@ public ref struct Window
             _title = window._title;
             _area = window._area;
             _frame = window._frame;
+            _titleFrame = window._titleFrame;
             _resize = window._resize;
             _scroll = window._scroll;
             _collapsible = window._collapsible;
@@ -621,6 +635,7 @@ public ref struct Window
             window._title = _title;
             window._area = _area;
             window._frame = _frame;
+            window._titleFrame = _titleFrame;
             window._resize = _resize;
             window._scroll = _scroll;
             window._collapsible = _collapsible;
@@ -650,6 +665,7 @@ public ref struct Window
             _title.Serialize(serializer);
             _area.Serialize(serializer);
             Egui.TraitHelpers.serialize_option_Frame(_frame, serializer);
+            Egui.TraitHelpers.serialize_option_Frame(_titleFrame, serializer);
             _resize.Serialize(serializer);
             _scroll.Serialize(serializer);
             serializer.serialize_bool(_collapsible);
@@ -668,6 +684,7 @@ public ref struct Window
             obj._title = Egui.Atoms.Deserialize(deserializer);
             obj._area = Egui.Containers.Area.Deserialize(deserializer);
             obj._frame = Egui.TraitHelpers.deserialize_option_Frame(deserializer);
+            obj._titleFrame = Egui.TraitHelpers.deserialize_option_Frame(deserializer);
             obj._resize = Egui.Containers.Resize.Deserialize(deserializer);
             obj._scroll = Egui.Containers.ScrollArea.Deserialize(deserializer);
             obj._collapsible = deserializer.deserialize_bool();

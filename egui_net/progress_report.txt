@@ -1,4 +1,4 @@
-1892 / 1971 (95%) bound
+1899 / 1978 (96%) bound
 egui_containers_menu_MenuState_from_id
 egui_context_Context_accesskit_node_builder
 egui_context_Context_add_plugin
