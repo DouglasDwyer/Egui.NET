@@ -3,8 +3,6 @@ name = "egui_net"
 edition.workspace = true
 version.workspace = true
 
-# wasm32-unknown-unknown builds override this with `cargo rustc --crate-type staticlib`
-# to produce the .a that C# links statically instead of loading a dylib.
 [lib]
 crate-type = [ "cdylib" ]
 
@@ -17,12 +15,8 @@ egui_extras.workspace = true
 egui_net_ffi.workspace = true
 image.workspace = true
 jiff.workspace = true
-serde.workspace = true
-
-# mimalloc is C code that does not compile for wasm32-unknown-unknown;
-# wasm builds fall back to the default Rust allocator.
-[target.'cfg(not(target_arch = "wasm32"))'.dependencies]
 mimalloc.workspace = true
+serde.workspace = true
 
 [build-dependencies]
 csbindgen.workspace = true

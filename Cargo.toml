@@ -5,8 +5,6 @@ members = [
     "egui_net_ffi",
     "serde-generate",
 ]
-# egui-rs/ has its own [workspace]; excluding it stops Cargo from resolving
-# its patched crates' workspace-inherited fields against this workspace.
 exclude = [ "egui-rs" ]
 default-members = [ "egui_net" ]
 resolver = "2"
