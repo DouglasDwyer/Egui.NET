@@ -3,3 +3,13 @@ rustflags = [
     "-Z", "share-generics=y",
     "-Z", "threads=8"
 ]
+
+# wasm32-unknown-unknown's target spec hardcodes panic-strategy=abort; override it so
+# catch_unwind works at the egui_invoke FFI boundary. A target-specific table replaces
+# rather than extends [build], so share-generics/threads are repeated here too.
+[target.wasm32-unknown-unknown]
+rustflags = [
+    "-Z", "share-generics=y",
+    "-Z", "threads=8",
+    "-C", "panic=unwind"
+]

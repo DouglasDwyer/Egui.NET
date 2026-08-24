@@ -81,18 +81,13 @@
             <CargoBuild Include="$(MSBuildProjectFile)" Condition="'%(RIDList.Identity)' == 'linux-x64'">
                 <Properties>CargoTarget=x86_64-unknown-linux-gnu</Properties>
             </CargoBuild>
-            <!-- No cross image exists for wasm, so these use plain cargo. wasm32-unknown-unknown
-                 needs no C toolchain at all - it links directly into consumers' Emscripten-built
-                 dotnet.native.wasm, which is what provides posix_memalign/free for the allocator
-                 in lib.rs. -Zbuild-std rebuilds std from source because the prebuilt copy defaults
-                 to panic=abort (its target spec hardcodes panic-strategy: abort) and, for the
-                 multithreaded build, lacks atomics; -C panic=unwind overrides that default so
-                 catch_unwind at the FFI boundary (egui_invoke) still works. Listing every std
-                 component explicitly avoids a cargo bug where -Zbuild-std can pull in both the
-                 freshly-built and the ambient prebuilt copy of core, tripping E0152 (see
-                 https://github.com/rust-lang/rust/issues/144840). -->
+            <!-- No cross image exists for wasm, so these use plain cargo. -Zbuild-std rebuilds std
+                 from source (every component listed explicitly to dodge rust-lang/rust#144840);
+                 panic=unwind comes from .cargo/config.toml. The multithreaded build additionally
+                 needs +atomics via RUSTFLAGS, which replaces rather than extends config.toml's
+                 rustflags, so panic=unwind is repeated here too. -->
             <CargoBuild Include="$(MSBuildProjectFile)" Condition="'%(RIDList.Identity)' == 'browser-wasm'">
-                <Properties>CargoTarget=wasm32-unknown-unknown;CargoExecutable=cargo;CargoCommand=rustc;CargoUnstableOptions=-Zbuild-std=core,alloc,panic_unwind,std;CargoVariables=RUSTFLAGS=-C panic=unwind;CargoExtraOptions=--package egui_net --crate-type staticlib</Properties>
+                <Properties>CargoTarget=wasm32-unknown-unknown;CargoExecutable=cargo;CargoCommand=rustc;CargoUnstableOptions=-Zbuild-std=core,alloc,panic_unwind,std;CargoVariables=;CargoExtraOptions=--package egui_net --crate-type staticlib</Properties>
             </CargoBuild>
             <CargoBuild Include="$(MSBuildProjectFile)" Condition="'%(RIDList.Identity)' == 'browser-wasm'">
                 <Properties>CargoTarget=wasm32-unknown-unknown;CargoExecutable=cargo;CargoCommand=rustc;CargoUnstableOptions=-Zbuild-std=core,alloc,panic_unwind,std;CargoVariables=RUSTFLAGS=-C panic=unwind -C target-feature=+atomics,+bulk-memory,+mutable-globals;CargoExtraOptions=--package egui_net --crate-type staticlib --target-dir target-mt</Properties>
@@ -152,17 +147,14 @@
             CopyToOutputDirectory="Always"
             PackagePath="runtimes/linux-x64/native/libegui_net.so"
             Link="egui_net.so"/>
-        <!-- Statically linked into consumers' dotnet.native.wasm by buildTransitive/Egui.targets,
-             which picks single- or multi-threaded based on WasmEnableThreads. Packed without
-             cargo's "lib" prefix: the wasm SDK derives each NativeFileReference's P/Invoke
-             module name from the archive's filename, and the bindings declare DllImport("egui_net"). -->
+        <!-- Packed without cargo's "lib" prefix: the wasm SDK derives the P/Invoke module name
+             from the archive's filename, and the bindings declare DllImport("egui_net"). -->
         <None Include="../target/wasm32-unknown-unknown/$(CargoProfileOutput)/libegui_net.a"
             Condition="$([System.String]::new('$(RuntimeIdentifiers)').Contains('browser-wasm'))"
             Pack="true"
             PackagePath="runtimes/browser-wasm/native/egui_net.a"/>
-        <!-- Named native-mt, not native/multithread: NuGet auto-copies everything under a
-             literal runtimes/{rid}/native/ folder as a generic asset, flattening subdirectories,
-             which collided with the archive above once both were named egui_net.a. -->
+        <!-- native-mt, not native/multithread: NuGet flattens runtimes/{rid}/native/ subdirectories,
+             which would collide with the archive above if both were under native/. -->
         <None Include="../target-mt/wasm32-unknown-unknown/$(CargoProfileOutput)/libegui_net.a"
             Condition="$([System.String]::new('$(RuntimeIdentifiers)').Contains('browser-wasm'))"
             Pack="true"
