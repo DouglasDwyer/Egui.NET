@@ -242,7 +242,8 @@ public ref struct DragValue<T> : IWidget where T : INumber<T>
         return response;
     }
 
-    private partial struct DragValueInner {
+    private partial struct DragValueInner
+    {
         public double Speed;
         public Atoms Prefix;
         public Atoms Suffix;
@@ -259,7 +260,8 @@ public ref struct DragValue<T> : IWidget where T : INumber<T>
 
         internal static void Serialize(Bincode.BincodeSerializer serializer, DragValueInner value) => value.Serialize(serializer);
 
-        internal void Serialize(Bincode.BincodeSerializer serializer) {
+        internal void Serialize(Bincode.BincodeSerializer serializer)
+        {
             serializer.increase_container_depth();
             serializer.serialize_f64(Speed);
             Prefix.Serialize(serializer);

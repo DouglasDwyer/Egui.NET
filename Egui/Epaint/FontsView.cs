@@ -1,7 +1,7 @@
 namespace Egui.Epaint;
 
 /// <summary>
-/// The context’s collection of fonts, with this context's <see cref="Context.PixelsPerPoint">. This is what you use to do text layout.
+/// The context’s collection of fonts, with this context's <see cref="Context.PixelsPerPoint"/>. This is what you use to do text layout.
 /// </summary>
 public ref partial struct FontsView
 {

@@ -7,7 +7,7 @@ public struct ScrollAreaOutput
 
     /// <inheritdoc cref="ScrollAreaOutput{R}.State"/>
     public required State State;
-    
+
     /// <inheritdoc cref="ScrollAreaOutput{R}.ContentSize"/>
     public required EVec2 ContentSize;
 

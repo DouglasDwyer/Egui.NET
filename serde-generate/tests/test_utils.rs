@@ -373,7 +373,9 @@ impl Runtime {
     {
         match self {
             Self::Bcs => bcs::to_bytes(value).unwrap(),
-            Self::Bincode => bincode::serde::encode_to_vec(value, bincode::config::legacy()).unwrap(),
+            Self::Bincode => {
+                bincode::serde::encode_to_vec(value, bincode::config::legacy()).unwrap()
+            }
         }
     }
 

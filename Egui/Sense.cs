@@ -70,7 +70,8 @@ public readonly partial record struct Sense
         serializer.decrease_container_depth();
     }
 
-    internal static Sense Deserialize(BincodeDeserializer deserializer) {
+    internal static Sense Deserialize(BincodeDeserializer deserializer)
+    {
         deserializer.increase_container_depth();
         Sense value = (Sense)deserializer.deserialize_u8();
         deserializer.decrease_container_depth();

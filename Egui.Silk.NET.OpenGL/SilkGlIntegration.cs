@@ -160,7 +160,7 @@ public unsafe class SilkGlIntegration : SilkIntegration
     {
         _disposed = false;
         _gl = window.CreateOpenGL();
-        
+
         CheckGlErrors();
 
         var frag = CompileShader(GLEnum.FragmentShader, FragShader);
@@ -308,30 +308,30 @@ public unsafe class SilkGlIntegration : SilkIntegration
             switch (primitive.Primitive.Inner)
             {
                 case Primitive.Mesh meshPrimitive:
-                {
-                    Mesh mesh = meshPrimitive.Value;
-
-                    SetClipRect(width, height, pixelsPerPoint, primitive.ClipRect);
-
-                    var texture = _textures[mesh.TextureId];
-                    _gl.BindBuffer(GLEnum.ArrayBuffer, _vbo);
-
-                    fixed (Vertex* vertices = mesh.Vertices.AsSpan())
                     {
-                        _gl.BufferData(GLEnum.ArrayBuffer, (nuint)(mesh.Vertices.Length * sizeof(Vertex)), vertices, BufferUsageARB.StreamDraw);
+                        Mesh mesh = meshPrimitive.Value;
+
+                        SetClipRect(width, height, pixelsPerPoint, primitive.ClipRect);
+
+                        var texture = _textures[mesh.TextureId];
+                        _gl.BindBuffer(GLEnum.ArrayBuffer, _vbo);
+
+                        fixed (Vertex* vertices = mesh.Vertices.AsSpan())
+                        {
+                            _gl.BufferData(GLEnum.ArrayBuffer, (nuint)(mesh.Vertices.Length * sizeof(Vertex)), vertices, BufferUsageARB.StreamDraw);
+                        }
+
+                        _gl.BindBuffer(GLEnum.ElementArrayBuffer, _eao);
+
+                        fixed (uint* indices = mesh.Indices.AsSpan())
+                        {
+                            _gl.BufferData(GLEnum.ElementArrayBuffer, (nuint)(mesh.Indices.Length * sizeof(uint)), indices, BufferUsageARB.StreamDraw);
+                        }
+
+                        _gl.BindTexture(GLEnum.Texture2D, texture);
+                        _gl.DrawElements(GLEnum.Triangles, (uint)mesh.Indices.Length, GLEnum.UnsignedInt, null);
+                        break;
                     }
-
-                    _gl.BindBuffer(GLEnum.ElementArrayBuffer, _eao);
-
-                    fixed (uint* indices = mesh.Indices.AsSpan())
-                    {
-                        _gl.BufferData(GLEnum.ElementArrayBuffer, (nuint)(mesh.Indices.Length * sizeof(uint)), indices, BufferUsageARB.StreamDraw);
-                    }
-
-                    _gl.BindTexture(GLEnum.Texture2D, texture);
-                    _gl.DrawElements(GLEnum.Triangles, (uint)mesh.Indices.Length, GLEnum.UnsignedInt, null);
-                    break;
-                }
             }
         }
     }
@@ -362,40 +362,40 @@ public unsafe class SilkGlIntegration : SilkIntegration
         switch (delta.Image.Inner)
         {
             case ImageData.Color image:
-            {
-                #pragma warning disable CS9193
-                _gl.TexParameterI(GLEnum.Texture2D, GLEnum.TextureMagFilter, (int)GlCode(delta.Options.Magnification, null));
-                _gl.TexParameterI(GLEnum.Texture2D, GLEnum.TextureMinFilter, (int)GlCode(delta.Options.Minification, delta.Options.MipmapMode));
-                _gl.TexParameterI(GLEnum.Texture2D, GLEnum.TextureWrapS, (int)GlCode(delta.Options.WrapMode));
-                _gl.TexParameterI(GLEnum.Texture2D, GLEnum.TextureWrapT, (int)GlCode(delta.Options.WrapMode));
-                #pragma warning restore CS9193
-
-                CheckGlErrors();
-                _gl.PixelStore(GLEnum.UnpackAlignment, 1);
-                CheckGlErrors();
-
-                fixed (Color32* data = image.Value.Pixels.ToArray())
                 {
-                    if (delta.Pos is null)
-                    {
-                        _gl.TexImage2D(GLEnum.Texture2D, 0, (int)GLEnum.Rgba8, (uint)image.Value.Size[0], (uint)image.Value.Size[1], 0, GLEnum.Rgba, GLEnum.UnsignedByte,
-                            data);
-                    }
-                    else
-                    {
-                        _gl.TexSubImage2D(GLEnum.Texture2D, 0, (int)delta.Pos.Value[0], (int)delta.Pos.Value[1], (uint)image.Value.Size[0], (uint)image.Value.Size[1], GLEnum.Rgba, GLEnum.UnsignedByte,
-                            data);
-                    }
-                }
-                CheckGlErrors();
+#pragma warning disable CS9193
+                    _gl.TexParameterI(GLEnum.Texture2D, GLEnum.TextureMagFilter, (int)GlCode(delta.Options.Magnification, null));
+                    _gl.TexParameterI(GLEnum.Texture2D, GLEnum.TextureMinFilter, (int)GlCode(delta.Options.Minification, delta.Options.MipmapMode));
+                    _gl.TexParameterI(GLEnum.Texture2D, GLEnum.TextureWrapS, (int)GlCode(delta.Options.WrapMode));
+                    _gl.TexParameterI(GLEnum.Texture2D, GLEnum.TextureWrapT, (int)GlCode(delta.Options.WrapMode));
+#pragma warning restore CS9193
 
-                if (delta.Options.MipmapMode.HasValue)
-                {
-                    _gl.GenerateMipmap(GLEnum.Texture2D);
+                    CheckGlErrors();
+                    _gl.PixelStore(GLEnum.UnpackAlignment, 1);
+                    CheckGlErrors();
+
+                    fixed (Color32* data = image.Value.Pixels.ToArray())
+                    {
+                        if (delta.Pos is null)
+                        {
+                            _gl.TexImage2D(GLEnum.Texture2D, 0, (int)GLEnum.Rgba8, (uint)image.Value.Size[0], (uint)image.Value.Size[1], 0, GLEnum.Rgba, GLEnum.UnsignedByte,
+                                data);
+                        }
+                        else
+                        {
+                            _gl.TexSubImage2D(GLEnum.Texture2D, 0, (int)delta.Pos.Value[0], (int)delta.Pos.Value[1], (uint)image.Value.Size[0], (uint)image.Value.Size[1], GLEnum.Rgba, GLEnum.UnsignedByte,
+                                data);
+                        }
+                    }
+                    CheckGlErrors();
+
+                    if (delta.Options.MipmapMode.HasValue)
+                    {
+                        _gl.GenerateMipmap(GLEnum.Texture2D);
+                    }
+                    CheckGlErrors();
+                    break;
                 }
-                CheckGlErrors();
-                break;
-            }
         }
     }
 

@@ -21,12 +21,12 @@ public partial record struct Atom
     /// Converts to this type from the input type.
     /// </summary>
     public static implicit operator Atom(WidgetText value) => new Atom { Kind = value };
-    
+
     /// <summary>
     /// Converts to this type from the input type.
     /// </summary>
     public static implicit operator Atom(Egui.Text.LayoutJob value) => new Atom { Kind = value };
-    
+
     /// <summary>
     /// Converts to this type from the input type.
     /// </summary>

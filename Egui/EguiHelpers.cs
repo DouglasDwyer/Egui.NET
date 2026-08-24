@@ -57,7 +57,8 @@ public static partial class EguiHelpers
         }
     }
 
-    internal static void Serialize(this TimeSpan value, Bincode.BincodeSerializer serializer) {
+    internal static void Serialize(this TimeSpan value, Bincode.BincodeSerializer serializer)
+    {
         var totalNanos = TimeSpan.NanosecondsPerTick * value.Ticks;
         var secs = totalNanos / 1_000_000_000;
         var nanos = totalNanos % 1_000_000_000;

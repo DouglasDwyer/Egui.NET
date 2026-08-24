@@ -188,27 +188,25 @@ using System.Numerics;"
     }
 
     fn output_open_namespace(&mut self, name: &str) -> Result<()> {
-        writeln!(
-            self.out,
-            "\nnamespace {} {{",
-            self.namespace_for_item(name)
-        )?;
+        writeln!(self.out, "\nnamespace {} {{", self.namespace_for_item(name))?;
         self.out.indent();
         Ok(())
     }
 
     fn output_close_namespace(&mut self) -> Result<()> {
         self.out.unindent();
-        writeln!(
-            self.out,
-            "\n}}",
-        )?;
+        writeln!(self.out, "\n}}",)?;
         Ok(())
     }
 
     /// Gets the namespace to use for a particular item.
     fn namespace_for_item(&self, name: &str) -> String {
-        self.generator.config.namespaces.get(name).cloned().unwrap_or_else(|| self.generator.config.module_name.clone())
+        self.generator
+            .config
+            .namespaces
+            .get(name)
+            .cloned()
+            .unwrap_or_else(|| self.generator.config.module_name.clone())
     }
 
     /// Compute a safe reference to the registry type `name` in the given context.
@@ -225,8 +223,7 @@ using System.Numerics;"
                 let np = self.namespace_for_item(name);
                 if np.is_empty() {
                     name.to_string()
-                }
-                else {
+                } else {
                     format!("{np}.{name}")
                 }
             });
@@ -234,8 +231,7 @@ using System.Numerics;"
             let np = self.namespace_for_item(name);
             if np.is_empty() {
                 name.to_string()
-            }
-            else {
+            } else {
                 format!("{np}.{name}")
             }
         };
@@ -245,7 +241,7 @@ using System.Numerics;"
         }
         let name = path.pop().unwrap();
         if true {
-        //if self.current_reserved_names.contains_key(name) {
+            //if self.current_reserved_names.contains_key(name) {
             return qname;
         }
         for (index, element) in path.iter().enumerate() {
@@ -318,22 +314,20 @@ using System.Numerics;"
             Bytes => "ImmutableArray<byte>".into(),
 
             Option(format) => format!("{}?", self.quote_type(format)),
-            Seq(format) => if is_nested_struct {
-                format!("ReadOnlyBox<ImmutableArray<{}>>", self.quote_type(format))
+            Seq(format) => {
+                if is_nested_struct {
+                    format!("ReadOnlyBox<ImmutableArray<{}>>", self.quote_type(format))
+                } else {
+                    format!("ImmutableArray<{}>", self.quote_type(format))
+                }
             }
-            else {
-                format!("ImmutableArray<{}>", self.quote_type(format))
-            },
             Map { key, value } => format!(
                 "ImmutableDictionary<{}, {}>",
                 self.quote_type(key),
                 self.quote_type(value)
             ),
             Tuple(formats) => format!("({})", self.quote_types(formats)),
-            TupleArray {
-                content,
-                size,
-            } => format!("Array{size}<{}>", self.quote_type(content),),
+            TupleArray { content, size } => format!("Array{size}<{}>", self.quote_type(content),),
             Variable(_) => panic!("unexpected value"),
         }
     }
@@ -395,10 +389,7 @@ using System.Numerics;"
 
     fn needs_helper(format: &Format) -> bool {
         use Format::*;
-        matches!(
-            format,
-            Option(_) | Seq(_) | Map { .. } | Tuple(_)
-        )
+        matches!(format, Option(_) | Seq(_) | Map { .. } | Tuple(_))
     }
 
     fn quote_serialize_value(&self, value: &str, format: &Format) -> String {
@@ -445,8 +436,7 @@ using System.Numerics;"
                         "{}SerdeExtensions.Deserialize(deserializer)",
                         self.quote_qualified_name(name)
                     )
-                }
-                else if name == "Duration" {
+                } else if name == "Duration" {
                     format!(
                         "EguiHelpers.Deserialize{}(deserializer)",
                         self.quote_qualified_name(name)
@@ -490,7 +480,9 @@ using System.Numerics;"
     fn output_serialization_helper(&mut self, name: &str, format0: &Format) -> Result<()> {
         use Format::*;
 
-        if EXCLUDE_SERIALIZATION_HELPERS.contains(&name) { return Ok(()); }
+        if EXCLUDE_SERIALIZATION_HELPERS.contains(&name) {
+            return Ok(());
+        }
 
         write!(
             self.out,
@@ -582,7 +574,9 @@ foreach (var item in value) {{
     fn output_deserialization_helper(&mut self, name: &str, format0: &Format) -> Result<()> {
         use Format::*;
 
-        if EXCLUDE_SERIALIZATION_HELPERS.contains(&name) { return Ok(()); }
+        if EXCLUDE_SERIALIZATION_HELPERS.contains(&name) {
+            return Ok(());
+        }
 
         write!(
             self.out,
@@ -719,10 +713,16 @@ return obj.ToImmutableArray();
 
         let output_constructor = match variant {
             NewType(_) | Tuple(_) => true,
-            _ => false
+            _ => false,
         };
 
-        self.output_struct_or_variant_container(Some(base), Some(index), name, &fields, output_constructor)
+        self.output_struct_or_variant_container(
+            Some(base),
+            Some(index),
+            name,
+            &fields,
+            output_constructor,
+        )
     }
 
     fn output_variants(
@@ -742,25 +742,17 @@ return obj.ToImmutableArray();
         variant_index: Option<u32>,
         name: &str,
         fields: &[Named<Format>],
-        output_constructor: bool
+        output_constructor: bool,
     ) -> Result<()> {
         // Beginning of class
         writeln!(self.out)?;
         let fn_mods = if let Some(base) = variant_base {
             self.output_comment(name)?;
-            writeln!(
-                self.out,
-                "public partial record struct {0} {{",
-                name
-            )?;
+            writeln!(self.out, "public partial record struct {0} {{", name)?;
             ""
         } else {
             self.output_comment(name)?;
-            writeln!(
-                self.out,
-                "public partial record struct {0} {{",
-                name
-            )?;
+            writeln!(self.out, "public partial record struct {0} {{", name)?;
             ""
         };
         let reserved_names = &[];
@@ -889,13 +881,24 @@ return obj.ToImmutableArray();
         // of conversion properties). Providing our own `PrintMembers` restricted to just the
         // declared data fields avoids that, while still plugging into the compiler-generated
         // `ToString()`.
-        writeln!(self.out, "private readonly bool PrintMembers(StringBuilder builder) {{")?;
+        writeln!(
+            self.out,
+            "private readonly bool PrintMembers(StringBuilder builder) {{"
+        )?;
         self.out.indent();
         for (i, field) in fields.iter().enumerate() {
             if i == 0 {
-                writeln!(self.out, "builder.Append(\"{0} = \").Append({0});", field.name)?;
+                writeln!(
+                    self.out,
+                    "builder.Append(\"{0} = \").Append({0});",
+                    field.name
+                )?;
             } else {
-                writeln!(self.out, "builder.Append(\", {0} = \").Append({0});", field.name)?;
+                writeln!(
+                    self.out,
+                    "builder.Append(\", {0} = \").Append({0});",
+                    field.name
+                )?;
             }
         }
         writeln!(self.out, "return {};", !fields.is_empty())?;
@@ -933,11 +936,7 @@ return obj.ToImmutableArray();
     ) -> Result<()> {
         writeln!(self.out)?;
         self.output_comment(name)?;
-        writeln!(
-            self.out,
-            "public partial record struct {0} {{",
-            name
-        )?;
+        writeln!(self.out, "public partial record struct {0} {{", name)?;
         let reserved_names = variants
             .values()
             .map(|v| v.name.as_str())
@@ -967,7 +966,11 @@ return obj.ToImmutableArray();
         }
 
         for (id, variant) in variants {
-            writeln!(self.out, "\npublic static implicit operator {name}({} value) {{", variant.name)?;
+            writeln!(
+                self.out,
+                "\npublic static implicit operator {name}({} value) {{",
+                variant.name
+            )?;
             writeln!(self.out, "    {name} result = default;")?;
             writeln!(self.out, "    result._variantId = {id};")?;
             writeln!(self.out, "    result._variant{id} = value;")?;
@@ -1005,7 +1008,7 @@ switch (_variantId.GetValueOrDefault(-1)) {{"#,
             writeln!(self.out, "}}")?;
             self.out.unindent();
             writeln!(self.out, "}}")?;
-            
+
             write!(
                 self.out,
                 "\ninternal static {} Deserialize(Bincode.BincodeDeserializer deserializer) {{",
@@ -1057,11 +1060,13 @@ switch (index) {{"#,
         self.out.unindent();
         writeln!(self.out, "}}")?;
 
-
         // Equals
         writeln!(self.out, "public bool Equals({} other) {{", name)?;
         self.out.indent();
-        writeln!(self.out, "if (_variantId != other._variantId) return false;")?;
+        writeln!(
+            self.out,
+            "if (_variantId != other._variantId) return false;"
+        )?;
         writeln!(self.out, "switch (_variantId.GetValueOrDefault(-1)) {{")?;
         for id in variants.keys() {
             writeln!(
@@ -1069,10 +1074,7 @@ switch (index) {{"#,
                 "case {id}: return _variant{id}.Equals(other._variant{id});",
             )?;
         }
-        writeln!(
-            self.out,
-            r#"default: return true;"#
-        )?;
+        writeln!(self.out, r#"default: return true;"#)?;
         writeln!(self.out, "}}")?;
         self.out.unindent();
         writeln!(self.out, "}}\n")?;
@@ -1083,11 +1085,17 @@ switch (index) {{"#,
         // `output_struct_or_variant_container`: we can't rely on the compiler-synthesized
         // version here either, and additionally the default field-by-field synthesis would
         // print every unused variant slot rather than just the active one.
-        writeln!(self.out, "private readonly bool PrintMembers(StringBuilder builder) {{")?;
+        writeln!(
+            self.out,
+            "private readonly bool PrintMembers(StringBuilder builder) {{"
+        )?;
         self.out.indent();
         writeln!(self.out, "switch (_variantId.GetValueOrDefault(-1)) {{")?;
         for (id, _) in variants {
-            writeln!(self.out, "case {id}: builder.Append(_variant{id}); return true;")?;
+            writeln!(
+                self.out,
+                "case {id}: builder.Append(_variant{id}); return true;"
+            )?;
         }
         writeln!(self.out, "default: return false;")?;
         writeln!(self.out, "}}")?;
@@ -1095,18 +1103,18 @@ switch (index) {{"#,
         writeln!(self.out, "}}\n")?;
 
         /*// Clone
-        writeln!(
-            self.out,
-            "/// <summary>Creates a shallow clone of the object.</summary>"
-        )?;
-        writeln!(
-            self.out,
-            "public {0} Clone() => ({0})MemberwiseClone();\n",
-            name
-        )?;
-        //writeln!(self.out, "object ICloneable.Clone() => Clone();\n")?;
-*/
-        self.output_variants(name, variants)?; 
+                writeln!(
+                    self.out,
+                    "/// <summary>Creates a shallow clone of the object.</summary>"
+                )?;
+                writeln!(
+                    self.out,
+                    "public {0} Clone() => ({0})MemberwiseClone();\n",
+                    name
+                )?;
+                //writeln!(self.out, "object ICloneable.Clone() => Clone();\n")?;
+        */
+        self.output_variants(name, variants)?;
         self.leave_class(&reserved_names);
         writeln!(self.out, "}}\n")
     }
@@ -1254,10 +1262,10 @@ internal static {0} {1}Deserialize(ArraySegment<byte> input) {{
                 return Ok(());
             }
         };
-        
+
         let output_constructor = match format {
             ContainerFormat::NewTypeStruct(_) | ContainerFormat::TupleStruct(_) => true,
-            _ => false
+            _ => false,
         };
 
         self.output_struct_or_variant_container(None, None, name, &fields, false)
