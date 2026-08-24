@@ -1,8 +1,4 @@
 <Project>
-    <!-- NuGet's RID-asset selection doesn't cover browser-wasm static libraries, so the SDK
-         never discovers runtimes/browser-wasm/native on its own; a NativeFileReference is
-         required to statically link it into dotnet.native.wasm (this also makes the SDK set
-         WasmBuildNative=true automatically). -->
     <ItemGroup Condition="'$(RuntimeIdentifier)' == 'browser-wasm' AND '$(WasmEnableThreads)' == 'true'">
         <NativeFileReference Include="$(MSBuildThisFileDirectory)../runtimes/browser-wasm/native-mt/egui_net.a" />
     </ItemGroup>

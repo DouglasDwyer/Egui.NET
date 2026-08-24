@@ -4,11 +4,6 @@ rustflags = [
     "-Z", "threads=8"
 ]
 
-# wasm32-unknown-unknown's target spec hardcodes panic-strategy=abort; override it so
-# catch_unwind works at the egui_invoke FFI boundary. A target-specific table replaces
-# rather than extends [build], so share-generics/threads are repeated here too. Setting
-# panic=unwind via [profile.*] in Cargo.toml instead of here reintroduces E0152
-# (rust-lang/rust#144840) under -Zbuild-std, so it has to stay a rustflag.
 [target.wasm32-unknown-unknown]
 rustflags = [
     "-Z", "share-generics=y",

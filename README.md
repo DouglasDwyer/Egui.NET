@@ -99,7 +99,8 @@ To pull in a newer `egui` release: `git subtree pull --prefix=egui-rs <egui remo
 - `x86_64-apple-darwin`
 - `aarch64-unknown-linux-gnu`
 - `x86_64-unknown-linux-gnu`
-- `wasm32-unknown-unknown`, for use in browser-wasm C# applications (single- and multi-threaded, selected by `WasmEnableThreads`)
+- `wasm32-unknown-unknown` (single-threaded)
+- `wasm32-unknown-unknown` (multi-threaded)
 
 ### Building from source
 

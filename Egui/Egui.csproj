@@ -81,11 +81,6 @@
             <CargoBuild Include="$(MSBuildProjectFile)" Condition="'%(RIDList.Identity)' == 'linux-x64'">
                 <Properties>CargoTarget=x86_64-unknown-linux-gnu</Properties>
             </CargoBuild>
-            <!-- No cross image exists for wasm, so these use plain cargo. -Zbuild-std rebuilds std
-                 from source (every component listed explicitly to dodge rust-lang/rust#144840);
-                 panic=unwind comes from .cargo/config.toml. The multithreaded build additionally
-                 needs +atomics via RUSTFLAGS, which replaces rather than extends config.toml's
-                 rustflags, so panic=unwind is repeated here too. -->
             <CargoBuild Include="$(MSBuildProjectFile)" Condition="'%(RIDList.Identity)' == 'browser-wasm'">
                 <Properties>CargoTarget=wasm32-unknown-unknown;CargoExecutable=cargo;CargoCommand=rustc;CargoUnstableOptions=-Zbuild-std=core,alloc,panic_unwind,std;CargoVariables=;CargoExtraOptions=--package egui_net --crate-type staticlib</Properties>
             </CargoBuild>
@@ -147,14 +142,10 @@
             CopyToOutputDirectory="Always"
             PackagePath="runtimes/linux-x64/native/libegui_net.so"
             Link="egui_net.so"/>
-        <!-- Packed without cargo's "lib" prefix: the wasm SDK derives the P/Invoke module name
-             from the archive's filename, and the bindings declare DllImport("egui_net"). -->
         <None Include="../target/wasm32-unknown-unknown/$(CargoProfileOutput)/libegui_net.a"
             Condition="$([System.String]::new('$(RuntimeIdentifiers)').Contains('browser-wasm'))"
             Pack="true"
             PackagePath="runtimes/browser-wasm/native/egui_net.a"/>
-        <!-- native-mt, not native/multithread: NuGet flattens runtimes/{rid}/native/ subdirectories,
-             which would collide with the archive above if both were under native/. -->
         <None Include="../target-mt/wasm32-unknown-unknown/$(CargoProfileOutput)/libegui_net.a"
             Condition="$([System.String]::new('$(RuntimeIdentifiers)').Contains('browser-wasm'))"
             Pack="true"
