@@ -4,5 +4,6 @@
 **/bin
 **/obj
 **/target
+**/target-mt
 api/**
 _site/**

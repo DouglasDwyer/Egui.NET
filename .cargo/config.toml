@@ -3,3 +3,10 @@ rustflags = [
     "-Z", "share-generics=y",
     "-Z", "threads=8"
 ]
+
+[target.wasm32-unknown-unknown]
+rustflags = [
+    "-Z", "share-generics=y",
+    "-Z", "threads=8",
+    "-C", "panic=unwind"
+]

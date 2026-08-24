@@ -15,8 +15,10 @@ egui_extras.workspace = true
 egui_net_ffi.workspace = true
 image.workspace = true
 jiff.workspace = true
-mimalloc.workspace = true
 serde.workspace = true
+
+[target.'cfg(not(all(target_arch = "wasm32", target_os = "unknown")))'.dependencies]
+mimalloc.workspace = true
 
 [build-dependencies]
 csbindgen.workspace = true

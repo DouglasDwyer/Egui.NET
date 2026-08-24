@@ -1,0 +1,8 @@
+<Project>
+    <ItemGroup Condition="'$(RuntimeIdentifier)' == 'browser-wasm' AND '$(WasmEnableThreads)' == 'true'">
+        <NativeFileReference Include="$(MSBuildThisFileDirectory)../runtimes/browser-wasm/native-mt/egui_net.a" />
+    </ItemGroup>
+    <ItemGroup Condition="'$(RuntimeIdentifier)' == 'browser-wasm' AND '$(WasmEnableThreads)' != 'true'">
+        <NativeFileReference Include="$(MSBuildThisFileDirectory)../runtimes/browser-wasm/native/egui_net.a" />
+    </ItemGroup>
+</Project>
