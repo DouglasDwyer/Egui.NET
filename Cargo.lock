@@ -1209,6 +1209,7 @@ dependencies = [
  "egui_extras",
  "egui_net_bindgen",
  "egui_net_ffi",
+ "egui_plot",
  "image",
  "jiff",
  "mimalloc",
@@ -1235,6 +1236,16 @@ version = "0.9.0+0.36.1"
 dependencies = [
  "bincode 2.0.1",
  "egui",
+ "serde",
+]
+
+[[package]]
+name = "egui_plot"
+version = "0.37.0"
+dependencies = [
+ "ahash",
+ "egui",
+ "emath",
  "serde",
 ]
 

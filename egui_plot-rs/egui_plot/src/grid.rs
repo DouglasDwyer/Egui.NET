@@ -24,6 +24,7 @@ pub struct GridInput {
 
 /// One mark (horizontal or vertical line) in the background grid of a plot.
 #[derive(Debug, Clone, Copy, PartialEq)]
+#[cfg_attr(feature = "serde", derive(serde::Deserialize, serde::Serialize))]
 pub struct GridMark {
     /// X or Y value in the plot.
     pub value: f64,

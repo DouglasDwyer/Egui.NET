@@ -11,6 +11,7 @@ use emath::Vec2b;
 /// Uses f64 for improved accuracy to enable plotting
 /// large values (e.g. unix time on x axis).
 #[derive(Clone, Copy, Debug, PartialEq)]
+#[cfg_attr(feature = "serde", derive(serde::Deserialize, serde::Serialize))]
 pub struct PlotPoint {
     /// This is often something monotonically increasing, such as time, but
     /// doesn't have to be. Goes from left to right.

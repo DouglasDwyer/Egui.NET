@@ -5,7 +5,7 @@ members = [
     "egui_net_ffi",
     "serde-generate",
 ]
-exclude = [ "egui-rs" ]
+exclude = [ "egui-rs", "egui_plot-rs" ]
 default-members = [ "egui_net" ]
 resolver = "2"
 
@@ -40,6 +40,7 @@ convert_case = { version = "0.11.0", default-features = false }
 csbindgen = { version = "1.9.7", default-features = false }
 egui = { version = "0.36.1", default-features = false }
 egui_extras = { version = "0.36.1", default-features = false, features = [ "datepicker", "image", "serde", "svg", "svg_text", "syntect" ] }
+egui_plot = { version = "0.37.0", default-features = false, features = [ "serde" ] }
 image = { version = "0.25.9", default-features = false, features = [ "default-formats" ] }
 jiff = { version = "0.2.29", default-features = false, features = [ "std", "tz-system" ] }
 mimalloc = { version = "0.1.52", default-features = false }
@@ -61,6 +62,10 @@ image = "i18nsite/x86_64-apple-darwin-cross@sha256:8604955bd3fd7bd5e18f8ad008531
 image = "aloismisery/aarch64-apple-darwin-cross@sha256:c82fb79111206da2a18cfd917fbd89f1c3e996e7aaf22fc78553cc57b3e12c68"
 
 [patch.crates-io]
+ecolor = { path = "egui-rs/crates/ecolor" }
 egui = { path = "egui-rs/crates/egui" }
 egui_extras = { path = "egui-rs/crates/egui_extras" }
+egui_plot = { path = "egui_plot-rs/egui_plot" }
+emath = { path = "egui-rs/crates/emath" }
+epaint = { path = "egui-rs/crates/epaint" }
 mimalloc = { git = "https://github.com/DouglasDwyer/mimalloc_rust", rev = "851088d4e2b02f0c7347fa9d5f898dcc6e75d8ed" }

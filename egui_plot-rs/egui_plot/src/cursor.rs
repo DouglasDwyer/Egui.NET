@@ -3,6 +3,7 @@ use egui::Id;
 
 /// Indicates a vertical or horizontal cursor line in plot coordinates.
 #[derive(Copy, Clone, PartialEq)]
+#[cfg_attr(feature = "serde", derive(serde::Deserialize, serde::Serialize))]
 pub enum Cursor {
     /// Horizontal cursor line at the given y-coordinate.
     Horizontal {
