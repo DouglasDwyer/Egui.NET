@@ -36,6 +36,7 @@ const LABEL_PADDING: f32 = 4.0;
 
 /// A span covering a range on either axis.
 #[derive(Clone, Debug, PartialEq)]
+#[cfg_attr(feature = "serde", derive(serde::Deserialize, serde::Serialize))]
 pub struct Span {
     base: PlotItemBase,
     axis: Axis,

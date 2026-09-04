@@ -41,6 +41,7 @@ use egui::*;
 use egui_extras::syntax_highlighting::*;
 use egui_extras::*;
 use egui_net_ffi::*;
+use egui_plot::*;
 use serde::de::*;
 use serde::*;
 use std::borrow::*;

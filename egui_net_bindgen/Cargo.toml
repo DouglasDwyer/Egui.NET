@@ -8,6 +8,7 @@ build = "build/main.rs"
 convert_case.workspace = true
 egui = { workspace = true, features = [ "serde" ] }
 egui_extras = { workspace = true, features = [ "serde", "datepicker", "syntect" ] }
+egui_plot = { workspace = true, features = [ "serde" ] }
 rustdoc-types.workspace = true
 serde.workspace = true
 serde_json.workspace = true

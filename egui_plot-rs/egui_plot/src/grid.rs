@@ -6,6 +6,7 @@ pub type GridSpacer<'a> = Box<GridSpacerFn<'a>>;
 /// Input for "grid spacer" functions.
 ///
 /// See [`crate::Plot::x_grid_spacer()`] and [`crate::Plot::y_grid_spacer()`].
+#[cfg_attr(feature = "serde", derive(serde::Deserialize, serde::Serialize))]
 pub struct GridInput {
     /// Min/max of the visible data range (the values at the two edges of the
     /// plot, for the current axis).

@@ -230,6 +230,7 @@ impl PlotItem for BarChart {
 /// One bar in a [`BarChart`]. Potentially floating, allowing stacked bar
 /// charts. Width can be changed to allow variable-width histograms.
 #[derive(Clone, Debug, PartialEq)]
+#[cfg_attr(feature = "serde", derive(serde::Deserialize, serde::Serialize))]
 pub struct Bar {
     /// Name of plot element in the diagram (annotated by default formatter)
     pub name: String,

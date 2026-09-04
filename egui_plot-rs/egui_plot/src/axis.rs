@@ -35,6 +35,7 @@ pub(super) type AxisFormatterFn<'a> = dyn Fn(GridMark, &RangeInclusive<f64>) -> 
 
 /// X or Y axis.
 #[derive(Debug, Clone, Copy, PartialEq, Eq)]
+#[cfg_attr(feature = "serde", derive(serde::Deserialize, serde::Serialize))]
 pub enum Axis {
     /// Horizontal X-Axis
     X = 0,

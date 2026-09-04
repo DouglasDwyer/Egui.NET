@@ -93,6 +93,7 @@ impl std::fmt::Display for LineStyle {
 
 /// Determines whether a plot element is vertically or horizontally oriented.
 #[derive(Copy, Clone, Debug, PartialEq, Eq, Default)]
+#[cfg_attr(feature = "serde", derive(serde::Deserialize, serde::Serialize))]
 pub enum Orientation {
     Horizontal,
     #[default]
@@ -101,6 +102,7 @@ pub enum Orientation {
 
 /// Circle, Diamond, Square, Cross, …
 #[derive(Debug, PartialEq, Eq, Clone, Copy)]
+#[cfg_attr(feature = "serde", derive(serde::Deserialize, serde::Serialize))]
 pub enum MarkerShape {
     Circle,
     Diamond,

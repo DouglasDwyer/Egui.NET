@@ -22,6 +22,7 @@ use crate::items::PlotItemBase;
 
 /// An image in the plot.
 #[derive(Clone)]
+#[cfg_attr(feature = "serde", derive(serde::Deserialize, serde::Serialize))]
 pub struct PlotImage {
     base: PlotItemBase,
     pub(crate) position: PlotPoint,
