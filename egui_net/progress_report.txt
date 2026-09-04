@@ -1,4 +1,4 @@
-2067 / 2395 (86%) bound
+2070 / 2395 (86%) bound
 egui_containers_menu_MenuState_from_id
 egui_context_Context_accesskit_node_builder
 egui_context_Context_add_plugin
@@ -246,8 +246,6 @@ egui_plot_plot_PlotUi_bar_chart
 egui_plot_plot_PlotUi_box_plot
 egui_plot_plot_PlotUi_ctx
 egui_plot_plot_PlotUi_heatmap
-egui_plot_plot_PlotUi_line
-egui_plot_plot_PlotUi_points
 egui_plot_plot_PlotUi_polygon
 egui_plot_plot_PlotUi_set_plot_bounds_x
 egui_plot_plot_PlotUi_set_plot_bounds_y
@@ -288,7 +286,6 @@ egui_plot_plot_Plot_pan_pointer_button
 egui_plot_plot_Plot_reset
 egui_plot_plot_Plot_sense
 egui_plot_plot_Plot_set_margin_fraction
-egui_plot_plot_Plot_show
 egui_plot_plot_Plot_show_axes
 egui_plot_plot_Plot_show_background
 egui_plot_plot_Plot_show_crosshair

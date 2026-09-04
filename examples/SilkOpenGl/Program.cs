@@ -8,6 +8,7 @@ using Egui.Containers;
 using Egui.Epaint;
 using Egui.EguiExtras;
 using Egui.EguiExtras.SyntaxHighlighting;
+using Egui.EguiPlot;
 using Egui.Silk.NET;
 using Egui.Viewport;
 using Egui.Widgets;
@@ -41,6 +42,8 @@ public class Program
     private static TableDemo _tableDemo = new TableDemo();
 
     private static CodeEditorDemo _codeEditorDemo = new CodeEditorDemo();
+
+    private static PlotDemo _plotDemo = new PlotDemo();
 
     public static void Main(string[] args)
     {
@@ -131,6 +134,13 @@ public class Program
                 .Show(ctx, ui =>
             {
                 _codeEditorDemo.Show(ui);
+            });
+
+            new Window("📈 Plot")
+                .DefaultWidth(400)
+                .Show(ctx, ui =>
+            {
+                _plotDemo.Show(ui);
             });
         });
     }
@@ -542,6 +552,37 @@ public class Program
                     });
                 }
             });
+        }
+    }
+
+    private class PlotDemo
+    {
+        public void Show(Ui ui)
+        {
+            ui.Label("A sine wave, drawn with egui_plot.");
+
+            var sinPoints = Enumerable.Range(0, 200)
+                .Select(i =>
+                {
+                    double x = i * 0.05;
+                    return (x, Math.Sin(x));
+                });
+
+            var markers = Enumerable.Range(0, 20)
+                .Select(i =>
+                {
+                    double x = i * 0.5;
+                    return (x, Math.Cos(x));
+                });
+
+            new Plot("plot_demo")
+                .ViewAspect(2.0f)
+                .Legend(new Legend())
+                .Show(ui, plotUi =>
+                {
+                    plotUi.Line(new Line("sin(x)", sinPoints).Stroke(new Stroke { Width = 2.0f, Color = Color32.LightBlue }));
+                    plotUi.Points(new Points("cos(x)", markers).Shape(MarkerShape.Circle).Radius(3.0f).Color(Color32.Orange));
+                });
         }
     }
 
