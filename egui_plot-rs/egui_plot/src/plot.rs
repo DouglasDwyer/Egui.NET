@@ -1,0 +1,2211 @@
+use std::ops::RangeInclusive;
+use std::sync::Arc;
+
+use egui::Color32;
+use egui::CursorIcon;
+use egui::Id;
+use egui::Layout;
+use egui::Painter;
+use egui::PointerButton;
+use egui::Response;
+use egui::Sense;
+use egui::Shape;
+use egui::Stroke;
+use egui::TextStyle;
+use egui::Ui;
+use egui::WidgetText;
+use egui::ecolor::Hsva;
+use egui::epaint;
+use emath::Align2;
+use emath::NumExt as _;
+use emath::Pos2;
+use emath::Rangef;
+use emath::Rect;
+use emath::Vec2;
+use emath::Vec2b;
+use emath::remap_clamp;
+use emath::vec2;
+
+use crate::axis::Axis;
+use crate::axis::AxisHints;
+use crate::axis::AxisWidget;
+use crate::axis::PlotTransform;
+use crate::bounds::BoundsLinkGroups;
+use crate::bounds::BoundsModification;
+use crate::bounds::LinkedBounds;
+use crate::bounds::PlotBounds;
+use crate::bounds::PlotPoint;
+use crate::colors::rulers_color;
+use crate::cursor::Cursor;
+use crate::cursor::CursorLinkGroups;
+use crate::cursor::PlotFrameCursors;
+use crate::grid::GridInput;
+use crate::grid::GridMark;
+use crate::grid::GridSpacer;
+use crate::items;
+use crate::items::PlotItem;
+use crate::items::Span;
+use crate::items::horizontal_line;
+use crate::items::vertical_line;
+use crate::label::HoverPosition;
+use crate::label::LabelFormatter;
+use crate::memory::PlotMemory;
+use crate::overlays::CoordinatesFormatter;
+use crate::overlays::Legend;
+use crate::overlays::LegendWidget;
+use crate::placement::Corner;
+use crate::placement::HPlacement;
+use crate::placement::VPlacement;
+
+/// Combined axis widgets: `[x_axis_widgets, y_axis_widgets]`
+type AxisWidgets<'a> = [Vec<crate::axis::AxisWidget<'a>>; 2];
+
+/// Combined axis responses: `[x_axis_responses, y_axis_responses]`
+type AxisResponses = [Vec<Response>; 2];
+
+/// A 2D plot, e.g. a graph of a function.
+///
+/// [`Plot`] supports multiple lines and points.
+///
+/// ```
+/// # egui::__run_test_ui(|ui| {
+/// use egui_plot::Line;
+/// use egui_plot::Plot;
+/// use egui_plot::PlotPoints;
+///
+/// let sin: PlotPoints = (0..1000)
+///     .map(|i| {
+///         let x = i as f64 * 0.01;
+///         [x, x.sin()]
+///     })
+///     .collect();
+/// let line = Line::new("sin", sin);
+/// Plot::new("my_plot")
+///     .view_aspect(2.0)
+///     .show(ui, |plot_ui| plot_ui.line(line));
+/// # });
+/// ```
+pub struct Plot<'a> {
+    id_source: Id,
+    id: Option<Id>,
+
+    center_axis: Vec2b,
+    allow_zoom: Vec2b,
+    allow_drag: Vec2b,
+    allow_axis_zoom_drag: Vec2b,
+    allow_scroll: Vec2b,
+    allow_double_click_reset: bool,
+    allow_boxed_zoom: bool,
+    default_auto_bounds: Vec2b,
+    min_auto_bounds: PlotBounds,
+    margin_fraction: Vec2,
+    pan_pointer_button: PointerButton,
+    boxed_zoom_pointer_button: PointerButton,
+    linked_axes: Option<(Id, Vec2b)>,
+    linked_cursors: Option<(Id, Vec2b)>,
+
+    min_size: Vec2,
+    width: Option<f32>,
+    height: Option<f32>,
+    data_aspect: Option<f32>,
+    view_aspect: Option<f32>,
+    invert_x: bool,
+    invert_y: bool,
+
+    reset: bool,
+
+    show_x: bool,
+    show_y: bool,
+    show_crosshair: bool,
+    label_formatter: Option<LabelFormatter<'a>>,
+    coordinates_formatter: Option<(Corner, CoordinatesFormatter<'a>)>,
+    x_axes: Vec<AxisHints<'a>>, // default x axes
+    y_axes: Vec<AxisHints<'a>>, // default y axes
+    legend_config: Option<Legend>,
+    cursor_color: Option<Color32>,
+    show_background: bool,
+    show_axes: Vec2b,
+
+    show_grid: Vec2b,
+    grid_spacing: Rangef,
+    grid_spacers: [GridSpacer<'a>; 2],
+    grid_color: Option<Color32>,
+    grid_strength_exponent: f32,
+    clamp_grid: bool,
+
+    sense: Sense,
+}
+
+impl<'a> Plot<'a> {
+    /// Give a unique id for each plot within the same [`Ui`].
+    pub fn new(id_source: impl egui::AsId) -> Self {
+        Self {
+            id_source: Id::new(id_source),
+            id: None,
+
+            center_axis: false.into(),
+            allow_zoom: true.into(),
+            allow_drag: true.into(),
+            allow_axis_zoom_drag: true.into(),
+            allow_scroll: true.into(),
+            allow_double_click_reset: true,
+            allow_boxed_zoom: true,
+            default_auto_bounds: true.into(),
+            min_auto_bounds: PlotBounds::NOTHING,
+            margin_fraction: Vec2::splat(0.05),
+            pan_pointer_button: PointerButton::Primary,
+            boxed_zoom_pointer_button: PointerButton::Secondary,
+            linked_axes: None,
+            linked_cursors: None,
+
+            min_size: Vec2::splat(64.0),
+            width: None,
+            height: None,
+            data_aspect: None,
+            view_aspect: None,
+            invert_x: false,
+            invert_y: false,
+
+            reset: false,
+
+            show_x: true,
+            show_y: true,
+            show_crosshair: true,
+            label_formatter: None,
+            coordinates_formatter: None,
+            x_axes: vec![AxisHints::new(Axis::X)],
+            y_axes: vec![AxisHints::new(Axis::Y)],
+            legend_config: None,
+            cursor_color: None,
+            show_background: true,
+            show_axes: true.into(),
+
+            show_grid: true.into(),
+            grid_spacing: Rangef::new(8.0, 300.0),
+            grid_spacers: [crate::grid::log_grid_spacer(10), crate::grid::log_grid_spacer(10)],
+            grid_color: None,
+            grid_strength_exponent: 0.5,
+            clamp_grid: false,
+
+            sense: egui::Sense::click_and_drag(),
+        }
+    }
+
+    /// Set an explicit (global) id for the plot.
+    ///
+    /// This will override the id set by [`Self::new`].
+    ///
+    /// This is the same `Id` that can be used for [`PlotMemory::load`].
+    #[inline]
+    pub fn id(mut self, id: Id) -> Self {
+        self.id = Some(id);
+        self
+    }
+
+    /// width / height ratio of the data.
+    /// For instance, it can be useful to set this to `1.0` for when the two
+    /// axes show the same unit.
+    /// By default the plot window's aspect ratio is used.
+    #[inline]
+    pub fn data_aspect(mut self, data_aspect: f32) -> Self {
+        self.data_aspect = Some(data_aspect);
+        self
+    }
+
+    /// width / height ratio of the plot region.
+    /// By default no fixed aspect ratio is set (and width/height will fill the
+    /// ui it is in).
+    #[inline]
+    pub fn view_aspect(mut self, view_aspect: f32) -> Self {
+        self.view_aspect = Some(view_aspect);
+        self
+    }
+
+    /// Set whether to invert the x-axis (i.e. positive values go to the left).
+    /// By default the x-axis is not inverted (i.e. positive values go to the
+    /// right).
+    #[inline]
+    pub fn invert_x(mut self, invert: bool) -> Self {
+        self.invert_x = invert;
+        self
+    }
+
+    /// Set whether to invert the y-axis (i.e. positive values go down).
+    /// By default the y-axis is not inverted (i.e. positive values go up).
+    #[inline]
+    pub fn invert_y(mut self, invert: bool) -> Self {
+        self.invert_y = invert;
+        self
+    }
+
+    /// Width of plot. By default a plot will fill the ui it is in.
+    /// If you set [`Self::view_aspect`], the width can be calculated from the
+    /// height.
+    #[inline]
+    pub fn width(mut self, width: f32) -> Self {
+        self.min_size.x = width;
+        self.width = Some(width);
+        self
+    }
+
+    /// Height of plot. By default a plot will fill the ui it is in.
+    /// If you set [`Self::view_aspect`], the height can be calculated from the
+    /// width.
+    #[inline]
+    pub fn height(mut self, height: f32) -> Self {
+        self.min_size.y = height;
+        self.height = Some(height);
+        self
+    }
+
+    /// Minimum size of the plot view.
+    #[inline]
+    pub fn min_size(mut self, min_size: Vec2) -> Self {
+        self.min_size = min_size;
+        self
+    }
+
+    /// Show the x-value (e.g. when hovering). Default: `true`.
+    #[inline]
+    pub fn show_x(mut self, show_x: bool) -> Self {
+        self.show_x = show_x;
+        self
+    }
+
+    /// Show the y-value (e.g. when hovering). Default: `true`.
+    #[inline]
+    pub fn show_y(mut self, show_y: bool) -> Self {
+        self.show_y = show_y;
+        self
+    }
+
+    /// Show the crosshair when hovering. Default: `true`.
+    #[inline]
+    pub fn show_crosshair(mut self, show: bool) -> Self {
+        self.show_crosshair = show;
+        self
+    }
+
+    /// Always keep the X-axis centered. Default: `false`.
+    #[inline]
+    pub fn center_x_axis(mut self, on: bool) -> Self {
+        self.center_axis.x = on;
+        self
+    }
+
+    /// Always keep the Y-axis centered. Default: `false`.
+    #[inline]
+    pub fn center_y_axis(mut self, on: bool) -> Self {
+        self.center_axis.y = on;
+        self
+    }
+
+    /// Whether to allow zooming in the plot. Default: `true`.
+    ///
+    /// Note: Allowing zoom in one axis but not the other may lead to unexpected
+    /// results if used in combination with `data_aspect`.
+    #[inline]
+    pub fn allow_zoom<T>(mut self, on: T) -> Self
+    where
+        T: Into<Vec2b>,
+    {
+        self.allow_zoom = on.into();
+        self
+    }
+
+    /// Whether to allow scrolling in the plot. Default: `true`.
+    #[inline]
+    pub fn allow_scroll<T>(mut self, on: T) -> Self
+    where
+        T: Into<Vec2b>,
+    {
+        self.allow_scroll = on.into();
+        self
+    }
+
+    /// Whether to allow double clicking to reset the view.
+    /// Default: `true`.
+    #[inline]
+    pub fn allow_double_click_reset(mut self, on: bool) -> Self {
+        self.allow_double_click_reset = on;
+        self
+    }
+
+    /// Set the side margin as a fraction of the plot size. Only used for auto
+    /// bounds.
+    ///
+    /// For instance, a value of `0.1` will add 10% space on both sides.
+    #[inline]
+    pub fn set_margin_fraction(mut self, margin_fraction: Vec2) -> Self {
+        self.margin_fraction = margin_fraction;
+        self
+    }
+
+    /// Whether to allow zooming in the plot by dragging out a box with the
+    /// secondary mouse button.
+    ///
+    /// Default: `true`.
+    ///
+    /// The button to use is specified by [`Self::boxed_zoom_pointer_button`].
+    #[inline]
+    pub fn allow_boxed_zoom(mut self, on: bool) -> Self {
+        self.allow_boxed_zoom = on;
+        self
+    }
+
+    /// Config the button pointer to use for drag-to-pan. Default:
+    /// [`Secondary`](PointerButton::Primary)
+    #[inline]
+    pub fn pan_pointer_button(mut self, pan_pointer_button: PointerButton) -> Self {
+        self.pan_pointer_button = pan_pointer_button;
+        self
+    }
+
+    /// Config the button pointer to use for boxed zooming. Default:
+    /// [`Secondary`](PointerButton::Secondary)
+    #[inline]
+    pub fn boxed_zoom_pointer_button(mut self, boxed_zoom_pointer_button: PointerButton) -> Self {
+        self.boxed_zoom_pointer_button = boxed_zoom_pointer_button;
+        self
+    }
+
+    /// Whether to allow dragging in the plot to move the bounds. Default:
+    /// `true`.
+    ///
+    /// The button to use is specified by [`Self::pan_pointer_button`].
+    #[inline]
+    pub fn allow_drag<T>(mut self, on: T) -> Self
+    where
+        T: Into<Vec2b>,
+    {
+        self.allow_drag = on.into();
+        self
+    }
+
+    /// Whether to allow dragging in the axis areas to zoom the plot. Default:
+    /// `true`.
+    #[inline]
+    pub fn allow_axis_zoom_drag<T>(mut self, on: T) -> Self
+    where
+        T: Into<Vec2b>,
+    {
+        self.allow_axis_zoom_drag = on.into();
+        self
+    }
+
+    /// Provide a function to customize the on-hover label for the x and y axis
+    ///
+    /// ```
+    /// # egui::__run_test_ui(|ui| {
+    /// use egui_plot::{HoverPosition, Line, Plot, PlotPoints};
+    /// let sin: PlotPoints = (0..1000)
+    ///     .map(|i| {
+    ///         let x = i as f64 * 0.01;
+    ///         [x, x.sin()]
+    ///     })
+    ///     .collect();
+    /// let line = Line::new("sin", sin);
+    /// Plot::new("my_plot")
+    ///     .view_aspect(2.0)
+    ///     .label_formatter(|pos| match pos {
+    ///         HoverPosition::NearDataPoint { plot_name, position, .. } if !plot_name.is_empty() => {
+    ///             Some(format!("{}: {:.*}%", plot_name, 1, position.y))
+    ///         }
+    ///         _ => None,
+    ///     })
+    ///     .show(ui, |plot_ui| plot_ui.line(line));
+    /// # });
+    /// ```
+    #[inline]
+    pub fn label_formatter(mut self, label_formatter: impl Fn(&HoverPosition<'_>) -> Option<String> + 'a) -> Self {
+        self.label_formatter = Some(Box::new(label_formatter));
+        self
+    }
+
+    /// Show the pointer coordinates in the plot.
+    #[inline]
+    pub fn coordinates_formatter(mut self, position: Corner, formatter: CoordinatesFormatter<'a>) -> Self {
+        self.coordinates_formatter = Some((position, formatter));
+        self
+    }
+
+    /// Configure how the grid in the background is spaced apart along the X
+    /// axis.
+    ///
+    /// Default is a log-10 grid, i.e. every plot unit is divided into 10 other
+    /// units.
+    ///
+    /// The function has this signature:
+    /// ```ignore
+    /// fn step_sizes(input: GridInput) -> Vec<GridMark>;
+    /// ```
+    ///
+    /// This function should return all marks along the visible range of the X
+    /// axis. `step_size` also determines how thick/faint each line is
+    /// drawn. For example, if x = 80..=230 is visible and you want big
+    /// marks at steps of 100 and small ones at 25, you can return:
+    /// ```no_run
+    /// # use egui_plot::GridMark;
+    /// vec![
+    ///     // 100s
+    ///     GridMark {
+    ///         value: 100.0,
+    ///         step_size: 100.0,
+    ///     },
+    ///     GridMark {
+    ///         value: 200.0,
+    ///         step_size: 100.0,
+    ///     },
+    ///     // 25s
+    ///     GridMark {
+    ///         value: 125.0,
+    ///         step_size: 25.0,
+    ///     },
+    ///     GridMark {
+    ///         value: 150.0,
+    ///         step_size: 25.0,
+    ///     },
+    ///     GridMark {
+    ///         value: 175.0,
+    ///         step_size: 25.0,
+    ///     },
+    ///     GridMark {
+    ///         value: 225.0,
+    ///         step_size: 25.0,
+    ///     },
+    /// ];
+    /// # ()
+    /// ```
+    ///
+    /// There are helpers for common cases, see [`crate::grid::log_grid_spacer`]
+    /// and [`crate::grid::uniform_grid_spacer`].
+    #[inline]
+    pub fn x_grid_spacer(mut self, spacer: impl Fn(GridInput) -> Vec<GridMark> + 'a) -> Self {
+        self.grid_spacers[0] = Box::new(spacer);
+        self
+    }
+
+    /// Default is a log-10 grid, i.e. every plot unit is divided into 10 other
+    /// units.
+    ///
+    /// See [`Self::x_grid_spacer`] for explanation.
+    #[inline]
+    pub fn y_grid_spacer(mut self, spacer: impl Fn(GridInput) -> Vec<GridMark> + 'a) -> Self {
+        self.grid_spacers[1] = Box::new(spacer);
+        self
+    }
+
+    /// Set when the grid starts showing.
+    ///
+    /// When grid lines are closer than the given minimum, they will be hidden.
+    /// When they get further apart they will fade in, until the reaches the
+    /// given maximum, at which point they are fully opaque.
+    #[inline]
+    pub fn grid_spacing(mut self, grid_spacing: impl Into<Rangef>) -> Self {
+        self.grid_spacing = grid_spacing.into();
+        self
+    }
+
+    /// Clamp the grid to only be visible at the range of data where we have
+    /// values.
+    ///
+    /// Default: `false`.
+    #[inline]
+    pub fn clamp_grid(mut self, clamp_grid: bool) -> Self {
+        self.clamp_grid = clamp_grid;
+        self
+    }
+
+    /// Set the sense for the plot rect.
+    ///
+    /// Default: `Sense::click_and_drag()`.
+    #[inline]
+    pub fn sense(mut self, sense: Sense) -> Self {
+        self.sense = sense;
+        self
+    }
+
+    /// Overwrite the starting and reset bounds used for the x axis.
+    /// Set the `default_auto_bounds` of the x axis to `false`.
+    ///
+    /// Panics in debug builds if `min >= max`.
+    #[inline]
+    pub fn default_x_bounds(mut self, min: f64, max: f64) -> Self {
+        debug_assert!(min < max, "`min` must be less than `max` in `default_x_bounds`");
+        self.default_auto_bounds.x = false;
+        self.min_auto_bounds.min[0] = min;
+        self.min_auto_bounds.max[0] = max;
+        self
+    }
+
+    /// Overwrite the starting and reset bounds used for the y axis.
+    /// Set the `default_auto_bounds` of the y axis to `false`.
+    ///
+    /// Panics in debug builds if `min >= max`.
+    #[inline]
+    pub fn default_y_bounds(mut self, min: f64, max: f64) -> Self {
+        debug_assert!(min < max, "`min` must be less than `max` in `default_y_bounds`");
+        self.default_auto_bounds.y = false;
+        self.min_auto_bounds.min[1] = min;
+        self.min_auto_bounds.max[1] = max;
+        self
+    }
+
+    /// Expand bounds to include the given x value.
+    /// For instance, to always show the y axis, call `plot.include_x(0.0)`.
+    #[inline]
+    pub fn include_x(mut self, x: impl Into<f64>) -> Self {
+        self.min_auto_bounds.extend_with_x(x.into());
+        self
+    }
+
+    /// Expand bounds to include the given y value.
+    /// For instance, to always show the x axis, call `plot.include_y(0.0)`.
+    #[inline]
+    pub fn include_y(mut self, y: impl Into<f64>) -> Self {
+        self.min_auto_bounds.extend_with_y(y.into());
+        self
+    }
+
+    /// Set whether the bounds should be automatically set based on data by
+    /// default.
+    ///
+    /// This is enabled by default.
+    #[inline]
+    pub fn auto_bounds(mut self, auto_bounds: impl Into<Vec2b>) -> Self {
+        self.default_auto_bounds = auto_bounds.into();
+        self
+    }
+
+    /// Expand bounds to fit all items across the x axis, including values given
+    /// by `include_x`.
+    #[deprecated = "Use `auto_bounds` instead"]
+    #[inline]
+    pub fn auto_bounds_x(mut self) -> Self {
+        self.default_auto_bounds.x = true;
+        self
+    }
+
+    /// Expand bounds to fit all items across the y axis, including values given
+    /// by `include_y`.
+    #[deprecated = "Use `auto_bounds` instead"]
+    #[inline]
+    pub fn auto_bounds_y(mut self) -> Self {
+        self.default_auto_bounds.y = true;
+        self
+    }
+
+    /// Show a legend including all named items.
+    #[inline]
+    pub fn legend(mut self, legend: Legend) -> Self {
+        self.legend_config = Some(legend);
+        self
+    }
+
+    /// Whether or not to show the background [`Rect`].
+    ///
+    /// Can be useful to disable if the plot is overlaid over existing content.
+    /// Default: `true`.
+    #[inline]
+    pub fn show_background(mut self, show: bool) -> Self {
+        self.show_background = show;
+        self
+    }
+
+    /// Show axis labels and grid tick values on the side of the plot.
+    ///
+    /// Default: `true`.
+    #[inline]
+    pub fn show_axes(mut self, show: impl Into<Vec2b>) -> Self {
+        self.show_axes = show.into();
+        self
+    }
+
+    /// Show a grid overlay on the plot.
+    ///
+    /// Default: `true`.
+    #[inline]
+    pub fn show_grid(mut self, show: impl Into<Vec2b>) -> Self {
+        self.show_grid = show.into();
+        self
+    }
+
+    /// Set the base color for grid lines.
+    ///
+    /// By default, grid lines derive their color from [`egui::Visuals::text_color`].
+    /// This override lets you control the grid color independently of text styling.
+    /// The color is still modulated by line strength (fading for denser grid lines).
+    #[inline]
+    pub fn grid_color(mut self, color: Color32) -> Self {
+        self.grid_color = Some(color);
+        self
+    }
+
+    /// Controls the contrast between dense and sparse grid lines.
+    ///
+    /// - `0.0`: all visible grid lines have the same opacity (uniform).
+    /// - `0.5`: default — moderate fade for denser lines.
+    /// - `1.0`: maximum fade — dense lines are much fainter than sparse ones.
+    ///
+    /// The zoom-based density logic is always preserved; this only controls
+    /// how much the opacity varies between grid levels.
+    ///
+    /// Default: `0.5`.
+    #[inline]
+    pub fn grid_fade(mut self, fade: f32) -> Self {
+        self.grid_strength_exponent = fade;
+        self
+    }
+
+    /// Add this plot to an axis link group so that this plot will share the
+    /// bounds with other plots in the same group. A plot cannot belong to
+    /// more than one axis group.
+    #[inline]
+    pub fn link_axis(mut self, group_id: impl Into<Id>, link: impl Into<Vec2b>) -> Self {
+        self.linked_axes = Some((group_id.into(), link.into()));
+        self
+    }
+
+    /// Add this plot to a cursor link group so that this plot will share the
+    /// cursor position with other plots in the same group. A plot cannot
+    /// belong to more than one cursor group.
+    #[inline]
+    pub fn link_cursor(mut self, group_id: impl Into<Id>, link: impl Into<Vec2b>) -> Self {
+        self.linked_cursors = Some((group_id.into(), link.into()));
+        self
+    }
+
+    /// Round grid positions to full pixels to avoid aliasing. Improves plot
+    /// appearance but might have an undesired effect when shifting the plot
+    /// bounds. Enabled by default.
+    #[inline]
+    #[deprecated = "This no longer has any effect and is always enabled."]
+    pub fn sharp_grid_lines(self, _enabled: bool) -> Self {
+        self
+    }
+
+    /// Resets the plot.
+    #[inline]
+    pub fn reset(mut self) -> Self {
+        self.reset = true;
+        self
+    }
+
+    /// Set the x axis label of the main X-axis.
+    ///
+    /// Default: no label.
+    #[inline]
+    pub fn x_axis_label(mut self, label: impl Into<WidgetText>) -> Self {
+        if let Some(main) = self.x_axes.first_mut() {
+            main.label = label.into();
+        }
+        self
+    }
+
+    /// Set the y axis label of the main Y-axis.
+    ///
+    /// Default: no label.
+    #[inline]
+    pub fn y_axis_label(mut self, label: impl Into<WidgetText>) -> Self {
+        if let Some(main) = self.y_axes.first_mut() {
+            main.label = label.into();
+        }
+        self
+    }
+
+    /// Set the position of the main X-axis.
+    #[inline]
+    pub fn x_axis_position(mut self, placement: crate::VPlacement) -> Self {
+        if let Some(main) = self.x_axes.first_mut() {
+            main.placement = placement.into();
+        }
+        self
+    }
+
+    /// Set the position of the main Y-axis.
+    #[inline]
+    pub fn y_axis_position(mut self, placement: crate::HPlacement) -> Self {
+        if let Some(main) = self.y_axes.first_mut() {
+            main.placement = placement.into();
+        }
+        self
+    }
+
+    /// Specify custom formatter for ticks on the main X-axis.
+    ///
+    /// Arguments of `fmt`:
+    /// * the grid mark to format
+    /// * currently shown range on this axis.
+    #[inline]
+    pub fn x_axis_formatter(mut self, fmt: impl Fn(GridMark, &RangeInclusive<f64>) -> String + 'a) -> Self {
+        if let Some(main) = self.x_axes.first_mut() {
+            main.formatter = Arc::new(fmt);
+        }
+        self
+    }
+
+    /// Specify custom formatter for ticks on the main Y-axis.
+    ///
+    /// Arguments of `fmt`:
+    /// * the grid mark to format
+    /// * currently shown range on this axis.
+    #[inline]
+    pub fn y_axis_formatter(mut self, fmt: impl Fn(GridMark, &RangeInclusive<f64>) -> String + 'a) -> Self {
+        if let Some(main) = self.y_axes.first_mut() {
+            main.formatter = Arc::new(fmt);
+        }
+        self
+    }
+
+    /// Set the minimum width of the main y-axis, in ui points.
+    ///
+    /// The width will automatically expand if any tickmark text is wider than
+    /// this.
+    #[inline]
+    pub fn y_axis_min_width(mut self, min_width: f32) -> Self {
+        if let Some(main) = self.y_axes.first_mut() {
+            main.min_thickness = min_width;
+        }
+        self
+    }
+
+    /// Set the main Y-axis-width by number of digits
+    #[inline]
+    #[deprecated = "Use `y_axis_min_width` instead"]
+    pub fn y_axis_width(self, digits: usize) -> Self {
+        self.y_axis_min_width(12.0 * digits as f32)
+    }
+
+    /// Set custom configuration for X-axis
+    ///
+    /// More than one axis may be specified. The first specified axis is
+    /// considered the main axis.
+    #[inline]
+    pub fn custom_x_axes(mut self, hints: Vec<AxisHints<'a>>) -> Self {
+        self.x_axes = hints;
+        self
+    }
+
+    /// Set custom configuration for left Y-axis
+    ///
+    /// More than one axis may be specified. The first specified axis is
+    /// considered the main axis.
+    #[inline]
+    pub fn custom_y_axes(mut self, hints: Vec<AxisHints<'a>>) -> Self {
+        self.y_axes = hints;
+        self
+    }
+
+    /// Set custom cursor color.
+    ///
+    /// You may set the color to [`Color32::TRANSPARENT`] to hide the cursors.
+    #[inline]
+    pub fn cursor_color(mut self, color: Color32) -> Self {
+        self.cursor_color = Some(color);
+        self
+    }
+
+    /// Interact with and add items to the plot and finally draw it.
+    pub fn show<R>(self, ui: &mut Ui, build_fn: impl FnOnce(&mut PlotUi<'a>) -> R + 'a) -> PlotResponse<R> {
+        self.show_dyn(ui, Box::new(build_fn))
+    }
+
+    /// Calculate the rect inside which everything will be drawn.
+    fn calculate_widget_complete_rect(&self, ui: &Ui) -> Rect {
+        // Determine position of widget.
+        let pos = ui.available_rect_before_wrap().min;
+        // Minimum values for screen protection
+        let mut min_size = self.min_size;
+        min_size.x = min_size.x.at_least(1.0);
+        min_size.y = min_size.y.at_least(1.0);
+
+        // Determine size of widget.
+        let size = {
+            let width = self
+                .width
+                .unwrap_or_else(|| {
+                    if let (Some(height), Some(aspect)) = (self.height, self.view_aspect) {
+                        height * aspect
+                    } else {
+                        ui.available_size_before_wrap().x
+                    }
+                })
+                .at_least(min_size.x);
+
+            let height = self
+                .height
+                .unwrap_or_else(|| {
+                    if let Some(aspect) = self.view_aspect {
+                        width / aspect
+                    } else {
+                        ui.available_size_before_wrap().y
+                    }
+                })
+                .at_least(min_size.y);
+            vec2(width, height)
+        };
+
+        // Determine complete rect of widget.
+        Rect {
+            min: pos,
+            max: pos + size,
+        }
+    }
+
+    fn allocate_axis_responses(&self, ui: &mut Ui, axis_widgets: &AxisWidgets<'_>) -> AxisResponses {
+        let x_axis_responses = axis_widgets[0]
+            .iter()
+            .map(|widget| {
+                let axis_response = ui.allocate_rect(widget.rect, Sense::drag());
+                if self.allow_axis_zoom_drag.x {
+                    axis_response.on_hover_cursor(CursorIcon::ResizeHorizontal)
+                } else {
+                    axis_response
+                }
+            })
+            .collect::<Vec<_>>();
+
+        let y_axis_responses = axis_widgets[1]
+            .iter()
+            .map(|widget| {
+                let axis_response = ui.allocate_rect(widget.rect, Sense::drag());
+                if self.allow_axis_zoom_drag.y {
+                    axis_response.on_hover_cursor(CursorIcon::ResizeVertical)
+                } else {
+                    axis_response
+                }
+            })
+            .collect::<Vec<_>>();
+
+        [x_axis_responses, y_axis_responses]
+    }
+
+    fn load_or_init_memory(&self, ui: &Ui, plot_id: Id, plot_rect: Rect) -> PlotMemory {
+        // Load or initialize the memory.
+        ui.check_for_id_clash(plot_id, plot_rect, "Plot");
+
+        if self.reset {
+            if let Some((name, _)) = self.linked_axes.as_ref() {
+                ui.data_mut(|data| {
+                    let link_groups: &mut BoundsLinkGroups = data.get_temp_mut_or_default(Id::NULL);
+                    link_groups.0.remove(name);
+                });
+            }
+            PlotMemory {
+                auto_bounds: self.default_auto_bounds,
+                hovered_legend_item: None,
+                hidden_items: Default::default(),
+                transform: PlotTransform::new_with_invert_axis(
+                    plot_rect,
+                    self.min_auto_bounds,
+                    self.center_axis,
+                    Vec2b::new(self.invert_x, self.invert_y),
+                ),
+                last_click_pos_for_zoom: None,
+                x_axis_thickness: Default::default(),
+                y_axis_thickness: Default::default(),
+            }
+        } else {
+            PlotMemory::load(ui.ctx(), plot_id).unwrap_or_else(|| PlotMemory {
+                auto_bounds: self.default_auto_bounds,
+                hovered_legend_item: None,
+                hidden_items: Default::default(),
+                transform: PlotTransform::new_with_invert_axis(
+                    plot_rect,
+                    self.min_auto_bounds,
+                    self.center_axis,
+                    Vec2b::new(self.invert_x, self.invert_y),
+                ),
+                last_click_pos_for_zoom: None,
+                x_axis_thickness: Default::default(),
+                y_axis_thickness: Default::default(),
+            })
+        }
+    }
+
+    fn paint_background(&self, ui: &Ui, plot_rect: Rect) {
+        if self.show_background {
+            ui.painter().with_clip_rect(plot_rect).add(epaint::RectShape::new(
+                plot_rect,
+                2,
+                ui.visuals().extreme_bg_color,
+                ui.visuals().widgets.noninteractive.bg_stroke,
+                egui::StrokeKind::Inside,
+            ));
+        }
+    }
+
+    /// Process legend items, create legend widget, and determine show flags.
+    /// Returns `(legend_widget, show_x, show_y)`.
+    fn prepare_legend(
+        &self,
+        plot_ui: &mut PlotUi<'a>,
+        mem: &PlotMemory,
+        plot_rect: Rect,
+    ) -> (Option<LegendWidget>, Vec2b) {
+        // Create legend widget if configured (needs all items, including hidden ones)
+        let legend = self
+            .legend_config
+            .as_ref()
+            .and_then(|config| LegendWidget::try_new(plot_rect, config.clone(), &plot_ui.items, &mem.hidden_items));
+
+        // Process legend items: filter hidden items, highlight hovered items
+        // Remove the deselected items.
+        plot_ui.items.retain(|item| !mem.hidden_items.contains(&item.id()));
+        // Highlight the hovered items.
+        if let Some(item_id) = &mem.hovered_legend_item {
+            plot_ui
+                .items
+                .iter_mut()
+                .filter(|entry| &entry.id() == item_id)
+                .for_each(|entry| entry.highlight());
+        }
+        // Move highlighted items to front.
+        plot_ui.items.sort_by_key(|item| item.highlighted());
+
+        // Determine show_x/show_y based on legend hover state (from previous frame)
+        let show_xy = Vec2b {
+            x: mem.hovered_legend_item.is_none() && self.show_x,
+            y: mem.hovered_legend_item.is_none() && self.show_y,
+        };
+
+        (legend, show_xy)
+    }
+
+    /// Show legend widget and update memory with legend state.
+    fn show_legend_and_update_memory(
+        legend: Option<LegendWidget>,
+        ui: &mut Ui,
+        mem: &mut PlotMemory,
+        hovered_plot_item: &mut Option<Id>,
+    ) {
+        if let Some(mut legend) = legend {
+            ui.add(&mut legend);
+            mem.hidden_items = legend.hidden_items();
+            mem.hovered_legend_item = legend.hovered_item();
+            if let Some(item_id) = &mem.hovered_legend_item {
+                hovered_plot_item.get_or_insert(*item_id);
+            }
+        }
+    }
+
+    fn compute_bounds(&self, ui: &Ui, mem: &mut PlotMemory, plot_ui: &PlotUi<'a>, plot_rect: Rect) {
+        // Find the cursors from other plots we need to draw
+        let mut bounds = *plot_ui.last_plot_transform.bounds();
+
+        // Transfer the bounds from a link group.
+        if let Some((id, axes)) = self.linked_axes.as_ref() {
+            ui.data_mut(|data| {
+                let link_groups: &mut BoundsLinkGroups = data.get_temp_mut_or_default(Id::NULL);
+                if let Some(linked_bounds) = link_groups.0.get(id) {
+                    if axes.x {
+                        bounds.set_x(&linked_bounds.bounds);
+                        mem.auto_bounds.x = linked_bounds.auto_bounds.x;
+                    }
+                    if axes.y {
+                        bounds.set_y(&linked_bounds.bounds);
+                        mem.auto_bounds.y = linked_bounds.auto_bounds.y;
+                    }
+                }
+            });
+        }
+
+        // Allow double-clicking to reset to the initial bounds.
+        if self.allow_double_click_reset && plot_ui.response.double_clicked() {
+            mem.auto_bounds = true.into();
+        }
+
+        // Apply bounds modifications.
+        for modification in &plot_ui.bounds_modifications {
+            match modification {
+                BoundsModification::SetX(range) => {
+                    bounds.min[0] = *range.start();
+                    bounds.max[0] = *range.end();
+                    mem.auto_bounds.x = false;
+                }
+                BoundsModification::SetY(range) => {
+                    bounds.min[1] = *range.start();
+                    bounds.max[1] = *range.end();
+                    mem.auto_bounds.y = false;
+                }
+                BoundsModification::Translate(delta) => {
+                    let delta = (delta.x as f64, delta.y as f64);
+                    bounds.translate(delta);
+                    mem.auto_bounds = false.into();
+                }
+                BoundsModification::AutoBounds(new_auto_bounds) => {
+                    mem.auto_bounds = *new_auto_bounds;
+                }
+                BoundsModification::Zoom(zoom_factor, center) => {
+                    bounds.zoom(*zoom_factor, *center);
+                    mem.auto_bounds = false.into();
+                }
+            }
+        }
+
+        // Reset bounds to initial bounds if current auto_bounds are active.
+        if mem.auto_bounds.x {
+            bounds.set_x(&self.min_auto_bounds);
+        }
+        if mem.auto_bounds.y {
+            bounds.set_y(&self.min_auto_bounds);
+        }
+
+        let auto_x = mem.auto_bounds.x && (!self.min_auto_bounds.is_valid_x() || self.default_auto_bounds.x);
+        let auto_y = mem.auto_bounds.y && (!self.min_auto_bounds.is_valid_y() || self.default_auto_bounds.y);
+
+        // Set bounds automatically based on content.
+        if auto_x || auto_y {
+            for item in &plot_ui.items {
+                let item_bounds = item.bounds();
+                if auto_x {
+                    bounds.merge_x(&item_bounds);
+                }
+                if auto_y {
+                    bounds.merge_y(&item_bounds);
+                }
+            }
+
+            if auto_x {
+                bounds.add_relative_margin_x(self.margin_fraction);
+            }
+
+            if auto_y {
+                bounds.add_relative_margin_y(self.margin_fraction);
+            }
+        }
+
+        mem.transform = PlotTransform::new_with_invert_axis(
+            plot_rect,
+            bounds,
+            self.center_axis,
+            Vec2b::new(self.invert_x, self.invert_y),
+        );
+
+        // Enforce aspect ratio
+        if let Some(data_aspect) = self.data_aspect {
+            if let Some((_, linked_axes_ref)) = self.linked_axes.as_ref() {
+                let change_x = linked_axes_ref.y && !linked_axes_ref.x;
+                mem.transform
+                    .set_aspect_by_changing_axis(data_aspect as f64, if change_x { Axis::X } else { Axis::Y });
+            } else if self.default_auto_bounds.any() {
+                mem.transform.set_aspect_by_expanding(data_aspect as f64);
+            } else {
+                mem.transform.set_aspect_by_changing_axis(data_aspect as f64, Axis::Y);
+            }
+        }
+    }
+
+    /// Returns shapes (e.g. the boxed zoom rect) that should be painted on top of the plot contents.
+    fn handle_interactions(
+        &self,
+        ui: &Ui,
+        mem: &mut PlotMemory,
+        plot_ui: &mut PlotUi<'_>,
+        plot_rect: Rect,
+        axis_responses: &AxisResponses,
+    ) -> Vec<Shape> {
+        let mut foreground_shapes = Vec::new();
+        let response = &mut plot_ui.response;
+        let allow_drag = self.allow_drag.and(ui.is_enabled());
+        let allow_zoom = self.allow_zoom.and(ui.is_enabled());
+        let allow_scroll = self.allow_scroll.and(ui.is_enabled());
+
+        // Dragging
+        if allow_drag.any() && response.dragged_by(self.pan_pointer_button) {
+            *response = response.clone().on_hover_cursor(CursorIcon::Grabbing);
+            let mut delta = -response.drag_delta();
+            if !allow_drag.x {
+                delta.x = 0.0;
+            }
+            if !allow_drag.y {
+                delta.y = 0.0;
+            }
+            mem.transform.translate_bounds((delta.x as f64, delta.y as f64));
+            mem.auto_bounds = mem.auto_bounds.and(!allow_drag);
+        }
+
+        // Drag axes to zoom:
+        for d in 0..2 {
+            if self.allow_axis_zoom_drag[d]
+                && let Some(axis_response) = axis_responses[d].iter().find(|r| r.dragged_by(PointerButton::Primary))
+                && let Some(drag_start_pos) = ui.input(|i| i.pointer.press_origin())
+            {
+                let delta = axis_response.drag_delta();
+
+                let axis_zoom = 1.0 + (0.02 * delta[d]).clamp(-1.0, 1.0);
+
+                let zoom = if self.data_aspect.is_some() {
+                    // Zoom both axes equally to maintain aspect ratio:
+                    Vec2::splat(axis_zoom)
+                } else {
+                    let mut zoom = Vec2::splat(1.0);
+                    zoom[d] = axis_zoom;
+                    zoom
+                };
+
+                if zoom != Vec2::splat(1.0) {
+                    let mut zoom_center = plot_rect.center();
+                    zoom_center[d] = drag_start_pos[d];
+                    mem.transform.zoom(zoom, zoom_center);
+                    mem.auto_bounds = false.into();
+                }
+            }
+        }
+
+        // Zooming
+        if self.allow_boxed_zoom {
+            // Save last click to allow boxed zooming
+            if response.drag_started() && response.dragged_by(self.boxed_zoom_pointer_button) {
+                // it would be best for egui that input has a memory of the last click pos
+                // because it's a common pattern
+                mem.last_click_pos_for_zoom = response.hover_pos();
+            }
+            let box_start_pos = mem.last_click_pos_for_zoom;
+            let box_end_pos = response.hover_pos();
+            if let (Some(box_start_pos), Some(box_end_pos)) = (box_start_pos, box_end_pos) {
+                // while dragging prepare a Shape and draw it later on top of the plot
+                if response.dragged_by(self.boxed_zoom_pointer_button) {
+                    *response = response.clone().on_hover_cursor(CursorIcon::ZoomIn);
+                    let rect = epaint::Rect::from_two_pos(box_start_pos, box_end_pos);
+                    let boxed_zoom_rect = (
+                        epaint::RectShape::stroke(
+                            rect,
+                            0.0,
+                            epaint::Stroke::new(4., Color32::DARK_BLUE),
+                            egui::StrokeKind::Middle,
+                        ), // Outer stroke
+                        epaint::RectShape::stroke(
+                            rect,
+                            0.0,
+                            epaint::Stroke::new(2., Color32::WHITE),
+                            egui::StrokeKind::Middle,
+                        ), // Inner stroke
+                    );
+                    foreground_shapes.push(Shape::Rect(boxed_zoom_rect.0));
+                    foreground_shapes.push(Shape::Rect(boxed_zoom_rect.1));
+                }
+                // when the click is release perform the zoom
+                if response.drag_stopped() {
+                    let box_start_pos = mem.transform.value_from_position(box_start_pos);
+                    let box_end_pos = mem.transform.value_from_position(box_end_pos);
+                    let new_bounds = PlotBounds {
+                        min: [box_start_pos.x.min(box_end_pos.x), box_start_pos.y.min(box_end_pos.y)],
+                        max: [box_start_pos.x.max(box_end_pos.x), box_start_pos.y.max(box_end_pos.y)],
+                    };
+                    if new_bounds.is_valid() {
+                        mem.transform.set_bounds(new_bounds);
+                        mem.auto_bounds = false.into();
+                    }
+                    // reset the boxed zoom state
+                    mem.last_click_pos_for_zoom = None;
+                }
+            }
+        }
+
+        // Note: we catch zoom/pan if the response contains the pointer, even if it
+        // isn't hovered. For instance: The user is painting another interactive
+        // widget on top of the plot but they still want to be able to pan/zoom
+        // the plot.
+        if let (true, Some(hover_pos)) = (response.contains_pointer(), ui.input(|i| i.pointer.hover_pos())) {
+            if allow_zoom.any() {
+                let mut zoom_factor = if self.data_aspect.is_some() {
+                    Vec2::splat(ui.input(|i| i.zoom_delta()))
+                } else {
+                    ui.input(|i| i.zoom_delta_2d())
+                };
+                if !allow_zoom.x {
+                    zoom_factor.x = 1.0;
+                }
+                if !allow_zoom.y {
+                    zoom_factor.y = 1.0;
+                }
+                if zoom_factor != Vec2::splat(1.0) {
+                    mem.transform.zoom(zoom_factor, hover_pos);
+                    mem.auto_bounds = mem.auto_bounds.and(!allow_zoom);
+                }
+            }
+            if allow_scroll.any() {
+                let mut scroll_delta = ui.input(|i| i.smooth_scroll_delta);
+                if !allow_scroll.x {
+                    scroll_delta.x = 0.0;
+                }
+                if !allow_scroll.y {
+                    scroll_delta.y = 0.0;
+                }
+                if scroll_delta != Vec2::ZERO {
+                    mem.transform
+                        .translate_bounds((-scroll_delta.x as f64, -scroll_delta.y as f64));
+                    mem.auto_bounds = false.into();
+                }
+            }
+        }
+
+        foreground_shapes
+    }
+
+    fn render_axis_widgets(&self, ui: &mut Ui, mem: &mut PlotMemory, mut axis_widgets: AxisWidgets<'_>) {
+        let bounds = mem.transform.bounds();
+        let x_axis_range = bounds.range_x();
+        let x_steps = Arc::new({
+            let input = GridInput {
+                bounds: (bounds.min[0], bounds.max[0]),
+                base_step_size: mem.transform.dvalue_dpos()[0].abs() * self.grid_spacing.min as f64,
+            };
+            (self.grid_spacers[0])(input)
+        });
+        let y_axis_range = bounds.range_y();
+        let y_steps = Arc::new({
+            let input = GridInput {
+                bounds: (bounds.min[1], bounds.max[1]),
+                base_step_size: mem.transform.dvalue_dpos()[1].abs() * self.grid_spacing.min as f64,
+            };
+            (self.grid_spacers[1])(input)
+        });
+
+        // Process X-axis widgets
+        for widget in &mut axis_widgets[0] {
+            widget.range = x_axis_range.clone();
+            widget.transform = Some(mem.transform);
+            widget.steps = Arc::clone(&x_steps);
+        }
+        let x_axis_widgets = std::mem::take(&mut axis_widgets[0]);
+        for (i, widget) in x_axis_widgets.into_iter().enumerate() {
+            let (_response, thickness) = widget.ui(ui, Axis::X);
+            mem.x_axis_thickness.insert(i, thickness);
+        }
+
+        // Process Y-axis widgets
+        for widget in &mut axis_widgets[1] {
+            widget.range = y_axis_range.clone();
+            widget.transform = Some(mem.transform);
+            widget.steps = Arc::clone(&y_steps);
+        }
+        let y_axis_widgets = std::mem::take(&mut axis_widgets[1]);
+        for (i, widget) in y_axis_widgets.into_iter().enumerate() {
+            let (_response, thickness) = widget.ui(ui, Axis::Y);
+            mem.y_axis_thickness.insert(i, thickness);
+        }
+    }
+
+    fn collect_cursors(&self, ui: &Ui, plot_id: Id) -> Vec<Cursor> {
+        if let Some((id, _)) = self.linked_cursors.as_ref() {
+            ui.data_mut(|data| {
+                let frames: &mut CursorLinkGroups = data.get_temp_mut_or_default(Id::NULL);
+                let cursors = frames.0.entry(*id).or_default();
+
+                // Look for our previous frame
+                let index = cursors
+                    .iter()
+                    .enumerate()
+                    .find(|(_, frame)| frame.id == plot_id)
+                    .map(|(i, _)| i);
+
+                // Remove our previous frame and all older frames as these are no longer
+                // displayed. This avoids unbounded growth, as we add an entry
+                // each time we draw a plot.
+                index.map(|index| cursors.drain(0..=index));
+
+                // Gather all cursors of the remaining frames. This will be all the cursors of
+                // the other plots in the group. We want to draw these in the
+                // current plot too.
+                cursors.iter().flat_map(|frame| frame.cursors.iter().copied()).collect()
+            })
+        } else {
+            Vec::new()
+        }
+    }
+
+    fn collect_shapes(
+        &self,
+        ui: &mut Ui,
+        plot_ui: &PlotUi<'_>,
+        plot_id: Id,
+        transform: &PlotTransform,
+        show_xy: Vec2b,
+    ) -> (Vec<Shape>, Vec<Cursor>, Option<Id>) {
+        let mut child_ui = ui.new_child(
+            egui::UiBuilder::new()
+                .max_rect(*transform.frame())
+                .layout(Layout::default()),
+        );
+        child_ui.set_clip_rect(transform.frame().intersect(ui.clip_rect()));
+
+        let mut shapes = Vec::new();
+        self.paint_grid(ui, &mut shapes, &plot_ui.items, transform);
+
+        // Use plot_ui to provide context for items to generate their shapes
+        for item in &plot_ui.items {
+            item.shapes(&child_ui, transform, &mut shapes);
+        }
+
+        let hover_pos = plot_ui.response.hover_pos();
+        // Use ui to access style and context information for hover detection
+        let (cursors, hovered_item_id) = if let Some(pointer) = hover_pos {
+            self.handle_hover(ui, pointer, &mut shapes, plot_ui, transform, show_xy)
+        } else {
+            (Vec::new(), None)
+        };
+
+        // Draw cursors
+        // Use ui to get the default ruler color from the UI style if not explicitly set
+        let line_color = self.cursor_color.unwrap_or_else(|| rulers_color(ui));
+        let draw_cursor_xy = Vec2b {
+            x: self.linked_cursors.as_ref().is_some_and(|group| group.1.x),
+            y: self.linked_cursors.as_ref().is_some_and(|group| group.1.y),
+        };
+        let neighbour_cursors = self.collect_cursors(ui, plot_id);
+        Self::draw_cursor(
+            &neighbour_cursors,
+            false,
+            &mut shapes,
+            line_color,
+            draw_cursor_xy,
+            transform,
+        );
+        Self::draw_cursor(&cursors, true, &mut shapes, line_color, draw_cursor_xy, transform);
+
+        (shapes, cursors, hovered_item_id)
+    }
+
+    fn paint_grid(
+        &self,
+        ui: &Ui,
+        shapes: &mut Vec<Shape>,
+        items: &[Box<dyn PlotItem + '_>],
+        transform: &PlotTransform,
+    ) {
+        let mut axes_shapes = Vec::new();
+        // Use ui to access style information and context for painting grid lines
+        if self.show_grid.x {
+            self.paint_grid_direction(ui, &mut axes_shapes, Axis::X, items, transform);
+        }
+        if self.show_grid.y {
+            self.paint_grid_direction(ui, &mut axes_shapes, Axis::Y, items, transform);
+        }
+        // Sort the axes by strength so that those with higher strength are drawn in
+        // front.
+        axes_shapes.sort_by(|(_, strength1), (_, strength2)| strength1.total_cmp(strength2));
+
+        // Return just the shapes.
+        shapes.extend(axes_shapes.into_iter().map(|(shape, _)| shape));
+    }
+
+    fn draw_cursor(
+        cursors: &[Cursor],
+        always: bool,
+        shapes: &mut Vec<Shape>,
+        line_color: Color32,
+        draw_cursor_xy: Vec2b,
+        transform: &PlotTransform,
+    ) {
+        for &cursor in cursors {
+            match cursor {
+                Cursor::Horizontal { y } => {
+                    if draw_cursor_xy.y || always {
+                        shapes.push(horizontal_line(
+                            transform.position_from_point(&PlotPoint::new(0.0, y)),
+                            transform,
+                            line_color,
+                        ));
+                    }
+                }
+                Cursor::Vertical { x } => {
+                    if draw_cursor_xy.x || always {
+                        shapes.push(vertical_line(
+                            transform.position_from_point(&PlotPoint::new(x, 0.0)),
+                            transform,
+                            line_color,
+                        ));
+                    }
+                }
+            }
+        }
+    }
+
+    fn show_coordinates(
+        ui: &Ui,
+        response: &Response,
+        transform: &PlotTransform,
+        painter: &Painter,
+        coordinates_formatter: Option<&(Corner, CoordinatesFormatter<'_>)>,
+    ) {
+        if let Some((corner, formatter)) = coordinates_formatter {
+            let hover_pos = response.hover_pos();
+            if let Some(pointer) = hover_pos {
+                let font_id = TextStyle::Monospace.resolve(ui.style());
+                let coordinate = transform.value_from_position(pointer);
+                let text = formatter.format(&coordinate, transform.bounds());
+                let padded_frame = transform.frame().shrink(4.0);
+                let (anchor, position) = match corner {
+                    Corner::LeftTop => (Align2::LEFT_TOP, padded_frame.left_top()),
+                    Corner::RightTop => (Align2::RIGHT_TOP, padded_frame.right_top()),
+                    Corner::LeftBottom => (Align2::LEFT_BOTTOM, padded_frame.left_bottom()),
+                    Corner::RightBottom => (Align2::RIGHT_BOTTOM, padded_frame.right_bottom()),
+                };
+
+                let text_color = ui.visuals().text_color();
+                let galley = painter.layout_no_wrap(text, font_id, text_color);
+                let rect = anchor.anchor_size(position, galley.size());
+                painter.rect_filled(
+                    rect.expand(4.0),
+                    ui.style().visuals.window_corner_radius,
+                    ui.style().visuals.extreme_bg_color.gamma_multiply(0.75),
+                );
+                painter.galley(rect.min, galley, text_color);
+            }
+        }
+    }
+
+    fn paint_grid_direction(
+        &self,
+        ui: &Ui,
+        shapes: &mut Vec<(Shape, f32)>,
+        axis: Axis,
+        items: &[Box<dyn PlotItem + '_>],
+        transform: &PlotTransform,
+    ) {
+        let iaxis = usize::from(axis);
+
+        // Where on the cross-dimension to show the label values
+        let bounds = transform.bounds();
+        let value_cross = 0.0_f64.clamp(bounds.min[1 - iaxis], bounds.max[1 - iaxis]);
+
+        let input = GridInput {
+            bounds: (bounds.min[iaxis], bounds.max[iaxis]),
+            base_step_size: transform.dvalue_dpos()[iaxis].abs() * self.grid_spacing.min as f64,
+        };
+        let steps = (self.grid_spacers[iaxis])(input);
+
+        let clamp_range = self.clamp_grid.then(|| {
+            let mut tight_bounds = PlotBounds::NOTHING;
+            for item in items {
+                let item_bounds = item.bounds();
+                tight_bounds.merge_x(&item_bounds);
+                tight_bounds.merge_y(&item_bounds);
+            }
+            tight_bounds
+        });
+
+        for step in steps {
+            let value_main = step.value;
+
+            if let Some(clamp_range) = clamp_range {
+                match axis {
+                    Axis::X => {
+                        if !clamp_range.range_x().contains(&value_main) {
+                            continue;
+                        }
+                    }
+                    Axis::Y => {
+                        if !clamp_range.range_y().contains(&value_main) {
+                            continue;
+                        }
+                    }
+                }
+            }
+
+            let value = match axis {
+                Axis::X => PlotPoint::new(value_main, value_cross),
+                Axis::Y => PlotPoint::new(value_cross, value_main),
+            };
+
+            let pos_in_gui = transform.position_from_point(&value);
+            let spacing_in_points = (transform.dpos_dvalue()[iaxis] * step.step_size).abs() as f32;
+
+            if spacing_in_points <= self.grid_spacing.min {
+                continue; // Too close together
+            }
+
+            let line_strength = remap_clamp(spacing_in_points, self.grid_spacing, 0.0..=1.0);
+
+            let base_color = self.grid_color.unwrap_or_else(|| ui.visuals().text_color());
+            let line_color = base_color.gamma_multiply(line_strength.powf(self.grid_strength_exponent));
+
+            let mut p0 = pos_in_gui;
+            let mut p1 = pos_in_gui;
+            p0[1 - iaxis] = transform.frame().min[1 - iaxis];
+            p1[1 - iaxis] = transform.frame().max[1 - iaxis];
+
+            if let Some(clamp_range) = clamp_range {
+                match axis {
+                    Axis::X => {
+                        p0.y = transform.position_from_point_y(clamp_range.min[1]);
+                        p1.y = transform.position_from_point_y(clamp_range.max[1]);
+                    }
+                    Axis::Y => {
+                        p0.x = transform.position_from_point_x(clamp_range.min[0]);
+                        p1.x = transform.position_from_point_x(clamp_range.max[0]);
+                    }
+                }
+            }
+
+            shapes.push((
+                Shape::line_segment([p0, p1], Stroke::new(1.0, line_color)),
+                line_strength,
+            ));
+        }
+    }
+
+    fn handle_hover(
+        &self,
+        ui: &Ui,
+        pointer: Pos2,
+        shapes: &mut Vec<Shape>,
+        plot_ui: &PlotUi<'_>,
+        transform: &PlotTransform,
+        show_xy: Vec2b,
+    ) -> (Vec<Cursor>, Option<Id>) {
+        if !show_xy.any() {
+            return (Vec::new(), None);
+        }
+
+        let interact_radius_sq = ui.style().interaction.interact_radius.powi(2);
+
+        let mut candidates = plot_ui
+            .items
+            .iter()
+            .filter(|entry| entry.allow_hover())
+            .filter_map(|item| {
+                let item = &**item;
+                let closest = item.find_closest(pointer, transform);
+
+                Some(item).zip(closest)
+            });
+
+        // Since many items can have same distance,
+        // and dist_sq can be zero for some items (e.g. rectangle)
+        // we pick topmost item within interact radius
+        let topmost = candidates.rfind(|(_, elem)| elem.dist_sq <= interact_radius_sq);
+
+        let plot = crate::PlotConfig {
+            ui,
+            transform,
+            show_x: show_xy.x,
+            show_y: show_xy.y,
+            show_crosshair: self.show_crosshair,
+        };
+
+        let mut cursors = Vec::new();
+
+        let hovered_plot_item_id = if let Some((item, elem)) = topmost {
+            item.on_hover(
+                &plot_ui.response,
+                elem,
+                shapes,
+                &mut cursors,
+                &plot,
+                self.label_formatter.as_deref(),
+            );
+            Some(item.id())
+        } else {
+            let value = transform.value_from_position(pointer);
+            items::rulers_and_tooltip_at_value(
+                &plot_ui.response,
+                value,
+                None,
+                &plot,
+                &mut cursors,
+                self.label_formatter.as_deref(),
+            );
+            None
+        };
+
+        (cursors, hovered_plot_item_id)
+    }
+
+    fn show_dyn<R>(self, ui: &mut Ui, build_fn: Box<dyn FnOnce(&mut PlotUi<'a>) -> R + 'a>) -> PlotResponse<R> {
+        let plot_id = self.id.unwrap_or_else(|| ui.make_persistent_id(self.id_source));
+
+        // Get complete rect for drawing.
+        let complete_rect = self.calculate_widget_complete_rect(ui);
+
+        let (axis_widgets, plot_rect) = axis_widgets(
+            PlotMemory::load(ui.ctx(), plot_id).as_ref(), // TODO(#164): avoid loading plot memory twice
+            self.show_axes,
+            complete_rect,
+            [&self.x_axes, &self.y_axes],
+        );
+        let response = ui.allocate_rect(plot_rect, self.sense);
+        let axis_responses = self.allocate_axis_responses(ui, &axis_widgets);
+
+        // Load or initialize memory
+        let mut mem = self.load_or_init_memory(ui, plot_id, plot_rect);
+        let last_plot_transform = mem.transform;
+
+        // Call the plot build function.
+        let mut plot_ui = PlotUi {
+            ctx: ui.clone(),
+            items: Vec::new(),
+            next_auto_color_idx: 0,
+            last_plot_transform,
+            last_auto_bounds: mem.auto_bounds,
+            response,
+            bounds_modifications: Vec::new(),
+        };
+
+        // Populates items and does other modifications to plot_ui.
+        let inner = build_fn(&mut plot_ui);
+
+        // Background
+        self.paint_background(ui, plot_rect);
+
+        // Process legend items, create legend widget, and determine show flags. Updates
+        // which items are left behind.
+        let (legend, show_xy) = self.prepare_legend(&mut plot_ui, &mem, plot_rect);
+
+        // Compute bounds
+        self.compute_bounds(ui, &mut mem, &plot_ui, plot_rect);
+
+        // Handle interactions (modifies plot_ui.response in place)
+        let foreground_shapes = self.handle_interactions(ui, &mut mem, &mut plot_ui, plot_rect, &axis_responses);
+
+        // Render axis widgets
+        self.render_axis_widgets(ui, &mut mem, axis_widgets);
+
+        // Initialize values from functions.
+        for item in &mut plot_ui.items {
+            item.initialize(mem.transform.bounds().range_x());
+        }
+
+        let (shapes, plot_cursors, mut hovered_plot_item) =
+            self.collect_shapes(ui, &plot_ui, plot_id, &mem.transform, show_xy);
+
+        // Get the painter from ui and configure it with the plot's clip rect
+        // The painter is used to render all accumulated shapes
+        let painter = ui.painter().with_clip_rect(*mem.transform.frame());
+        painter.extend(shapes);
+
+        // Paint interaction shapes (e.g. the boxed zoom rect) on top of the plot contents.
+        painter.extend(foreground_shapes);
+
+        // Show coordinates in a corner of the plot
+        // Use ui to access style information and draw the coordinate text overlay
+        Self::show_coordinates(
+            ui,
+            &plot_ui.response,
+            &mem.transform,
+            &painter,
+            self.coordinates_formatter.as_ref(),
+        );
+
+        // Show legend and update memory
+        Self::show_legend_and_update_memory(legend, ui, &mut mem, &mut hovered_plot_item);
+
+        // Finalize plot
+        if let Some((id, _)) = self.linked_cursors.as_ref() {
+            // Push the frame we just drew to the list of frames
+            ui.data_mut(|data| {
+                let frames: &mut CursorLinkGroups = data.get_temp_mut_or_default(Id::NULL);
+                let cursors = frames.0.entry(*id).or_default();
+                cursors.push(PlotFrameCursors {
+                    id: plot_id,
+                    cursors: plot_cursors,
+                });
+            });
+        }
+
+        if let Some((id, _)) = self.linked_axes.as_ref() {
+            // Save the linked bounds.
+            ui.data_mut(|data| {
+                let link_groups: &mut BoundsLinkGroups = data.get_temp_mut_or_default(Id::NULL);
+                link_groups.0.insert(
+                    *id,
+                    LinkedBounds {
+                        bounds: *mem.transform().bounds(),
+                        auto_bounds: mem.auto_bounds,
+                    },
+                );
+            });
+        }
+
+        let response = if show_xy.any() {
+            plot_ui.response.on_hover_cursor(CursorIcon::Crosshair)
+        } else {
+            plot_ui.response
+        };
+
+        // Store memory for the next frame.
+        let transform = mem.transform();
+        mem.store(ui.ctx(), plot_id);
+
+        ui.advance_cursor_after_rect(complete_rect);
+
+        PlotResponse {
+            inner,
+            response,
+            transform,
+            hovered_plot_item,
+        }
+    }
+}
+
+/// Returns the rect left after adding axes.
+fn axis_widgets<'a>(
+    mem: Option<&PlotMemory>,
+    show_axes: impl Into<Vec2b>,
+    complete_rect: Rect,
+    [x_axes, y_axes]: [&'a [AxisHints<'a>]; 2],
+) -> ([Vec<AxisWidget<'a>>; 2], Rect) {
+    // Next we want to create this layout.
+    // Indices are only examples.
+    //
+    //  left                     right
+    //  +---+---------x----------+   +
+    //  |   |      X-axis 3      |
+    //  |   +--------------------+    top
+    //  |   |      X-axis 2      |
+    //  +-+-+--------------------+-+-+
+    //  |y|y|                    |y|y|
+    //  |-|-|                    |-|-|
+    //  |A|A|                    |A|A|
+    // y|x|x|    Plot Window     |x|x|
+    //  |i|i|                    |i|i|
+    //  |s|s|                    |s|s|
+    //  |1|0|                    |2|3|
+    //  +-+-+--------------------+-+-+
+    //      |      X-axis 0      |   |
+    //      +--------------------+   | bottom
+    //      |      X-axis 1      |   |
+    //  + +--------------------+---+
+    //
+    let show_axes = show_axes.into();
+
+    let mut x_axis_widgets = Vec::<AxisWidget<'_>>::new();
+    let mut y_axis_widgets = Vec::<AxisWidget<'_>>::new();
+
+    // Will shrink as we add more axes.
+    let mut rect_left = complete_rect;
+
+    if show_axes.x {
+        // We will fix this later, once we know how much space the y axes take up.
+        let initial_x_range = complete_rect.x_range();
+
+        for (i, cfg) in x_axes.iter().enumerate().rev() {
+            let mut height = cfg.min_thickness;
+            if let Some(mem) = mem {
+                // If the labels took up too much space the previous frame, give them more space
+                // now:
+                height = height.max(mem.x_axis_thickness.get(&i).copied().unwrap_or_default());
+            }
+
+            let rect = match VPlacement::from(cfg.placement) {
+                VPlacement::Bottom => {
+                    let bottom = rect_left.bottom();
+                    *rect_left.bottom_mut() -= height;
+                    let top = rect_left.bottom();
+                    Rect::from_x_y_ranges(initial_x_range, top..=bottom)
+                }
+                VPlacement::Top => {
+                    let top = rect_left.top();
+                    *rect_left.top_mut() += height;
+                    let bottom = rect_left.top();
+                    Rect::from_x_y_ranges(initial_x_range, top..=bottom)
+                }
+            };
+            x_axis_widgets.push(AxisWidget::new(cfg.clone(), rect));
+        }
+    }
+    if show_axes.y {
+        // We know this, since we've already allocated space for the x axes.
+        let plot_y_range = rect_left.y_range();
+
+        for (i, cfg) in y_axes.iter().enumerate().rev() {
+            let mut width = cfg.min_thickness;
+            if let Some(mem) = mem {
+                // If the labels took up too much space the previous frame, give them more space
+                // now:
+                width = width.max(mem.y_axis_thickness.get(&i).copied().unwrap_or_default());
+            }
+
+            let rect = match HPlacement::from(cfg.placement) {
+                HPlacement::Left => {
+                    let left = rect_left.left();
+                    *rect_left.left_mut() += width;
+                    let right = rect_left.left();
+                    Rect::from_x_y_ranges(left..=right, plot_y_range)
+                }
+                HPlacement::Right => {
+                    let right = rect_left.right();
+                    *rect_left.right_mut() -= width;
+                    let left = rect_left.right();
+                    Rect::from_x_y_ranges(left..=right, plot_y_range)
+                }
+            };
+            y_axis_widgets.push(AxisWidget::new(cfg.clone(), rect));
+        }
+    }
+
+    // The loops iterated through {x,y}_axes in reverse order, so we have to reverse
+    // the {x,y}_axis_widgets vec as well. Otherwise, the indices are messed up
+    // and the plot memory (mem.{x,y}_axis_thickness) will access the wrong axis
+    // given an index.
+    x_axis_widgets.reverse();
+    y_axis_widgets.reverse();
+
+    let mut plot_rect = rect_left;
+
+    // If too little space, remove axis widgets
+    if plot_rect.width() <= 0.0 || plot_rect.height() <= 0.0 {
+        y_axis_widgets.clear();
+        x_axis_widgets.clear();
+        plot_rect = complete_rect;
+    }
+
+    // Now that we know the final x_range of the plot_rect,
+    // assign it to the x_axis_widgets (they are currently too wide):
+    for widget in &mut x_axis_widgets {
+        widget.rect = Rect::from_x_y_ranges(plot_rect.x_range(), widget.rect.y_range());
+    }
+
+    ([x_axis_widgets, y_axis_widgets], plot_rect)
+}
+
+/// What [`Plot::show`] returns.
+pub struct PlotResponse<R> {
+    /// What the user closure returned.
+    pub inner: R,
+
+    /// The response of the plot.
+    pub response: Response,
+
+    /// The transform between screen coordinates and plot coordinates.
+    pub transform: PlotTransform,
+
+    /// The id of a currently hovered item if any.
+    ///
+    /// This is `None` if either no item was hovered.
+    /// A plot item can be hovered either by hovering its representation in the
+    /// plot (line, marker, etc.) or by hovering the item in the legend.
+    pub hovered_plot_item: Option<Id>,
+}
+
+/// Provides methods to interact with a plot while building it. It is the single
+/// argument of the closure provided to [`Plot::show`]. See [`Plot`] for an
+/// example of how to use it.
+pub struct PlotUi<'a> {
+    pub(crate) ctx: egui::Context,
+    pub(crate) items: Vec<Box<dyn PlotItem + 'a>>,
+    pub(crate) next_auto_color_idx: usize,
+    pub(crate) last_plot_transform: PlotTransform,
+    pub(crate) last_auto_bounds: Vec2b,
+    pub(crate) response: Response,
+    pub(crate) bounds_modifications: Vec<BoundsModification>,
+}
+
+impl<'a> PlotUi<'a> {
+    fn auto_color(&mut self) -> Color32 {
+        let i = self.next_auto_color_idx;
+        self.next_auto_color_idx += 1;
+        let golden_ratio = std::f32::consts::GOLDEN_RATIO - 1.0; // 0.61803398875
+        let h = i as f32 * golden_ratio;
+        Hsva::new(h, 0.85, 0.5, 1.0).into() // TODO(#165): OkLab or some other perspective color space
+    }
+
+    pub fn ctx(&self) -> &egui::Context {
+        &self.ctx
+    }
+
+    /// The plot bounds as they were in the last frame. If called on the first
+    /// frame and the bounds were not further specified in the plot builder,
+    /// this will return bounds centered on the origin. The bounds do
+    /// not change until the plot is drawn.
+    pub fn plot_bounds(&self) -> PlotBounds {
+        *self.last_plot_transform.bounds()
+    }
+
+    /// Set the plot bounds. Can be useful for implementing alternative plot
+    /// navigation methods.
+    pub fn set_plot_bounds(&mut self, plot_bounds: PlotBounds) {
+        self.set_plot_bounds_x(plot_bounds.range_x());
+        self.set_plot_bounds_y(plot_bounds.range_y());
+    }
+
+    /// Set the X bounds. Can be useful for implementing alternative plot
+    /// navigation methods.
+    pub fn set_plot_bounds_x(&mut self, range: impl Into<RangeInclusive<f64>>) {
+        self.bounds_modifications.push(BoundsModification::SetX(range.into()));
+    }
+
+    /// Set the Y bounds. Can be useful for implementing alternative plot
+    /// navigation methods.
+    pub fn set_plot_bounds_y(&mut self, range: impl Into<RangeInclusive<f64>>) {
+        self.bounds_modifications.push(BoundsModification::SetY(range.into()));
+    }
+
+    /// Move the plot bounds. Can be useful for implementing alternative plot
+    /// navigation methods.
+    pub fn translate_bounds(&mut self, delta_pos: Vec2) {
+        self.bounds_modifications.push(BoundsModification::Translate(delta_pos));
+    }
+
+    /// Whether the plot axes were in auto-bounds mode in the last frame. If
+    /// called on the first frame, this is the [`Plot`]'s default
+    /// auto-bounds mode.
+    pub fn auto_bounds(&self) -> Vec2b {
+        self.last_auto_bounds
+    }
+
+    /// Set the auto-bounds mode for the plot axes.
+    pub fn set_auto_bounds(&mut self, auto_bounds: impl Into<Vec2b>) {
+        self.bounds_modifications
+            .push(BoundsModification::AutoBounds(auto_bounds.into()));
+    }
+
+    /// Can be used to check if the plot was hovered or clicked.
+    pub fn response(&self) -> &Response {
+        &self.response
+    }
+
+    /// Scale the plot bounds around a position in plot coordinates.
+    ///
+    /// Can be useful for implementing alternative plot navigation methods.
+    ///
+    /// The plot bounds are divided by `zoom_factor`, therefore:
+    /// - `zoom_factor < 1.0` zooms out, i.e., increases the visible range to
+    ///   show more data.
+    /// - `zoom_factor > 1.0` zooms in, i.e., reduces the visible range to show
+    ///   more detail.
+    pub fn zoom_bounds(&mut self, zoom_factor: Vec2, center: PlotPoint) {
+        self.bounds_modifications
+            .push(BoundsModification::Zoom(zoom_factor, center));
+    }
+
+    /// Scale the plot bounds around the hovered position, if any.
+    ///
+    /// Can be useful for implementing alternative plot navigation methods.
+    ///
+    /// The plot bounds are divided by `zoom_factor`, therefore:
+    /// - `zoom_factor < 1.0` zooms out, i.e., increases the visible range to
+    ///   show more data.
+    /// - `zoom_factor > 1.0` zooms in, i.e., reduces the visible range to show
+    ///   more detail.
+    pub fn zoom_bounds_around_hovered(&mut self, zoom_factor: Vec2) {
+        if let Some(hover_pos) = self.pointer_coordinate() {
+            self.zoom_bounds(zoom_factor, hover_pos);
+        }
+    }
+
+    /// The pointer position in plot coordinates. Independent of whether the
+    /// pointer is in the plot area.
+    pub fn pointer_coordinate(&self) -> Option<PlotPoint> {
+        // We need to subtract the drag delta to keep in sync with the frame-delayed
+        // screen transform:
+        let last_pos = self.ctx().input(|i| i.pointer.latest_pos())? - self.response.drag_delta();
+        let value = self.plot_from_screen(last_pos);
+        Some(value)
+    }
+
+    /// The pointer drag delta in plot coordinates.
+    pub fn pointer_coordinate_drag_delta(&self) -> Vec2 {
+        let delta = self.response.drag_delta();
+        let dp_dv = self.last_plot_transform.dpos_dvalue();
+        Vec2::new(delta.x / dp_dv[0] as f32, delta.y / dp_dv[1] as f32)
+    }
+
+    /// Read the transform between plot coordinates and screen coordinates.
+    pub fn transform(&self) -> &PlotTransform {
+        &self.last_plot_transform
+    }
+
+    /// Transform the plot coordinates to screen coordinates.
+    pub fn screen_from_plot(&self, position: PlotPoint) -> Pos2 {
+        self.last_plot_transform.position_from_point(&position)
+    }
+
+    /// Transform the screen coordinates to plot coordinates.
+    pub fn plot_from_screen(&self, position: Pos2) -> PlotPoint {
+        self.last_plot_transform.value_from_position(position)
+    }
+
+    /// Add an arbitrary item.
+    pub fn add(&mut self, item: impl PlotItem + 'a) {
+        self.items.push(Box::new(item));
+    }
+
+    /// Add an arbitrary item.
+    pub fn add_item(&mut self, item: Box<dyn PlotItem>) {
+        self.items.push(item);
+    }
+
+    /// Add a data line.
+    pub fn line(&mut self, mut line: crate::Line<'a>) {
+        if line.series.is_empty() {
+            return;
+        }
+
+        // Give the stroke an automatic color if no color has been assigned.
+        if line.stroke.color == Color32::TRANSPARENT {
+            line.stroke.color = self.auto_color();
+        }
+        self.items.push(Box::new(line));
+    }
+
+    /// Add a polygon. The polygon has to be convex.
+    pub fn polygon(&mut self, mut polygon: crate::Polygon<'a>) {
+        if polygon.series.is_empty() {
+            return;
+        }
+
+        // Give the stroke an automatic color if no color has been assigned.
+        if polygon.stroke.color == Color32::TRANSPARENT {
+            polygon.stroke.color = self.auto_color();
+        }
+        self.items.push(Box::new(polygon));
+    }
+
+    /// Add a text.
+    pub fn text(&mut self, text: crate::Text) {
+        if text.text.is_empty() {
+            return;
+        }
+
+        self.items.push(Box::new(text));
+    }
+
+    /// Add data points.
+    pub fn points(&mut self, mut points: crate::Points<'a>) {
+        if points.series.is_empty() {
+            return;
+        }
+
+        // Give the points an automatic color if no color has been assigned.
+        if points.color == Color32::TRANSPARENT {
+            points.color = self.auto_color();
+        }
+        self.items.push(Box::new(points));
+    }
+
+    /// Add arrows.
+    pub fn arrows(&mut self, mut arrows: crate::Arrows<'a>) {
+        if arrows.origins.is_empty() || arrows.tips.is_empty() {
+            return;
+        }
+
+        // Give the arrows an automatic color if no color has been assigned.
+        if arrows.color == Color32::TRANSPARENT {
+            arrows.color = self.auto_color();
+        }
+        self.items.push(Box::new(arrows));
+    }
+
+    /// Add an image.
+    pub fn image(&mut self, image: crate::PlotImage) {
+        self.items.push(Box::new(image));
+    }
+
+    /// Add a horizontal line.
+    /// Can be useful e.g. to show min/max bounds or similar.
+    /// Always fills the full width of the plot.
+    pub fn hline(&mut self, mut hline: crate::HLine) {
+        if hline.stroke.color == Color32::TRANSPARENT {
+            hline.stroke.color = self.auto_color();
+        }
+        self.items.push(Box::new(hline));
+    }
+
+    /// Add a vertical line.
+    /// Can be useful e.g. to show min/max bounds or similar.
+    /// Always fills the full height of the plot.
+    pub fn vline(&mut self, mut vline: crate::VLine) {
+        if vline.stroke.color == Color32::TRANSPARENT {
+            vline.stroke.color = self.auto_color();
+        }
+        self.items.push(Box::new(vline));
+    }
+
+    /// Add an axis-aligned span.
+    ///
+    /// Spans fill the space between two values on one axis. If both the fill
+    /// and border colors are transparent, a color is auto-assigned.
+    pub fn span(&mut self, mut span: Span) {
+        let fill_is_transparent = span.fill_color() == Color32::TRANSPARENT;
+        let border_is_transparent = span.border_color_value() == Color32::TRANSPARENT;
+
+        // If no color was provided, automatically assign a color to the span
+        if fill_is_transparent && border_is_transparent {
+            let auto_color = self.auto_color();
+            span = span.fill(auto_color.gamma_multiply(0.15)).border_color(auto_color);
+        } else if border_is_transparent && !fill_is_transparent {
+            let fill_color = span.fill_color();
+            span = span.border_color(fill_color);
+        }
+
+        self.items.push(Box::new(span));
+    }
+
+    /// Add a box plot diagram.
+    pub fn box_plot(&mut self, mut box_plot: crate::BoxPlot) {
+        if box_plot.boxes.is_empty() {
+            return;
+        }
+
+        // Give the elements an automatic color if no color has been assigned.
+        if PlotItem::color(&box_plot) == Color32::TRANSPARENT {
+            box_plot = box_plot.color(self.auto_color());
+        }
+        self.items.push(Box::new(box_plot));
+    }
+
+    /// Add a bar chart.
+    pub fn bar_chart(&mut self, mut chart: crate::BarChart) {
+        if chart.bars.is_empty() {
+            return;
+        }
+
+        // Give the elements an automatic color if no color has been assigned.
+        if PlotItem::color(&chart) == Color32::TRANSPARENT {
+            chart = chart.color(self.auto_color());
+        }
+        self.items.push(Box::new(chart));
+    }
+
+    /// Add a heatmap.
+    pub fn heatmap(&mut self, heatmap: crate::Heatmap) {
+        if heatmap.values.is_empty() {
+            return;
+        }
+        self.items.push(Box::new(heatmap));
+    }
+}
+
+#[cfg(all(test, not(target_arch = "wasm32")))]
+mod plot_tests {
+    use super::*;
+    use crate::{Plot, Points};
+
+    use egui_kittest::Harness;
+
+    /// Test that `auto_bounds(true)` fits the data exactly when the margin fraction is zero.
+    #[test]
+    fn auto_bounds_true() {
+        crate::utils::init_test_logger();
+
+        const MIN: [f64; 2] = [-10.0, -10.0];
+        const MAX: [f64; 2] = [10.0, 10.0];
+
+        let harness = {
+            let bounds = PlotBounds::from_min_max(MIN, MAX);
+            Harness::new_ui_state(
+                |ui, bounds| {
+                    let plot = Plot::new("test_plot")
+                        .auto_bounds(true)
+                        .set_margin_fraction(Vec2::splat(0.0));
+
+                    plot.show(ui, |plot_ui| {
+                        let corners = vec![MIN, MAX];
+                        plot_ui.points(Points::new("filler", corners));
+                        *bounds = plot_ui.plot_bounds();
+                    });
+                },
+                bounds,
+            )
+        };
+
+        let final_bounds = harness.state();
+        assert!((final_bounds.min[0] - MIN[0]).abs() <= f64::EPSILON);
+        assert!((final_bounds.min[1] - MIN[1]).abs() <= f64::EPSILON);
+        assert!((final_bounds.max[0] - MAX[0]).abs() <= f64::EPSILON);
+        assert!((final_bounds.max[1] - MAX[1]).abs() <= f64::EPSILON);
+    }
+}

@@ -1,0 +1,358 @@
+//! Contains items that can be added to a plot at some plot coordinates.
+#![expect(
+    clippy::type_complexity,
+    reason = "TODO(#163): simplify some of the callback types with type aliases"
+)]
+
+use std::ops::RangeInclusive;
+
+use egui::Align2;
+use egui::Color32;
+use egui::Id;
+use egui::PopupAnchor;
+use egui::Pos2;
+use egui::Shape;
+use egui::TextStyle;
+use egui::Ui;
+use egui::vec2;
+use emath::Float as _;
+
+use crate::aesthetics::Orientation;
+use crate::axis::PlotTransform;
+use crate::bounds::PlotBounds;
+use crate::bounds::PlotPoint;
+use crate::cursor::Cursor;
+pub use crate::items::arrows::Arrows;
+pub use crate::items::bar_chart::Bar;
+pub use crate::items::bar_chart::BarChart;
+pub use crate::items::box_plot::BoxElem;
+pub use crate::items::box_plot::BoxPlot;
+pub use crate::items::box_plot::BoxSpread;
+pub use crate::items::filled_area::FilledArea;
+pub use crate::items::heatmap::Heatmap;
+pub use crate::items::line::HLine;
+pub use crate::items::line::VLine;
+pub use crate::items::line::horizontal_line;
+pub use crate::items::line::vertical_line;
+pub use crate::items::plot_image::PlotImage;
+pub use crate::items::points::Points;
+pub use crate::items::polygon::Polygon;
+pub use crate::items::series::Line;
+pub use crate::items::span::Span;
+pub use crate::items::text::Text;
+use crate::label::HoverPosition;
+use crate::label::LabelFormatterFn;
+use crate::rect_elem::RectElement;
+
+mod arrows;
+mod bar_chart;
+mod box_plot;
+mod filled_area;
+mod heatmap;
+mod line;
+mod plot_image;
+mod points;
+mod polygon;
+mod series;
+mod span;
+mod text;
+
+/// Base data shared by all plot items.
+#[derive(Clone, Debug, PartialEq, Eq)]
+pub struct PlotItemBase {
+    name: String,
+    id: Id,
+    highlight: bool,
+    allow_hover: bool,
+}
+
+impl PlotItemBase {
+    /// Create a new plot item base with the given name.
+    pub fn new(name: String) -> Self {
+        let id = Id::new(&name);
+        Self {
+            name,
+            id,
+            highlight: false,
+            allow_hover: true,
+        }
+    }
+}
+
+/// Container to pass-through several parameters related to plot visualization
+pub struct PlotConfig<'a> {
+    /// Reference to the UI.
+    pub ui: &'a Ui,
+
+    /// Reference to the plot transform.
+    pub transform: &'a PlotTransform,
+
+    /// Whether to show the x-axis value.
+    pub show_x: bool,
+
+    /// Whether to show the y-axis value.
+    pub show_y: bool,
+
+    /// Whether to show the crosshair rulers.
+    pub show_crosshair: bool,
+}
+
+/// Trait shared by things that can be drawn in the plot.
+pub trait PlotItem {
+    /// Generate shapes to be drawn in the plot.
+    fn shapes(&self, ui: &Ui, transform: &PlotTransform, shapes: &mut Vec<Shape>);
+
+    /// For plot-items which are generated based on x values (plotting
+    /// functions).
+    fn initialize(&mut self, x_range: RangeInclusive<f64>);
+
+    /// Returns the name of the plot item.
+    fn name(&self) -> &str {
+        &self.base().name
+    }
+
+    /// Returns the color of the plot item.
+    fn color(&self) -> Color32;
+
+    /// Highlight the plot item.
+    fn highlight(&mut self) {
+        self.base_mut().highlight = true;
+    }
+
+    /// Returns whether the plot item is highlighted.
+    fn highlighted(&self) -> bool {
+        self.base().highlight
+    }
+
+    /// Can the user hover this item?
+    fn allow_hover(&self) -> bool {
+        self.base().allow_hover
+    }
+
+    /// Returns the geometry of the plot item.
+    fn geometry(&self) -> PlotGeometry<'_>;
+
+    /// Returns the bounds of the plot item.
+    fn bounds(&self) -> PlotBounds;
+
+    /// Returns a reference to the base data of the plot item.
+    fn base(&self) -> &PlotItemBase;
+
+    /// Returns a mutable reference to the base data of the plot item.
+    fn base_mut(&mut self) -> &mut PlotItemBase;
+
+    /// Returns the ID of the plot item.
+    fn id(&self) -> Id {
+        self.base().id
+    }
+
+    /// Find the closest element in the plot item to the given point.
+    fn find_closest(&self, point: Pos2, transform: &PlotTransform) -> Option<ClosestElem> {
+        match self.geometry() {
+            PlotGeometry::None => None,
+
+            PlotGeometry::Points(points) => points
+                .iter()
+                .enumerate()
+                .map(|(index, value)| {
+                    let pos = transform.position_from_point(value);
+                    let dist_sq = point.distance_sq(pos);
+                    ClosestElem { index, dist_sq }
+                })
+                .min_by_key(|e| e.dist_sq.ord()),
+
+            PlotGeometry::Rects => {
+                panic!("If the PlotItem is made of rects, it should implement find_closest()")
+            }
+        }
+    }
+
+    /// Handle hover events for the plot item.
+    fn on_hover(
+        &self,
+        plot_area_response: &egui::Response,
+        elem: ClosestElem,
+        shapes: &mut Vec<Shape>,
+        cursors: &mut Vec<Cursor>,
+        plot: &PlotConfig<'_>,
+        label_formatter: Option<&LabelFormatterFn<'_>>,
+    ) {
+        let points = match self.geometry() {
+            PlotGeometry::Points(points) => points,
+            PlotGeometry::None => {
+                panic!("If the PlotItem has no geometry, on_hover() must not be called")
+            }
+            PlotGeometry::Rects => {
+                panic!("If the PlotItem is made of rects, it should implement on_hover()")
+            }
+        };
+
+        let line_color = if plot.ui.visuals().dark_mode {
+            Color32::from_gray(100).additive()
+        } else {
+            Color32::from_black_alpha(180)
+        };
+
+        // this method is only called, if the value is in the result set of
+        // find_closest()
+        let value = points[elem.index];
+        let pointer = plot.transform.position_from_point(&value);
+        shapes.push(Shape::circle_filled(pointer, 3.0, line_color));
+
+        rulers_and_tooltip_at_value(
+            plot_area_response,
+            value,
+            Some((self.name(), elem.index)),
+            plot,
+            cursors,
+            label_formatter,
+        );
+    }
+}
+
+// ----------------------------------------------------------------------------
+// Helper functions
+
+fn add_rulers_and_text(
+    elem: &dyn RectElement,
+    plot: &PlotConfig<'_>,
+    text: Option<String>,
+    shapes: &mut Vec<Shape>,
+    cursors: &mut Vec<Cursor>,
+) {
+    let orientation = elem.orientation();
+    let show_argument =
+        plot.show_x && orientation == Orientation::Vertical || plot.show_y && orientation == Orientation::Horizontal;
+    let show_values =
+        plot.show_y && orientation == Orientation::Vertical || plot.show_x && orientation == Orientation::Horizontal;
+
+    // Rulers for argument (usually vertical)
+    if show_argument {
+        for pos in elem.arguments_with_ruler() {
+            cursors.push(match orientation {
+                Orientation::Horizontal => Cursor::Horizontal { y: pos.y },
+                Orientation::Vertical => Cursor::Vertical { x: pos.x },
+            });
+        }
+    }
+
+    // Rulers for values (usually horizontal)
+    if show_values {
+        for pos in elem.values_with_ruler() {
+            cursors.push(match orientation {
+                Orientation::Horizontal => Cursor::Vertical { x: pos.x },
+                Orientation::Vertical => Cursor::Horizontal { y: pos.y },
+            });
+        }
+    }
+
+    // Text
+    let text = text.unwrap_or_else(|| {
+        let mut text = elem.name().to_owned(); // could be empty
+
+        if show_values {
+            text.push('\n');
+            text.push_str(&elem.default_values_format(plot.transform));
+        }
+
+        text
+    });
+
+    let font_id = TextStyle::Body.resolve(plot.ui.style());
+
+    let corner_value = elem.corner_value();
+    plot.ui.fonts_mut(|f| {
+        shapes.push(Shape::text(
+            f,
+            plot.transform.position_from_point(&corner_value) + vec2(3.0, -2.0),
+            Align2::LEFT_BOTTOM,
+            text,
+            font_id,
+            plot.ui.visuals().text_color(),
+        ));
+    });
+}
+
+/// Draws a cross of horizontal and vertical ruler at the `pointer` position,
+/// and a label describing the coordinate.
+///
+/// `value` is used to for text displaying X/Y coordinates.
+pub(super) fn rulers_and_tooltip_at_value(
+    plot_area_response: &egui::Response,
+    value: PlotPoint,
+    nearest_point: Option<(&str, usize)>,
+    plot: &PlotConfig<'_>,
+    cursors: &mut Vec<Cursor>,
+    label_formatter: Option<&LabelFormatterFn<'_>>,
+) {
+    // Add crosshair rulers if enabled
+    if plot.show_crosshair {
+        if plot.show_x {
+            cursors.push(Cursor::Vertical { x: value.x });
+        }
+        if plot.show_y {
+            cursors.push(Cursor::Horizontal { y: value.y });
+        }
+    }
+
+    // Only show tooltip if label_formatter is provided
+    let Some(custom_label) = label_formatter else {
+        return;
+    };
+
+    let hover_position = match nearest_point {
+        Some((name, index)) => HoverPosition::NearDataPoint {
+            plot_name: name,
+            position: value,
+            index,
+        },
+        None => HoverPosition::Elsewhere { position: value },
+    };
+
+    let Some(text) = custom_label(&hover_position) else {
+        return;
+    };
+
+    // We show the tooltip as soon as we're hovering the plot area:
+    let mut tooltip = egui::Tooltip::always_open(
+        plot_area_response.ctx.clone(),
+        plot_area_response.layer_id,
+        plot_area_response.id,
+        PopupAnchor::Pointer,
+    );
+
+    let tooltip_width = plot_area_response.ctx.global_style().spacing.tooltip_width;
+
+    tooltip.popup = tooltip.popup.width(tooltip_width);
+
+    tooltip.gap(12.0).show(|ui| {
+        ui.set_max_width(tooltip_width);
+        ui.label(text);
+    });
+}
+
+/// Query the points of the plot, for geometric relations like closest checks
+pub enum PlotGeometry<'a> {
+    /// No geometry based on single elements (examples: text, image,
+    /// horizontal/vertical line)
+    None,
+
+    /// Point values (X-Y graphs)
+    Points(&'a [PlotPoint]),
+
+    /// Rectangles (examples: boxes or bars)
+    // Has currently no data, as it would require copying rects or iterating a list of pointers.
+    // Instead, geometry-based functions are directly implemented in the respective PlotItem impl.
+    Rects,
+}
+
+/// Result of [`PlotItem::find_closest()`] search, identifies an element
+/// inside the item for immediate use
+pub struct ClosestElem {
+    /// Position of hovered-over value (or bar/box-plot/…) in `PlotItem`
+    pub index: usize,
+
+    /// Squared distance from the mouse cursor (needed to compare against other
+    /// `PlotItems`, which might be nearer)
+    pub dist_sq: f32,
+}

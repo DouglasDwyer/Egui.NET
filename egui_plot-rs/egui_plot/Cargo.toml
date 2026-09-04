@@ -1,0 +1,53 @@
+[package]
+authors = [
+    "Emil Ernerfeldt <emil.ernerfeldt@gmail.com>",    # https://github.com/emilk
+    "Jan Haller <bromeon@gmail.com>",                 # https://github.com/Bromeon
+    "Sven Niederberger <s-niederberger@outlook.com>", # https://github.com/EmbersArc
+]
+categories = ["visualization", "gui"]
+description = "Immediate mode plotting for the egui GUI library"
+edition.workspace = true
+homepage = "https://github.com/emilk/egui_plot"
+include = ["../LICENSE-APACHE", "../LICENSE-MIT", "**/*.rs", "Cargo.toml"]
+keywords = ["egui", "plot", "plotting"]
+license.workspace = true
+name = "egui_plot"
+readme = "../README.md"
+repository = "https://github.com/emilk/egui_plot"
+rust-version.workspace = true
+version.workspace = true
+
+[lints]
+workspace = true
+
+[package.metadata.docs.rs]
+all-features = true
+
+[lib]
+
+
+[features]
+default = []
+
+
+## Allow serialization using [`serde`](https://docs.rs/serde).
+serde = ["dep:serde", "egui/serde"]
+
+
+[dependencies]
+egui = { workspace = true, default-features = false }
+emath = { workspace = true, default-features = false }
+
+ahash.workspace = true
+
+#! ### Optional dependencies
+## Enable this when generating docs.
+document-features = { workspace = true, optional = true }
+
+serde = { workspace = true, optional = true }
+
+[dev-dependencies]
+assertables.workspace = true
+egui_kittest.workspace = true
+env_logger.workspace = true
+log.workspace = true
