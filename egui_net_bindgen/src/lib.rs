@@ -899,6 +899,9 @@ const IGNORE_FNS: &[&str] = &[
     // Ui
     "egui_ui_Ui_ctx",
     "egui_ui_Ui_drop",
+    // PlotUi: mirrors `Ui::ctx` - `PlotUi.Ctx` is a plain C# field set when the wrapper is
+    // constructed, no FFI call needed
+    "egui_plot_plot_PlotUi_ctx",
     // ViewportInPixels: private type
     "epaint_viewport_ViewportInPixels_from_points",
     // Undoer: not possible to bind to C# due to generics

@@ -7,6 +7,11 @@ namespace Egui.EguiPlot;
 public ref partial struct PlotUi
 {
     /// <summary>
+    /// The context that owns this plot.
+    /// </summary>
+    public readonly Context Ctx;
+
+    /// <summary>
     /// A pointer to the underlying <c>egui_plot::PlotUi</c> object.
     /// </summary>
     internal readonly nuint Ptr;
@@ -14,9 +19,11 @@ public ref partial struct PlotUi
     /// <summary>
     /// Creates a new <see cref="PlotUi"/> that references the given pointer.
     /// </summary>
+    /// <param name="ctx">The context that owns this plot.</param>
     /// <param name="ptr">The native object pointer.</param>
-    internal PlotUi(nuint ptr)
+    internal PlotUi(Context ctx, nuint ptr)
     {
+        Ctx = ctx;
         Ptr = ptr;
     }
 
