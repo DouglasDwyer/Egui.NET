@@ -1,4 +1,4 @@
-namespace Egui.EguiPlot;
+namespace Egui.Plot;
 
 /// <summary>
 /// Provides methods to interact with a plot while building it. It is the single argument of the

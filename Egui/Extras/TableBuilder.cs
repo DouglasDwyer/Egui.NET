@@ -1,7 +1,7 @@
 using System.ComponentModel;
 using Egui.Containers;
 
-namespace Egui.EguiExtras;
+namespace Egui.Extras;
 
 /// <summary>
 /// Builder for a <see cref="Table"/> with (optional) fixed header and scrolling body.<br/>
@@ -90,11 +90,11 @@ public ref struct TableBuilder
     /// <summary>
     /// Make the columns resizable by dragging.<br/>
     ///
-    /// You can set this for individual columns with <see cref="EguiExtras.Column.Resizable"/>.
+    /// You can set this for individual columns with <see cref="Extras.Column.Resizable"/>.
     /// <see cref="Resizable"/> is used as a fallback for any column for which you don't call
-    /// <see cref="EguiExtras.Column.Resizable"/>.<br/>
+    /// <see cref="Extras.Column.Resizable"/>.<br/>
     ///
-    /// If the _last_ column is <see cref="EguiExtras.Column.Remainder"/>, then it won't be
+    /// If the _last_ column is <see cref="Extras.Column.Remainder"/>, then it won't be
     /// resizable (and instead use up the remainder).<br/>
     ///
     /// Default is <c>false</c>.

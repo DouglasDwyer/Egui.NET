@@ -1,4 +1,4 @@
-namespace Egui.EguiPlot;
+namespace Egui.Plot;
 
 public partial record struct Plot
 {

@@ -1,5 +1,5 @@
 using System.Collections.Immutable;
-using Egui.EguiPlot;
+using Egui.Plot;
 
 namespace Egui;
 

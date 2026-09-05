@@ -1,4 +1,4 @@
-namespace Egui.EguiPlot;
+namespace Egui.Plot;
 
 /// <summary>
 /// What <see cref="Plot.Show"/> returns.

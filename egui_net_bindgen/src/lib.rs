@@ -129,6 +129,12 @@ const NAMESPACE_RENAMES: &[(&str, &str)] = &[
     ("Egui.Containers.ScrollArea", "Egui.Containers"),
     ("Egui.Containers.CollapsingHeader", "Egui.Containers"),
     ("Egui.Containers.Panel", "Egui.Containers"),
+    ("Egui.EguiExtras", "Egui.Extras"),
+    (
+        "Egui.EguiExtras.SyntaxHighlighting",
+        "Egui.Extras.SyntaxHighlighting",
+    ),
+    ("Egui.EguiPlot", "Egui.Plot"),
     ("Egui.Os", "Egui"),
     ("Egui.Response", "Egui"),
     ("Egui.Style", "Egui"),
