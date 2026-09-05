@@ -67,26 +67,6 @@ const BINDING_EXCLUDE_FNS: &[&str] = &[
     "ecolor_hsva_hsv_from_rgb",
     "emath_format_with_decimals_in_range",
     "egui_drag_and_drop_DragAndDrop_has_payload_of_type",
-    // `RangeInclusive<f64>` isn't special-cased by `bound_ty_name` the way `Arc`/`Option`/`Vec`
-    // are, so it emits a bare `RangeInclusive` with no generic argument, which doesn't compile.
-    "egui_plot_items_plot_image_PlotImage_initialize",
-    "egui_plot_items_line_VLine_initialize",
-    "egui_plot_items_span_Span_initialize",
-    "egui_plot_items_line_HLine_initialize",
-    "egui_plot_items_text_Text_initialize",
-    "egui_plot_items_span_Span_range",
-    "egui_plot_items_span_Span_new",
-    "egui_plot_items_bar_chart_BarChart_initialize",
-    "egui_plot_items_box_plot_BoxPlot_initialize",
-    "egui_plot_items_filled_area_FilledArea_initialize",
-    "egui_plot_items_heatmap_Heatmap_initialize",
-    "egui_plot_items_series_Line_initialize",
-    "egui_plot_items_points_Points_initialize",
-    "egui_plot_items_polygon_Polygon_initialize",
-    "egui_plot_items_arrows_Arrows_initialize",
-    "egui_plot_data_PlotPoints_generate_points",
-    "egui_plot_plot_PlotUi_set_plot_bounds_x",
-    "egui_plot_plot_PlotUi_set_plot_bounds_y",
     // These functions generate as properties, but should be methods
     "egui_ui_Ui_next_auto_id",
     "egui_ui_Ui_separator",
@@ -165,6 +145,15 @@ const TYPE_RENAMES: &[(&str, &str)] = &[
     ("Vec2", "EVec2"),
     ("Vec2b", "EVec2b"),
     ("Widgets", "WidgetsStyle"),
+    // `RangeInclusive<Idx>`'s serde impl always calls `serialize_struct("RangeInclusive", 2)`
+    // regardless of `Idx`, so the registry only ever has one "RangeInclusive" entry - shaped
+    // according to whichever instantiation happened to get traced first (currently `f64`, via
+    // `egui_plot::items::Span::range`). Renaming it to spell out that instantiation means a
+    // second, differently-shaped `RangeInclusive<OtherIdx>` reaching the tracer (e.g. through a
+    // new field) collides loudly (a shape-mismatch panic in `Tracer::trace_simple_type`) instead
+    // of silently reusing this `f64` C# type for the wrong wire layout. See `bound_ty_name`'s
+    // `"RangeInclusive"` case for the other half of this fix.
+    ("RangeInclusive", "RangeInclusiveF64"),
 ];
 
 /// Customizes the assigned namespace of types.
@@ -1252,6 +1241,13 @@ impl BindingsGenerator {
         }
 
         namespaces.insert("Duration".to_string(), "".to_string());
+        // `RangeInclusive` (unlike every other `TYPE_RENAMES` entry) is never itself declared in
+        // any of the traced crates - it's `std::ops::RangeInclusive`, only discovered
+        // transitively as a field type (see the comment on its `TYPE_RENAMES` entry) - so
+        // `find_public_paths` never assigns it a namespace. It's generated at the root, same as
+        // `Pos2`/`Vec2`/etc, so its `using` alias (see `emit_cs_fn_bindings`) needs the same
+        // `Egui` qualifier those get from `find_public_paths`.
+        namespaces.insert("RangeInclusive".to_string(), "Egui".to_string());
 
         BindingsGenerator {
             declaring_tys,
@@ -1532,6 +1528,39 @@ impl BindingsGenerator {
                     }
                 }
                 "String" | "str" => BoundTypeName::cs_rs("string", "String"),
+                // Unlike `Arc`/`Option`/`Vec` above, `RangeInclusive`'s C# shape isn't a built-in
+                // wrapper - it's a genuine traced struct (see the comment on its `TYPE_RENAMES`
+                // entry), traced only for `f64` (the one instantiation that's actually reachable
+                // as a struct field today, via `Span::range`). Its generic argument only needs
+                // threading into `rs_name` (to keep the emitted Rust wrapper signature valid), but
+                // only when it's `f64`: any other `Idx` would silently reuse the `f64` C# type for
+                // the wrong wire layout, so those fall through to the generic case below (which
+                // fails, since bare "RangeInclusive" isn't itself a valid Rust type).
+                "RangeInclusive" => {
+                    let Some(GenericArgs::AngleBracketed { args, .. }) = path.args.as_deref()
+                    else {
+                        return None;
+                    };
+                    if args.len() == 1 {
+                        let GenericArg::Type(arg) = &args[0] else {
+                            return None;
+                        };
+                        let inner = self.bound_ty_name(self_ty, arg)?;
+                        if inner.rs_name == "f64" && self.registry.contains_key("RangeInclusive") {
+                            let cs_name = Self::new_name("RangeInclusive")
+                                .map(ToString::to_string)
+                                .unwrap_or_else(|| "RangeInclusive".to_string());
+                            BoundTypeName::cs_rs(
+                                cs_name,
+                                format!("RangeInclusive<{}>", inner.rs_name),
+                            )
+                        } else {
+                            return None;
+                        }
+                    } else {
+                        return None;
+                    }
+                }
                 _ => {
                     let name = path.path.split("::").last().expect("Type was empty");
                     if self.registry.contains_key(name) {
@@ -2694,7 +2723,15 @@ impl BindingsGenerator {
         result += "}\n";
 
         for (old, new) in TYPE_RENAMES {
-            result += &format!("type {new} = {old};\n");
+            // Every other `TYPE_RENAMES` entry aliases a plain, non-generic Rust type, but
+            // `RangeInclusive` is only ever renamed for its (currently sole) `f64` instantiation
+            // (see the comment on its `TYPE_RENAMES` entry), so the alias needs that argument
+            // filled in rather than the bare (invalid) `RangeInclusive`.
+            if *old == "RangeInclusive" {
+                result += &format!("type {new} = {old}<f64>;\n");
+            } else {
+                result += &format!("type {new} = {old};\n");
+            }
         }
 
         self.emit_fn_enum_bindings(
