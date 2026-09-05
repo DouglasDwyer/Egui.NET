@@ -27,6 +27,7 @@ use crate::math::find_closest_rect;
 use crate::rect_elem::RectElement;
 
 /// A diagram containing a series of [`BoxElem`] elements.
+#[cfg_attr(feature = "serde", derive(serde::Deserialize, serde::Serialize))]
 pub struct BoxPlot {
     base: PlotItemBase,
 
@@ -34,6 +35,7 @@ pub struct BoxPlot {
     default_color: Color32,
 
     /// A custom element formatter
+    #[cfg_attr(feature = "serde", serde(skip))]
     pub(crate) element_formatter: Option<Box<dyn Fn(&BoxElem, &Self) -> String>>,
 }
 

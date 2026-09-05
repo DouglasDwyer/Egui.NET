@@ -28,6 +28,7 @@ use crate::math::find_closest_rect;
 use crate::rect_elem::RectElement;
 
 /// A bar chart.
+#[cfg_attr(feature = "serde", derive(serde::Deserialize, serde::Serialize))]
 pub struct BarChart {
     base: PlotItemBase,
 
@@ -35,6 +36,7 @@ pub struct BarChart {
     default_color: Color32,
 
     /// A custom element formatter
+    #[cfg_attr(feature = "serde", serde(skip))]
     pub(crate) element_formatter: Option<Box<dyn Fn(&Bar, &Self) -> String>>,
 }
 

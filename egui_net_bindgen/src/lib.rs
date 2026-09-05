@@ -76,6 +76,8 @@ const BINDING_EXCLUDE_FNS: &[&str] = &[
     "egui_plot_items_text_Text_initialize",
     "egui_plot_items_span_Span_range",
     "egui_plot_items_span_Span_new",
+    "egui_plot_items_bar_chart_BarChart_initialize",
+    "egui_plot_items_box_plot_BoxPlot_initialize",
     "egui_plot_plot_PlotUi_set_plot_bounds_x",
     "egui_plot_plot_PlotUi_set_plot_bounds_y",
     // These functions generate as properties, but should be methods
