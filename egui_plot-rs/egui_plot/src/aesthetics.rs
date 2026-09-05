@@ -118,8 +118,8 @@ pub enum MarkerShape {
 
 impl MarkerShape {
     /// Get a vector containing all marker shapes.
-    pub fn all() -> impl ExactSizeIterator<Item = Self> {
-        [
+    pub fn all() -> Vec<Self> {
+        vec![
             Self::Circle,
             Self::Diamond,
             Self::Square,
@@ -131,7 +131,5 @@ impl MarkerShape {
             Self::Right,
             Self::Asterisk,
         ]
-        .iter()
-        .copied()
     }
 }

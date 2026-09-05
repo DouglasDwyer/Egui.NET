@@ -76,9 +76,7 @@ pub enum Corner {
 }
 
 impl Corner {
-    pub fn all() -> impl Iterator<Item = Self> {
-        [Self::LeftTop, Self::RightTop, Self::LeftBottom, Self::RightBottom]
-            .iter()
-            .copied()
+    pub fn all() -> Vec<Self> {
+        vec![Self::LeftTop, Self::RightTop, Self::LeftBottom, Self::RightBottom]
     }
 }

@@ -1,4 +1,4 @@
-2256 / 2395 (94%) bound
+2258 / 2395 (94%) bound
 egui_containers_menu_MenuState_from_id
 egui_context_Context_accesskit_node_builder
 egui_context_Context_add_plugin
@@ -57,7 +57,6 @@ egui_layers_PaintList_mutate_shape
 egui_load_LoadError_byte_size
 egui_memory_Memory_areas
 egui_memory_Memory_areas_mut
-egui_plot_aesthetics_MarkerShape_all
 egui_plot_axis_AxisHints_formatter
 egui_plot_data_PlotPoints_from_explicit_callback
 egui_plot_data_PlotPoints_from_iter
@@ -108,7 +107,6 @@ egui_plot_overlays_coordinates_CoordinatesFormatter_default
 egui_plot_overlays_coordinates_CoordinatesFormatter_new
 egui_plot_overlays_coordinates_CoordinatesFormatter_with_decimals
 egui_plot_overlays_legend_Legend_hidden_items
-egui_plot_placement_Corner_all
 egui_plot_plot_PlotUi_add_item
 egui_plot_plot_PlotUi_ctx
 egui_plot_plot_Plot_coordinates_formatter
