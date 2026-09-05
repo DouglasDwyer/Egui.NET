@@ -1,0 +1,78 @@
+# Copied from https://github.com/rerun-io/rerun_template
+
+################################################################################
+# Config for the link checker lychee.
+#
+# Download & learn more at:
+# https://github.com/lycheeverse/lychee
+#
+# Example config:
+# https://github.com/lycheeverse/lychee/blob/master/lychee.example.toml
+#
+# Run `lychee . --dump` to list all found links that are being checked.
+#
+# Note that by default lychee will only check markdown and html files,
+# to check any other files you have to point to them explicitly, e.g.:
+# `lychee **/*.rs`
+# To make things worse, `exclude_path` is ignored for these globs,
+# so local runs with lots of gitignored files will be slow.
+# (https://github.com/lycheeverse/lychee/issues/1405)
+#
+# This unfortunately doesn't list anything for non-glob checks.
+################################################################################
+
+# Maximum number of concurrent link checks.
+# Workaround for "too many open files" error on MacOS, see https://github.com/lycheeverse/lychee/issues/1248
+max_concurrency = 32
+
+# Check links inside `<code>` and `<pre>` blocks as well as Markdown code blocks.
+include_verbatim = true
+
+# Proceed for server connections considered insecure (invalid TLS).
+insecure = true
+
+# Maximum number of allowed retries before a link is declared dead.
+max_retries = 4
+
+# Wait time between attempts in seconds.
+retry_wait_time = 2
+
+# Comma-separated list of accepted status codes for valid links.
+accept = [
+  "100..=103", # Informational codes.
+  "200..=299", # Success codes.
+  "429",       # Too many requests. This is practically never a sign of a broken link.
+]
+
+
+# Exclude URLs and mail addresses from checking (supports regex).
+exclude = [
+  # Strings with replacements.
+  '/__VIEWER_VERSION__/', # Replacement variable __VIEWER_VERSION__.
+  '/\$',                  # Replacement variable $.
+  '/GIT_HASH/',           # Replacement variable GIT_HASH.
+  '\{\}',                 # Ignore links with string interpolation.
+  '\$relpath\^',          # Relative paths as used by rerun_cpp's doc header.
+  '%7B.+%7D',             # Ignore strings that look like ready to use links but contain a replacement strings. The URL escaping is for '{.+}' (this seems to be needed for html embedded urls since lychee assumes they use this encoding).
+  '%7B%7D',               # Ignore links with string interpolation, escaped variant.
+
+  # Local links that require further setup.
+  'http://127.0.0.1',
+  'http://localhost',
+  'recording:/',      # rrd recording link.
+  'ws:/',
+  're_viewer.js',     # Build artifact that html is linking to.
+
+  # Api endpoints.
+  'https://fonts.googleapis.com/', # Font API entrypoint, not a link.
+  'https://fonts.gstatic.com/',    # Font API entrypoint, not a link.
+  'https://tel.rerun.io/',         # Analytics endpoint.
+
+  # Avoid rate limiting.
+  'https://crates.io/crates/.*',                   # Avoid crates.io rate-limiting
+  'https://github.com/Bromeon',
+  'https://github.com/EmbersArc',
+  'https://github.com/emilk',
+  'https://github.com/emilk/egui_plot/commit/\.*', # Ignore links to our own commits (typically in changelog).
+  'https://github.com/emilk/egui_plot/pull/\.*',   # Ignore links to our own pull requests (typically in changelog).
+]

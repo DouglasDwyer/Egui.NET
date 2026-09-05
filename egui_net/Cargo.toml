@@ -13,6 +13,7 @@ bitflags.workspace = true
 egui = { workspace = true, features = [ "default_fonts", "serde" ] }
 egui_extras.workspace = true
 egui_net_ffi.workspace = true
+egui_plot.workspace = true
 image.workspace = true
 jiff.workspace = true
 serde.workspace = true

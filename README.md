@@ -80,6 +80,7 @@ The project is organized in the following way:
 - docs -  contains files for customizing the DocFX output
 - Egui - contains the C# project definition and manually-written C# bindings
 - egui-rs - a vendored [subtree](https://git-scm.com/book/en/v2/Git-Tools-Advanced-Merging#_subtree_merge) of `egui`, with the C# interop changes described below committed directly on top
+- egui_plot-rs - a vendored subtree of [`egui_plot`](https://github.com/emilk/egui_plot) (which moved out of the main `egui` repo into its own), with the same kind of C# interop changes committed directly on top. Not yet wired into the autobinder or bound to C#
 - egui_net - contains the runtime `egui` crate that is compiled to a `dylib` and loaded by C#.
   - progress_report.txt - describes what percentage of the API is complete, and identifies functions that have yet to be bound. Generated every time `cargo test` is run
 - egui_net_bindgen - helper crate that contains the autobinder. Leverages `rustdoc` and `serde-generate` to bind most of egui automatically. Its build script regenerates rustdoc JSON straight from egui-rs/ on every build where egui-rs/ has changed, and the resulting bindings are written to `target/bindings` whenever `cargo build` is run
@@ -89,7 +90,7 @@ The project is organized in the following way:
 
 The project needs a small amount of `egui` code to be marked as serializable so that it can be shared with C#. Those changes are committed directly onto the `egui-rs` subtree rather than maintained as a separate patch file, so `cargo build` works right after cloning with no extra setup step.
 
-To pull in a newer `egui` release: `git subtree pull --prefix=egui-rs <egui remote> <tag> --squash`, then resolve any merge conflicts between the new upstream release and the existing C# interop changes.
+To pull in a newer `egui` release: `git subtree pull --prefix=egui-rs <egui remote> <tag> --squash`, then resolve any merge conflicts between the new upstream release and the existing C# interop changes. The same applies to `egui_plot-rs` and its `<egui_plot remote>`, and its version should track whichever `egui_plot` release depends on the `egui` version currently vendored in `egui-rs`.
 
 ### Supported platforms
 
