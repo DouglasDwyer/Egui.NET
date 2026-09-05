@@ -146,6 +146,7 @@ impl Plot {
     fn default_grid_spacers() -> [GridSpacer<'static>; 2] {
         [crate::grid::log_grid_spacer(10), crate::grid::log_grid_spacer(10)]
     }
+
     /// Give a unique id for each plot within the same [`Ui`].
     pub fn new(id_source: impl Into<Id>) -> Self {
         Self {

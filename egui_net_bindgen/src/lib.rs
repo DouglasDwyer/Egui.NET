@@ -71,8 +71,14 @@ const BINDING_EXCLUDE_FNS: &[&str] = &[
     "egui_ui_Ui_next_auto_id",
     "egui_ui_Ui_separator",
     "egui_ui_Ui_spinner",
-    // Plot: takes a callback, bound manually
+    // Plot: bound manually (`show` takes a callback; the `allow_*` setters take a named generic
+    // type parameter rather than argument-position `impl Trait` - see the comment on their
+    // `.with()` calls in `egui_net`)
     "egui_plot_plot_Plot_show",
+    "egui_plot_plot_Plot_allow_zoom",
+    "egui_plot_plot_Plot_allow_drag",
+    "egui_plot_plot_Plot_allow_scroll",
+    "egui_plot_plot_Plot_allow_axis_zoom_drag",
     // Popup: bound manually
     "egui_containers_popup_Popup_open_id",
     // Rect: bound manually
