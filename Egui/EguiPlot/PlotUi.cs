@@ -27,22 +27,4 @@ public ref partial struct PlotUi
     {
         if (Ptr == 0) { throw new NullReferenceException("PlotUi instance was uninitialized"); }
     }
-
-    /// <summary>
-    /// Add a data line.
-    /// </summary>
-    public readonly void Line(Line line)
-    {
-        AssertInitialized();
-        EguiMarshal.Call(EguiFn.egui_plot_plot_PlotUi_line, Ptr, line);
-    }
-
-    /// <summary>
-    /// Add data points.
-    /// </summary>
-    public readonly void Points(Points points)
-    {
-        AssertInitialized();
-        EguiMarshal.Call(EguiFn.egui_plot_plot_PlotUi_points, Ptr, points);
-    }
 }

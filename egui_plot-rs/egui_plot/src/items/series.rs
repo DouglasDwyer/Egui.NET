@@ -28,19 +28,21 @@ use crate::items::PlotItemBase;
 use crate::math::{dist_sq_to_segment, y_intersection};
 
 /// A series of values forming a path.
-pub struct Line<'a> {
+#[cfg_attr(feature = "serde", derive(serde::Deserialize, serde::Serialize))]
+pub struct Line {
     base: PlotItemBase,
-    pub(crate) series: PlotPoints<'a>,
+    pub(crate) series: PlotPoints,
     pub(crate) stroke: Stroke,
     pub(crate) fill: Option<f32>,
     pub(crate) fill_alpha: f32,
+    #[cfg_attr(feature = "serde", serde(skip))]
     pub(crate) gradient_color: Option<Arc<dyn Fn(PlotPoint) -> Color32 + Send + Sync>>,
     pub(crate) gradient_fill: bool,
     pub(crate) style: LineStyle,
 }
 
-impl<'a> Line<'a> {
-    pub fn new(name: impl Into<String>, series: impl Into<PlotPoints<'a>>) -> Self {
+impl Line {
+    pub fn new(name: impl Into<String>, series: impl Into<PlotPoints>) -> Self {
         Self {
             base: PlotItemBase::new(name.into()),
             series: series.into(),
@@ -158,7 +160,7 @@ impl<'a> Line<'a> {
     }
 }
 
-impl PlotItem for Line<'_> {
+impl PlotItem for Line {
     fn shapes(&self, _ui: &Ui, transform: &PlotTransform, shapes: &mut Vec<Shape>) {
         let Self {
             base,

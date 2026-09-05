@@ -2029,7 +2029,7 @@ impl<'a> PlotUi<'a> {
     }
 
     /// Add a data line.
-    pub fn line(&mut self, mut line: crate::Line<'a>) {
+    pub fn line(&mut self, mut line: crate::Line) {
         if line.series.is_empty() {
             return;
         }
@@ -2042,7 +2042,7 @@ impl<'a> PlotUi<'a> {
     }
 
     /// Add a polygon. The polygon has to be convex.
-    pub fn polygon(&mut self, mut polygon: crate::Polygon<'a>) {
+    pub fn polygon(&mut self, mut polygon: crate::Polygon) {
         if polygon.series.is_empty() {
             return;
         }
@@ -2064,7 +2064,7 @@ impl<'a> PlotUi<'a> {
     }
 
     /// Add data points.
-    pub fn points(&mut self, mut points: crate::Points<'a>) {
+    pub fn points(&mut self, mut points: crate::Points) {
         if points.series.is_empty() {
             return;
         }
@@ -2077,7 +2077,7 @@ impl<'a> PlotUi<'a> {
     }
 
     /// Add arrows.
-    pub fn arrows(&mut self, mut arrows: crate::Arrows<'a>) {
+    pub fn arrows(&mut self, mut arrows: crate::Arrows) {
         if arrows.origins.is_empty() || arrows.tips.is_empty() {
             return;
         }

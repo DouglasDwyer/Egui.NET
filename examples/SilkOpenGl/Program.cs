@@ -565,23 +565,25 @@ public class Program
                 .Select(i =>
                 {
                     double x = i * 0.05;
-                    return (x, Math.Sin(x));
-                });
+                    return new PlotPoint(x, Math.Sin(x));
+                })
+                .ToImmutableArray();
 
             var markers = Enumerable.Range(0, 20)
                 .Select(i =>
                 {
                     double x = i * 0.5;
-                    return (x, Math.Cos(x));
-                });
+                    return new PlotPoint(x, Math.Cos(x));
+                })
+                .ToImmutableArray();
 
             new Plot("plot_demo")
                 .ViewAspect(2.0f)
                 .Legend(new Legend())
                 .Show(ui, plotUi =>
                 {
-                    plotUi.Line(new Line("sin(x)", sinPoints).Stroke(new Stroke { Width = 2.0f, Color = Color32.LightBlue }));
-                    plotUi.Points(new Points("cos(x)", markers).Shape(MarkerShape.Circle).Radius(3.0f).Color(Color32.Orange));
+                    plotUi.Line(new Line("sin(x)", new PlotPoints.Owned(sinPoints)).Stroke(new Stroke { Width = 2.0f, Color = Color32.LightBlue }));
+                    plotUi.Points(new Points("cos(x)", new PlotPoints.Owned(markers)).Shape(MarkerShape.Circle).Radius(3.0f).Color(Color32.Orange));
                 });
         }
     }
