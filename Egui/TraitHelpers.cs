@@ -74,26 +74,6 @@ static partial class TraitHelpers
         return MarkerShapeSerdeExtensions.Deserialize(deserializer);
     }
 
-    public static void serialize_option_Legend(Legend? value, BincodeSerializer serializer)
-    {
-        if (value is not null)
-        {
-            serializer.serialize_option_tag(true);
-            (value ?? default).Serialize(serializer);
-        }
-        else
-        {
-            serializer.serialize_option_tag(false);
-        }
-    }
-
-    public static Legend? deserialize_option_Legend(BincodeDeserializer deserializer)
-    {
-        bool tag = deserializer.deserialize_option_tag();
-        if (!tag) { return null; }
-        return Legend.Deserialize(deserializer);
-    }
-
     public static void serialize_vector_Color32(ImmutableArray<Egui.Color32> value, Bincode.BincodeSerializer serializer)
     {
         serializer.serialize_seq_unmanaged(value.AsSpan());

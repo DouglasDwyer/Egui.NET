@@ -90,6 +90,8 @@ const BINDING_EXCLUDE_FNS: &[&str] = &[
     "egui_ui_Ui_next_auto_id",
     "egui_ui_Ui_separator",
     "egui_ui_Ui_spinner",
+    // Plot: takes a callback, bound manually
+    "egui_plot_plot_Plot_show",
     // Popup: bound manually
     "egui_containers_popup_Popup_open_id",
     // Rect: bound manually
