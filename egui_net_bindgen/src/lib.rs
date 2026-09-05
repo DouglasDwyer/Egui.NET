@@ -2354,22 +2354,14 @@ impl BindingsGenerator {
         result
     }
 
-    /// Emits a registry of all functions that have been bound.
-    ///
-    /// A single `.with()` chain covering every autobound function (thousands of entries) is one
-    /// enormous nested const-expression - `a.with(x).with(y).with(z)` parses as
-    /// `((a.with(x)).with(y)).with(z)`, so the nesting depth grows with the number of entries.
-    /// Evaluating that as a single constant has been observed to overflow the compiler's stack on
-    /// platforms with a smaller default thread stack size (e.g. Windows). Instead, this emits the
-    /// bindings as a series of fixed-size chunks (each its own short `.with()` chain, so its depth
-    /// stays constant regardless of the total function count), then combines the chunks with
-    /// [`EguiFnMap::merge`] - a flat loop, not a chain, so joining many chunks together doesn't
-    /// reintroduce the same depth problem.
+    /// Emits a registry of all functions that have been bound, generating bindings in small
+    /// chunks to avoid large expressions that choke the Rust compiler.
     fn emit_fn_enum_bindings(
         &self,
         f: &mut std::fmt::Formatter,
         bound_ids: &[RdId],
     ) -> std::fmt::Result {
+        /// The number of `.with()` calls per chunk.
         const CHUNK_SIZE: usize = 16;
 
         let mut chunk_names = Vec::new();
