@@ -23,6 +23,7 @@ use crate::items::PlotItemBase;
 /// Takes x-coordinates and corresponding `y_min` and `y_max` values, and fills
 /// the area between them. Useful for visualizing confidence intervals, ranges,
 /// and uncertainty bands.
+#[cfg_attr(feature = "serde", derive(serde::Deserialize, serde::Serialize))]
 pub struct FilledArea {
     base: PlotItemBase,
 
