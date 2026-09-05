@@ -45,6 +45,16 @@ public class Program
 
     private static PlotDemo _plotDemo = new PlotDemo();
 
+    // Whether each demo window is open. All windows used to be shown unconditionally, which got
+    // laggy in debug mode - the master panel below lets you open only the ones you need.
+    private static bool _readmeOpen = true;
+    private static bool _widgetGalleryOpen = true;
+    private static bool _settingsOpen = false;
+    private static bool _codeExampleOpen = false;
+    private static bool _tableOpen = false;
+    private static bool _codeEditorOpen = false;
+    private static bool _plotOpen = false;
+
     public static void Main(string[] args)
     {
         _ctx = new Context();
@@ -82,8 +92,11 @@ public class Program
         {
             var ctx = rootUi.Ctx;
 
+            ShowMasterPanel(rootUi);
+
             new Window("README Example")
                 .FixedSize((160, 160))
+                .Open(ref _readmeOpen)
                 .Show(ctx, ui =>
             {
                 ui.Heading("My egui Application");
@@ -104,12 +117,14 @@ public class Program
             new Window("🗄 Widget Gallery")
                 .Resizable((true, false))
                 .DefaultWidth(280)
+                .Open(ref _widgetGalleryOpen)
                 .Show(ctx, ui =>
             {
                 _widgetGallery.Show(ui);
             });
 
             new Window("Settings")
+                .Open(ref _settingsOpen)
                 .Show(ctx, ui => ctx.SettingsUi(ui));
 
             new Window("🖮 Code Example")
@@ -117,6 +132,7 @@ public class Program
                 .DefaultSize((390, 500))
                 .Scroll((false, false))
                 .Resizable((true, false))
+                .Open(ref _codeExampleOpen)
                 .Show(ctx, ui =>
             {
                 _codeExample.Show(ui);
@@ -124,6 +140,7 @@ public class Program
 
             new Window("☰ Table")
                 .DefaultWidth(400)
+                .Open(ref _tableOpen)
                 .Show(ctx, ui =>
             {
                 _tableDemo.Show(ui);
@@ -131,6 +148,7 @@ public class Program
 
             new Window("🖮 Code Editor")
                 .DefaultHeight(500)
+                .Open(ref _codeEditorOpen)
                 .Show(ctx, ui =>
             {
                 _codeEditorDemo.Show(ui);
@@ -138,10 +156,42 @@ public class Program
 
             new Window("📈 Plot")
                 .DefaultWidth(400)
+                .Open(ref _plotOpen)
                 .Show(ctx, ui =>
             {
                 _plotDemo.Show(ui);
             });
+        });
+    }
+
+    /// <summary>
+    /// A side panel (mirroring the one on the egui web demo) that lets you open and close each
+    /// demo window individually, instead of showing every one of them at once.
+    /// </summary>
+    private static void ShowMasterPanel(Ui ui)
+    {
+        Panel.Right("master_panel")
+            .Resizable(false)
+            .DefaultSize(180.0f)
+            .MinSize(180.0f)
+            .Show(ui, ui =>
+        {
+            ui.VerticalCentered(ui => ui.Strong("Demos"));
+            ui.Separator();
+
+            ui.ToggleValue(ref _readmeOpen, "README Example");
+            ui.ToggleValue(ref _widgetGalleryOpen, "🗄 Widget Gallery");
+            ui.ToggleValue(ref _settingsOpen, "Settings");
+            ui.ToggleValue(ref _codeExampleOpen, "🖮 Code Example");
+            ui.ToggleValue(ref _tableOpen, "☰ Table");
+            ui.ToggleValue(ref _codeEditorOpen, "🖮 Code Editor");
+            ui.ToggleValue(ref _plotOpen, "📈 Plot");
+
+            ui.Separator();
+            if (ui.Button("Organize windows").Clicked)
+            {
+                ui.MemoryMut(mem => mem.ResetAreas());
+            }
         });
     }
 
