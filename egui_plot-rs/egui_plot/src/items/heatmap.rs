@@ -30,6 +30,7 @@ use crate::label::LabelFormatterFn;
 pub const DEFAULT_RESOLUTION: usize = 128;
 
 /// A heatmap.
+#[cfg_attr(feature = "serde", derive(serde::Deserialize, serde::Serialize))]
 pub struct Heatmap {
     base: PlotItemBase,
 
@@ -54,9 +55,11 @@ pub struct Heatmap {
     max: f64,
 
     /// formatter for labels on tiles
+    #[cfg_attr(feature = "serde", serde(skip, default = "Heatmap::default_formatter"))]
     formatter: Box<dyn Fn(f64) -> String>,
 
     /// custom mapping of values to color
+    #[cfg_attr(feature = "serde", serde(skip))]
     custom_mapping: Option<Box<dyn Fn(f64) -> Color32>>,
 
     /// show labels on tiles
@@ -100,6 +103,12 @@ impl PartialEq for Heatmap {
 }
 
 impl Heatmap {
+    /// The default per-tile label formatter, used when `formatter` is skipped during
+    /// deserialization.
+    fn default_formatter() -> Box<dyn Fn(f64) -> String> {
+        Box::new(|v| format!("{v:.1}"))
+    }
+
     /// Create a 2D heatmap. Will automatically infer number of rows.
     ///
     /// - `values` contains magnitude of each tile. The alignment is row by row.
@@ -142,7 +151,7 @@ impl Heatmap {
             rows,
             min,
             max,
-            formatter: Box::new(|v| format!("{v:.1}")),
+            formatter: Self::default_formatter(),
             custom_mapping: None,
             show_labels: true,
             resolution,
@@ -164,7 +173,7 @@ impl Heatmap {
             rows: 0,
             min: 0.0,
             max: 0.0,
-            formatter: Box::new(|v| format!("{v:.1}")),
+            formatter: Self::default_formatter(),
             custom_mapping: None,
             show_labels: true,
             resolution,

@@ -79,6 +79,7 @@ const BINDING_EXCLUDE_FNS: &[&str] = &[
     "egui_plot_items_bar_chart_BarChart_initialize",
     "egui_plot_items_box_plot_BoxPlot_initialize",
     "egui_plot_items_filled_area_FilledArea_initialize",
+    "egui_plot_items_heatmap_Heatmap_initialize",
     "egui_plot_items_series_Line_initialize",
     "egui_plot_items_points_Points_initialize",
     "egui_plot_items_polygon_Polygon_initialize",
