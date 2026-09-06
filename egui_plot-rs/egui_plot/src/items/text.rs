@@ -140,6 +140,7 @@ impl PlotItem for Text {
 
 /// Text inside the plot.
 #[derive(Clone)]
+#[cfg_attr(feature = "serde", derive(serde::Deserialize, serde::Serialize))]
 pub struct Text {
     base: PlotItemBase,
     pub(crate) text: WidgetText,

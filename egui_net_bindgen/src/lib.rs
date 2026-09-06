@@ -27,6 +27,8 @@ use egui::*;
 use egui::{Rect, Vec2};
 use egui_extras::syntax_highlighting::*;
 use egui_extras::*;
+use egui_plot::Span;
+use egui_plot::*;
 use rustdoc_types::Id as RdId;
 use rustdoc_types::Path as RdPath;
 use rustdoc_types::*;
@@ -69,6 +71,12 @@ const BINDING_EXCLUDE_FNS: &[&str] = &[
     "egui_ui_Ui_next_auto_id",
     "egui_ui_Ui_separator",
     "egui_ui_Ui_spinner",
+    // Plot: bound manually
+    "egui_plot_plot_Plot_show",
+    "egui_plot_plot_Plot_allow_zoom",
+    "egui_plot_plot_Plot_allow_drag",
+    "egui_plot_plot_Plot_allow_scroll",
+    "egui_plot_plot_Plot_allow_axis_zoom_drag",
     // Popup: bound manually
     "egui_containers_popup_Popup_open_id",
     // Rect: bound manually
@@ -113,7 +121,7 @@ const BINDING_EXCLUDE_TYPE_DEFINITIONS: &[&str] = &[
 const HANDLE_TYPES: &[&str] = &["Context", "Painter", "TextureHandle"];
 
 /// Types that should be converted to `ref struct`s in C# backed by pointers.
-const POINTER_TYPES: &[&str] = &["FontsView", "Memory", "Strip", "TableRow", "Ui"];
+const POINTER_TYPES: &[&str] = &["FontsView", "Memory", "PlotUi", "Strip", "TableRow", "Ui"];
 
 /// Types that are hand-written in C# as `ref struct`s (e.g. because they hold `ref` fields)
 /// and therefore cannot be declared as `record struct`s alongside the rest of the
@@ -125,6 +133,12 @@ const NAMESPACE_RENAMES: &[(&str, &str)] = &[
     ("Egui.Containers.ScrollArea", "Egui.Containers"),
     ("Egui.Containers.CollapsingHeader", "Egui.Containers"),
     ("Egui.Containers.Panel", "Egui.Containers"),
+    ("Egui.EguiExtras", "Egui.Extras"),
+    (
+        "Egui.EguiExtras.SyntaxHighlighting",
+        "Egui.Extras.SyntaxHighlighting",
+    ),
+    ("Egui.EguiPlot", "Egui.Plot"),
     ("Egui.Os", "Egui"),
     ("Egui.Response", "Egui"),
     ("Egui.Style", "Egui"),
@@ -141,6 +155,7 @@ const TYPE_RENAMES: &[(&str, &str)] = &[
     ("Vec2", "EVec2"),
     ("Vec2b", "EVec2b"),
     ("Widgets", "WidgetsStyle"),
+    ("RangeInclusive", "RangeInclusiveF64"),
 ];
 
 /// Customizes the assigned namespace of types.
@@ -886,6 +901,9 @@ const IGNORE_FNS: &[&str] = &[
     // Ui
     "egui_ui_Ui_ctx",
     "egui_ui_Ui_drop",
+    // PlotUi: mirrors `Ui::ctx` - `PlotUi.Ctx` is a plain C# field set when the wrapper is
+    // constructed, no FFI call needed
+    "egui_plot_plot_PlotUi_ctx",
     // ViewportInPixels: private type
     "epaint_viewport_ViewportInPixels_from_points",
     // Undoer: not possible to bind to C# due to generics
@@ -1183,13 +1201,28 @@ impl BindingsGenerator {
             )))
             .expect("Failed to parse egui_extras"),
         );
+        Self::merge_crates(
+            &mut krate,
+            &serde_json::from_str::<Crate>(include_str!(concat!(
+                env!("OUT_DIR"),
+                "/egui_plot.json"
+            )))
+            .expect("Failed to parse egui_plot"),
+        );
         let declaring_tys = Self::declaring_types(&krate);
         let name_to_id = Self::names_to_ids(&krate);
         let public_fields = Self::public_fields(&krate);
 
         let mut namespaces = Self::find_public_paths(
             &krate,
-            &["egui", "epaint", "emath", "ecolor", "egui_extras"],
+            &[
+                "egui",
+                "epaint",
+                "emath",
+                "ecolor",
+                "egui_extras",
+                "egui_plot",
+            ],
         )
         .into_iter()
         .map(|(name, mut path)| {
@@ -1213,6 +1246,7 @@ impl BindingsGenerator {
         }
 
         namespaces.insert("Duration".to_string(), "".to_string());
+        namespaces.insert("RangeInclusive".to_string(), "Egui".to_string());
 
         BindingsGenerator {
             declaring_tys,
@@ -1493,6 +1527,31 @@ impl BindingsGenerator {
                     }
                 }
                 "String" | "str" => BoundTypeName::cs_rs("string", "String"),
+                "RangeInclusive" => {
+                    let Some(GenericArgs::AngleBracketed { args, .. }) = path.args.as_deref()
+                    else {
+                        return None;
+                    };
+                    if args.len() == 1 {
+                        let GenericArg::Type(arg) = &args[0] else {
+                            return None;
+                        };
+                        let inner = self.bound_ty_name(self_ty, arg)?;
+                        if inner.rs_name == "f64" && self.registry.contains_key("RangeInclusive") {
+                            let cs_name = Self::new_name("RangeInclusive")
+                                .map(ToString::to_string)
+                                .unwrap_or_else(|| "RangeInclusive".to_string());
+                            BoundTypeName::cs_rs(
+                                cs_name,
+                                format!("RangeInclusive<{}>", inner.rs_name),
+                            )
+                        } else {
+                            return None;
+                        }
+                    } else {
+                        return None;
+                    }
+                }
                 _ => {
                     let name = path.path.split("::").last().expect("Type was empty");
                     if self.registry.contains_key(name) {
@@ -2318,55 +2377,73 @@ impl BindingsGenerator {
         result
     }
 
-    /// Emits a registry of all functions that have been bound.
+    /// Emits a registry of all functions that have been bound, generating bindings in small
+    /// chunks to avoid large expressions that choke the Rust compiler.
     fn emit_fn_enum_bindings(
         &self,
         f: &mut std::fmt::Formatter,
         bound_ids: &[RdId],
     ) -> std::fmt::Result {
-        writeln!(f, "const AUTOGENERATED_EGUI_FNS: EguiFnMap = egui_fn_map()")?;
+        /// The number of `.with()` calls per chunk.
+        const CHUNK_SIZE: usize = 16;
 
-        for id in bound_ids {
-            let ty_name = self
-                .declaring_type(*id)
-                .and_then(|x| self.krate.index[&x].name.clone());
+        let mut chunk_names = Vec::new();
 
-            let ItemEnum::Function(func) = &self.krate.index[id].inner else {
-                panic!("Expected function items only")
-            };
+        for (chunk_index, chunk) in bound_ids.chunks(CHUNK_SIZE).enumerate() {
+            let chunk_name = format!("AUTOGENERATED_EGUI_FNS_CHUNK_{chunk_index}");
+            writeln!(f, "const {chunk_name}: EguiFnMap = egui_fn_map()")?;
 
-            let param_decls = self.rs_binding_signature(ty_name.as_deref(), func);
-            let args = self.rs_binding_arguments(ty_name.as_deref(), func);
-            let returns = self.rs_binding_returns(ty_name.as_deref(), func);
+            for id in chunk {
+                let ty_name = self
+                    .declaring_type(*id)
+                    .and_then(|x| self.krate.index[&x].name.clone());
 
-            let enum_name = self.fn_enum_variant_name(*id);
-            let path = self.fn_enum_path(*id);
+                let ItemEnum::Function(func) = &self.krate.index[id].inner else {
+                    panic!("Expected function items only")
+                };
 
-            let clone_return = if func
-                .sig
-                .output
-                .as_ref()
-                .map(|x| {
-                    matches!(
-                        self.bound_ty(ty_name.as_deref(), x)
-                            .expect("Failed to get return type")
-                            .kind,
-                        BoundTypeKind::Reference { mutable: false }
-                    )
-                })
-                .unwrap_or_default()
-            {
-                ".to_owned()"
-            } else {
-                ""
-            };
+                let param_decls = self.rs_binding_signature(ty_name.as_deref(), func);
+                let args = self.rs_binding_arguments(ty_name.as_deref(), func);
+                let returns = self.rs_binding_returns(ty_name.as_deref(), func);
 
-            writeln!(
-                f,
-                "    .with(EguiFn::{enum_name}, |{param_decls}| unsafe {{ ({path}({args}){clone_return}, {returns}) }})"
-            )?;
+                let enum_name = self.fn_enum_variant_name(*id);
+                let path = self.fn_enum_path(*id);
+
+                let clone_return = if func
+                    .sig
+                    .output
+                    .as_ref()
+                    .map(|x| {
+                        matches!(
+                            self.bound_ty(ty_name.as_deref(), x)
+                                .expect("Failed to get return type")
+                                .kind,
+                            BoundTypeKind::Reference { mutable: false }
+                        )
+                    })
+                    .unwrap_or_default()
+                {
+                    ".to_owned()"
+                } else {
+                    ""
+                };
+
+                writeln!(
+                    f,
+                    "    .with(EguiFn::{enum_name}, |{param_decls}| unsafe {{ ({path}({args}){clone_return}, {returns}) }})"
+                )?;
+            }
+            writeln!(f, ";")?;
+
+            chunk_names.push(chunk_name);
+        }
+
+        write!(f, "const AUTOGENERATED_EGUI_FNS: EguiFnMap = egui_fn_map()")?;
+        for chunk_name in &chunk_names {
+            write!(f, ".merge(&{chunk_name})")?;
         }
         writeln!(f, ";")?;
+
         Ok(())
     }
 
@@ -2637,7 +2714,11 @@ impl BindingsGenerator {
         result += "}\n";
 
         for (old, new) in TYPE_RENAMES {
-            result += &format!("type {new} = {old};\n");
+            if *old == "RangeInclusive" {
+                result += &format!("type {new} = {old}<f64>;\n");
+            } else {
+                result += &format!("type {new} = {old};\n");
+            }
         }
 
         self.emit_fn_enum_bindings(
@@ -2735,37 +2816,75 @@ impl BindingsGenerator {
     fn gather_fns(&self) -> Vec<RdId> {
         let ignore_fns = IGNORE_FNS.into_iter().collect::<HashSet<_>>();
 
-        self.krate
-            .index
-            .iter()
-            .filter_map(|(id, item)| {
-                (item.crate_id == 0
-                    && item.deprecation.is_none()
-                    && item.name.is_some()
-                    && if let Some(decl_ty) = self.declaring_type(*id) {
-                        !(item.name.as_deref() == Some("default")
-                            && self.is_primitive_enum(decl_ty))
-                    } else {
-                        self.krate.paths.contains_key(id)
+        let candidates = self.krate.index.iter().filter_map(|(id, item)| {
+            (item.crate_id == 0
+                && item.deprecation.is_none()
+                && item.name.is_some()
+                && if let Some(decl_ty) = self.declaring_type(*id) {
+                    !(item.name.as_deref() == Some("default") && self.is_primitive_enum(decl_ty))
+                } else {
+                    self.krate.paths.contains_key(id)
+                }
+                && matches!(item.inner, ItemEnum::Function(_))
+                && {
+                    let variant_name = self.fn_enum_variant_name(*id);
+                    variant_name.starts_with("e")
+                        && !ignore_fns.contains(&&*variant_name)
+                        && !variant_name.contains("__")
+                        && !variant_name.rsplit_once("_").is_some_and(|(_, a)| {
+                            a.chars().next() == a.chars().next().map(|x| x.to_ascii_uppercase())
+                        })
+                }
+                && item
+                    .name
+                    .as_deref()
+                    .map(|x| !IGNORE_FN_NAMES.contains(&x))
+                    .unwrap_or(true))
+            .then_some(*id)
+        });
+
+        // Filter out trait methods which duplicate the names of inherent methods
+        let trait_impl_fns = self.trait_impl_fn_ids();
+        let mut by_name: HashMap<String, RdId> = HashMap::new();
+        for id in candidates {
+            let name = self.fn_enum_variant_name(id);
+            match by_name.get(&name) {
+                Some(&existing) if trait_impl_fns.contains(&existing) => {
+                    if !trait_impl_fns.contains(&id) {
+                        by_name.insert(name, id);
                     }
-                    && matches!(item.inner, ItemEnum::Function(_))
-                    && {
-                        let variant_name = self.fn_enum_variant_name(*id);
-                        variant_name.starts_with("e")
-                            && !ignore_fns.contains(&&*variant_name)
-                            && !variant_name.contains("__")
-                            && !variant_name.rsplit_once("_").is_some_and(|(_, a)| {
-                                a.chars().next() == a.chars().next().map(|x| x.to_ascii_uppercase())
-                            })
+                }
+                Some(_) => {}
+                None => {
+                    by_name.insert(name, id);
+                }
+            }
+        }
+
+        by_name.into_values().collect()
+    }
+
+    /// Gets the IDs of all functions defined inside a trait `impl` block (as opposed to an
+    /// inherent `impl` block).
+    fn trait_impl_fn_ids(&self) -> HashSet<RdId> {
+        let mut result = HashSet::new();
+
+        for item in self.krate.index.values() {
+            if let ItemEnum::Impl(Impl {
+                trait_: Some(_),
+                items,
+                ..
+            }) = &item.inner
+            {
+                for child in items {
+                    if matches!(self.krate.index[child].inner, ItemEnum::Function(_)) {
+                        result.insert(*child);
                     }
-                    && item
-                        .name
-                        .as_deref()
-                        .map(|x| !IGNORE_FN_NAMES.contains(&x))
-                        .unwrap_or(true))
-                .then_some(id.clone())
-            })
-            .collect()
+                }
+            }
+        }
+
+        result
     }
 
     /// Gets the ID of the type that declares the given function.
@@ -2966,6 +3085,7 @@ impl BindingsGenerator {
         trace_auto_epaint_types(&mut tracer);
         trace_auto_ecolor_types(&mut tracer);
         trace_auto_egui_extras_types(&mut tracer);
+        trace_auto_egui_plot_types(&mut tracer);
 
         let mut result = tracer
             .registry()

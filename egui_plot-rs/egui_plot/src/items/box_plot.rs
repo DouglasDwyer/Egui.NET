@@ -27,6 +27,7 @@ use crate::math::find_closest_rect;
 use crate::rect_elem::RectElement;
 
 /// A diagram containing a series of [`BoxElem`] elements.
+#[cfg_attr(feature = "serde", derive(serde::Deserialize, serde::Serialize))]
 pub struct BoxPlot {
     base: PlotItemBase,
 
@@ -34,6 +35,7 @@ pub struct BoxPlot {
     default_color: Color32,
 
     /// A custom element formatter
+    #[cfg_attr(feature = "serde", serde(skip))]
     pub(crate) element_formatter: Option<Box<dyn Fn(&BoxElem, &Self) -> String>>,
 }
 
@@ -195,6 +197,7 @@ impl PlotItem for BoxPlot {
 
 /// Contains the values of a single box in a box plot.
 #[derive(Clone, Debug, PartialEq)]
+#[cfg_attr(feature = "serde", derive(serde::Deserialize, serde::Serialize))]
 pub struct BoxSpread {
     /// Value of lower whisker (typically minimum).
     ///
@@ -234,6 +237,7 @@ impl BoxSpread {
 /// whiskers, letting one use their preferred formula. Use
 /// [`Points`][`super::Points`] to draw the outliers.
 #[derive(Clone, Debug, PartialEq)]
+#[cfg_attr(feature = "serde", derive(serde::Deserialize, serde::Serialize))]
 pub struct BoxElem {
     /// Name of plot element in the diagram (annotated by default formatter).
     pub name: String,

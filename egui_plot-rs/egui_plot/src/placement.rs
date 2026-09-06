@@ -1,5 +1,6 @@
 /// Placement of the horizontal X-Axis.
 #[derive(Debug, Clone, Copy, PartialEq, Eq)]
+#[cfg_attr(feature = "serde", derive(serde::Deserialize, serde::Serialize))]
 pub enum VPlacement {
     Top,
     Bottom,
@@ -7,6 +8,7 @@ pub enum VPlacement {
 
 /// Placement of the vertical Y-Axis.
 #[derive(Debug, Clone, Copy, PartialEq, Eq)]
+#[cfg_attr(feature = "serde", derive(serde::Deserialize, serde::Serialize))]
 pub enum HPlacement {
     Left,
     Right,
@@ -14,6 +16,7 @@ pub enum HPlacement {
 
 /// Placement of an axis.
 #[derive(Debug, Clone, Copy, PartialEq, Eq)]
+#[cfg_attr(feature = "serde", derive(serde::Deserialize, serde::Serialize))]
 pub enum Placement {
     /// Bottom for X-axis, or left for Y-axis.
     LeftBottom,
@@ -73,9 +76,7 @@ pub enum Corner {
 }
 
 impl Corner {
-    pub fn all() -> impl Iterator<Item = Self> {
-        [Self::LeftTop, Self::RightTop, Self::LeftBottom, Self::RightBottom]
-            .iter()
-            .copied()
+    pub fn all() -> Vec<Self> {
+        vec![Self::LeftTop, Self::RightTop, Self::LeftBottom, Self::RightBottom]
     }
 }

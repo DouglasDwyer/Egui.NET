@@ -31,10 +31,11 @@ use crate::placement::VPlacement;
 // Gap between tick labels and axis label in units of the axis label height
 const AXIS_LABEL_GAP: f32 = 0.25;
 
-pub(super) type AxisFormatterFn<'a> = dyn Fn(GridMark, &RangeInclusive<f64>) -> String + 'a;
+pub(super) type AxisFormatterFn = dyn Fn(GridMark, &RangeInclusive<f64>) -> String + 'static;
 
 /// X or Y axis.
 #[derive(Debug, Clone, Copy, PartialEq, Eq)]
+#[cfg_attr(feature = "serde", derive(serde::Deserialize, serde::Serialize))]
 pub enum Axis {
     /// Horizontal X-Axis
     X = 0,
@@ -57,9 +58,11 @@ impl From<Axis> for usize {
 ///
 /// Used to configure axis label and ticks.
 #[derive(Clone)]
-pub struct AxisHints<'a> {
+#[cfg_attr(feature = "serde", derive(serde::Deserialize, serde::Serialize))]
+pub struct AxisHints {
     pub(super) label: WidgetText,
-    pub(super) formatter: Arc<AxisFormatterFn<'a>>,
+    #[cfg_attr(feature = "serde", serde(skip, default = "AxisHints::default_formatter_arc"))]
+    pub(super) formatter: Arc<AxisFormatterFn>,
     pub(super) min_thickness: f32,
     pub(super) placement: Placement,
     pub(super) label_spacing: Rangef,
@@ -67,7 +70,13 @@ pub struct AxisHints<'a> {
     pub(super) tick_label_font: Option<FontId>,
 }
 
-impl<'a> AxisHints<'a> {
+impl AxisHints {
+    /// The default formatter used when the `formatter` field is skipped during
+    /// deserialization.
+    fn default_formatter_arc() -> Arc<AxisFormatterFn> {
+        Arc::new(Self::default_formatter)
+    }
+
     /// Initializes a default axis configuration for the X axis.
     pub fn new_x() -> Self {
         Self::new(Axis::X)
@@ -103,7 +112,7 @@ impl<'a> AxisHints<'a> {
     /// The second parameter of `formatter` is the currently shown range on this
     /// axis.
     #[inline]
-    pub fn formatter(mut self, fmt: impl Fn(GridMark, &RangeInclusive<f64>) -> String + 'a) -> Self {
+    pub fn formatter(mut self, fmt: impl Fn(GridMark, &RangeInclusive<f64>) -> String + 'static) -> Self {
         self.formatter = Arc::new(fmt);
         self
     }
@@ -179,9 +188,9 @@ impl<'a> AxisHints<'a> {
 }
 
 #[derive(Clone)]
-pub(super) struct AxisWidget<'a> {
+pub(super) struct AxisWidget {
     pub range: RangeInclusive<f64>,
-    pub hints: AxisHints<'a>,
+    pub hints: AxisHints,
 
     /// The region where we draw the axis labels.
     pub rect: Rect,
@@ -189,10 +198,10 @@ pub(super) struct AxisWidget<'a> {
     pub steps: Arc<Vec<GridMark>>,
 }
 
-impl<'a> AxisWidget<'a> {
+impl AxisWidget {
     /// if `rect` has width or height == 0, it will be automatically calculated
     /// from ticks and text.
-    pub fn new(hints: AxisHints<'a>, rect: Rect) -> Self {
+    pub fn new(hints: AxisHints, rect: Rect) -> Self {
         Self {
             range: (0.0..=0.0),
             hints,

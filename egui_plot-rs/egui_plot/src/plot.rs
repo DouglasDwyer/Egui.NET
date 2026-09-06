@@ -58,7 +58,7 @@ use crate::placement::HPlacement;
 use crate::placement::VPlacement;
 
 /// Combined axis widgets: `[x_axis_widgets, y_axis_widgets]`
-type AxisWidgets<'a> = [Vec<crate::axis::AxisWidget<'a>>; 2];
+type AxisWidgets = [Vec<crate::axis::AxisWidget>; 2];
 
 /// Combined axis responses: `[x_axis_responses, y_axis_responses]`
 type AxisResponses = [Vec<Response>; 2];
@@ -85,7 +85,8 @@ type AxisResponses = [Vec<Response>; 2];
 ///     .show(ui, |plot_ui| plot_ui.line(line));
 /// # });
 /// ```
-pub struct Plot<'a> {
+#[cfg_attr(feature = "serde", derive(serde::Deserialize, serde::Serialize))]
+pub struct Plot {
     id_source: Id,
     id: Option<Id>,
 
@@ -117,10 +118,12 @@ pub struct Plot<'a> {
     show_x: bool,
     show_y: bool,
     show_crosshair: bool,
-    label_formatter: Option<LabelFormatter<'a>>,
-    coordinates_formatter: Option<(Corner, CoordinatesFormatter<'a>)>,
-    x_axes: Vec<AxisHints<'a>>, // default x axes
-    y_axes: Vec<AxisHints<'a>>, // default y axes
+    #[cfg_attr(feature = "serde", serde(skip))]
+    label_formatter: Option<LabelFormatter<'static>>,
+    #[cfg_attr(feature = "serde", serde(skip))]
+    coordinates_formatter: Option<(Corner, CoordinatesFormatter<'static>)>,
+    x_axes: Vec<AxisHints>, // default x axes
+    y_axes: Vec<AxisHints>, // default y axes
     legend_config: Option<Legend>,
     cursor_color: Option<Color32>,
     show_background: bool,
@@ -128,7 +131,8 @@ pub struct Plot<'a> {
 
     show_grid: Vec2b,
     grid_spacing: Rangef,
-    grid_spacers: [GridSpacer<'a>; 2],
+    #[cfg_attr(feature = "serde", serde(skip, default = "Plot::default_grid_spacers"))]
+    grid_spacers: [GridSpacer<'static>; 2],
     grid_color: Option<Color32>,
     grid_strength_exponent: f32,
     clamp_grid: bool,
@@ -136,11 +140,17 @@ pub struct Plot<'a> {
     sense: Sense,
 }
 
-impl<'a> Plot<'a> {
+impl Plot {
+    /// The default grid spacers used when the `grid_spacers` field is skipped
+    /// during deserialization.
+    fn default_grid_spacers() -> [GridSpacer<'static>; 2] {
+        [crate::grid::log_grid_spacer(10), crate::grid::log_grid_spacer(10)]
+    }
+
     /// Give a unique id for each plot within the same [`Ui`].
-    pub fn new(id_source: impl egui::AsId) -> Self {
+    pub fn new(id_source: impl Into<Id>) -> Self {
         Self {
-            id_source: Id::new(id_source),
+            id_source: id_source.into(),
             id: None,
 
             center_axis: false.into(),
@@ -417,14 +427,14 @@ impl<'a> Plot<'a> {
     /// # });
     /// ```
     #[inline]
-    pub fn label_formatter(mut self, label_formatter: impl Fn(&HoverPosition<'_>) -> Option<String> + 'a) -> Self {
+    pub fn label_formatter(mut self, label_formatter: impl Fn(&HoverPosition<'_>) -> Option<String> + 'static) -> Self {
         self.label_formatter = Some(Box::new(label_formatter));
         self
     }
 
     /// Show the pointer coordinates in the plot.
     #[inline]
-    pub fn coordinates_formatter(mut self, position: Corner, formatter: CoordinatesFormatter<'a>) -> Self {
+    pub fn coordinates_formatter(mut self, position: Corner, formatter: CoordinatesFormatter<'static>) -> Self {
         self.coordinates_formatter = Some((position, formatter));
         self
     }
@@ -480,7 +490,7 @@ impl<'a> Plot<'a> {
     /// There are helpers for common cases, see [`crate::grid::log_grid_spacer`]
     /// and [`crate::grid::uniform_grid_spacer`].
     #[inline]
-    pub fn x_grid_spacer(mut self, spacer: impl Fn(GridInput) -> Vec<GridMark> + 'a) -> Self {
+    pub fn x_grid_spacer(mut self, spacer: impl Fn(GridInput) -> Vec<GridMark> + 'static) -> Self {
         self.grid_spacers[0] = Box::new(spacer);
         self
     }
@@ -490,7 +500,7 @@ impl<'a> Plot<'a> {
     ///
     /// See [`Self::x_grid_spacer`] for explanation.
     #[inline]
-    pub fn y_grid_spacer(mut self, spacer: impl Fn(GridInput) -> Vec<GridMark> + 'a) -> Self {
+    pub fn y_grid_spacer(mut self, spacer: impl Fn(GridInput) -> Vec<GridMark> + 'static) -> Self {
         self.grid_spacers[1] = Box::new(spacer);
         self
     }
@@ -737,7 +747,7 @@ impl<'a> Plot<'a> {
     /// * the grid mark to format
     /// * currently shown range on this axis.
     #[inline]
-    pub fn x_axis_formatter(mut self, fmt: impl Fn(GridMark, &RangeInclusive<f64>) -> String + 'a) -> Self {
+    pub fn x_axis_formatter(mut self, fmt: impl Fn(GridMark, &RangeInclusive<f64>) -> String + 'static) -> Self {
         if let Some(main) = self.x_axes.first_mut() {
             main.formatter = Arc::new(fmt);
         }
@@ -750,7 +760,7 @@ impl<'a> Plot<'a> {
     /// * the grid mark to format
     /// * currently shown range on this axis.
     #[inline]
-    pub fn y_axis_formatter(mut self, fmt: impl Fn(GridMark, &RangeInclusive<f64>) -> String + 'a) -> Self {
+    pub fn y_axis_formatter(mut self, fmt: impl Fn(GridMark, &RangeInclusive<f64>) -> String + 'static) -> Self {
         if let Some(main) = self.y_axes.first_mut() {
             main.formatter = Arc::new(fmt);
         }
@@ -781,7 +791,7 @@ impl<'a> Plot<'a> {
     /// More than one axis may be specified. The first specified axis is
     /// considered the main axis.
     #[inline]
-    pub fn custom_x_axes(mut self, hints: Vec<AxisHints<'a>>) -> Self {
+    pub fn custom_x_axes(mut self, hints: Vec<AxisHints>) -> Self {
         self.x_axes = hints;
         self
     }
@@ -791,7 +801,7 @@ impl<'a> Plot<'a> {
     /// More than one axis may be specified. The first specified axis is
     /// considered the main axis.
     #[inline]
-    pub fn custom_y_axes(mut self, hints: Vec<AxisHints<'a>>) -> Self {
+    pub fn custom_y_axes(mut self, hints: Vec<AxisHints>) -> Self {
         self.y_axes = hints;
         self
     }
@@ -806,7 +816,7 @@ impl<'a> Plot<'a> {
     }
 
     /// Interact with and add items to the plot and finally draw it.
-    pub fn show<R>(self, ui: &mut Ui, build_fn: impl FnOnce(&mut PlotUi<'a>) -> R + 'a) -> PlotResponse<R> {
+    pub fn show<'b, R>(self, ui: &mut Ui, build_fn: impl FnOnce(&mut PlotUi<'b>) -> R + 'b) -> PlotResponse<R> {
         self.show_dyn(ui, Box::new(build_fn))
     }
 
@@ -852,7 +862,7 @@ impl<'a> Plot<'a> {
         }
     }
 
-    fn allocate_axis_responses(&self, ui: &mut Ui, axis_widgets: &AxisWidgets<'_>) -> AxisResponses {
+    fn allocate_axis_responses(&self, ui: &mut Ui, axis_widgets: &AxisWidgets) -> AxisResponses {
         let x_axis_responses = axis_widgets[0]
             .iter()
             .map(|widget| {
@@ -939,7 +949,7 @@ impl<'a> Plot<'a> {
     /// Returns `(legend_widget, show_x, show_y)`.
     fn prepare_legend(
         &self,
-        plot_ui: &mut PlotUi<'a>,
+        plot_ui: &mut PlotUi<'_>,
         mem: &PlotMemory,
         plot_rect: Rect,
     ) -> (Option<LegendWidget>, Vec2b) {
@@ -989,7 +999,7 @@ impl<'a> Plot<'a> {
         }
     }
 
-    fn compute_bounds(&self, ui: &Ui, mem: &mut PlotMemory, plot_ui: &PlotUi<'a>, plot_rect: Rect) {
+    fn compute_bounds(&self, ui: &Ui, mem: &mut PlotMemory, plot_ui: &PlotUi<'_>, plot_rect: Rect) {
         // Find the cursors from other plots we need to draw
         let mut bounds = *plot_ui.last_plot_transform.bounds();
 
@@ -1244,7 +1254,7 @@ impl<'a> Plot<'a> {
         foreground_shapes
     }
 
-    fn render_axis_widgets(&self, ui: &mut Ui, mem: &mut PlotMemory, mut axis_widgets: AxisWidgets<'_>) {
+    fn render_axis_widgets(&self, ui: &mut Ui, mem: &mut PlotMemory, mut axis_widgets: AxisWidgets) {
         let bounds = mem.transform.bounds();
         let x_axis_range = bounds.range_x();
         let x_steps = Arc::new({
@@ -1614,7 +1624,7 @@ impl<'a> Plot<'a> {
         (cursors, hovered_plot_item_id)
     }
 
-    fn show_dyn<R>(self, ui: &mut Ui, build_fn: Box<dyn FnOnce(&mut PlotUi<'a>) -> R + 'a>) -> PlotResponse<R> {
+    fn show_dyn<'b, R>(self, ui: &mut Ui, build_fn: Box<dyn FnOnce(&mut PlotUi<'b>) -> R + 'b>) -> PlotResponse<R> {
         let plot_id = self.id.unwrap_or_else(|| ui.make_persistent_id(self.id_source));
 
         // Get complete rect for drawing.
@@ -1741,12 +1751,12 @@ impl<'a> Plot<'a> {
 }
 
 /// Returns the rect left after adding axes.
-fn axis_widgets<'a>(
+fn axis_widgets(
     mem: Option<&PlotMemory>,
     show_axes: impl Into<Vec2b>,
     complete_rect: Rect,
-    [x_axes, y_axes]: [&'a [AxisHints<'a>]; 2],
-) -> ([Vec<AxisWidget<'a>>; 2], Rect) {
+    [x_axes, y_axes]: [&[AxisHints]; 2],
+) -> ([Vec<AxisWidget>; 2], Rect) {
     // Next we want to create this layout.
     // Indices are only examples.
     //
@@ -1771,8 +1781,8 @@ fn axis_widgets<'a>(
     //
     let show_axes = show_axes.into();
 
-    let mut x_axis_widgets = Vec::<AxisWidget<'_>>::new();
-    let mut y_axis_widgets = Vec::<AxisWidget<'_>>::new();
+    let mut x_axis_widgets = Vec::<AxisWidget>::new();
+    let mut y_axis_widgets = Vec::<AxisWidget>::new();
 
     // Will shrink as we add more axes.
     let mut rect_left = complete_rect;
@@ -2029,7 +2039,7 @@ impl<'a> PlotUi<'a> {
     }
 
     /// Add a data line.
-    pub fn line(&mut self, mut line: crate::Line<'a>) {
+    pub fn line(&mut self, mut line: crate::Line) {
         if line.series.is_empty() {
             return;
         }
@@ -2042,7 +2052,7 @@ impl<'a> PlotUi<'a> {
     }
 
     /// Add a polygon. The polygon has to be convex.
-    pub fn polygon(&mut self, mut polygon: crate::Polygon<'a>) {
+    pub fn polygon(&mut self, mut polygon: crate::Polygon) {
         if polygon.series.is_empty() {
             return;
         }
@@ -2064,7 +2074,7 @@ impl<'a> PlotUi<'a> {
     }
 
     /// Add data points.
-    pub fn points(&mut self, mut points: crate::Points<'a>) {
+    pub fn points(&mut self, mut points: crate::Points) {
         if points.series.is_empty() {
             return;
         }
@@ -2077,7 +2087,7 @@ impl<'a> PlotUi<'a> {
     }
 
     /// Add arrows.
-    pub fn arrows(&mut self, mut arrows: crate::Arrows<'a>) {
+    pub fn arrows(&mut self, mut arrows: crate::Arrows) {
         if arrows.origins.is_empty() || arrows.tips.is_empty() {
             return;
         }

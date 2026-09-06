@@ -1223,6 +1223,7 @@ dependencies = [
  "convert_case 0.11.0",
  "egui",
  "egui_extras",
+ "egui_plot",
  "rustdoc-types",
  "serde",
  "serde-generate",

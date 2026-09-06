@@ -19,8 +19,8 @@ use crate::items::PlotGeometry;
 use crate::items::PlotItem;
 use crate::items::PlotItemBase;
 
-impl<'a> Points<'a> {
-    pub fn new(name: impl Into<String>, series: impl Into<PlotPoints<'a>>) -> Self {
+impl Points {
+    pub fn new(name: impl Into<String>, series: impl Into<PlotPoints>) -> Self {
         Self {
             base: PlotItemBase::new(name.into()),
             series: series.into(),
@@ -112,10 +112,11 @@ impl<'a> Points<'a> {
 }
 
 /// A set of points.
-pub struct Points<'a> {
+#[cfg_attr(feature = "serde", derive(serde::Deserialize, serde::Serialize))]
+pub struct Points {
     base: PlotItemBase,
 
-    pub(crate) series: PlotPoints<'a>,
+    pub(crate) series: PlotPoints,
 
     pub(crate) shape: MarkerShape,
 
@@ -132,7 +133,7 @@ pub struct Points<'a> {
     pub(crate) stems: Option<f32>,
 }
 
-impl PlotItem for Points<'_> {
+impl PlotItem for Points {
     fn shapes(&self, _ui: &Ui, transform: &PlotTransform, shapes: &mut Vec<Shape>) {
         let sqrt_3 = 3_f32.sqrt();
         let frac_sqrt_3_2 = 3_f32.sqrt() / 2.0;

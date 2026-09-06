@@ -93,6 +93,7 @@ impl std::fmt::Display for LineStyle {
 
 /// Determines whether a plot element is vertically or horizontally oriented.
 #[derive(Copy, Clone, Debug, PartialEq, Eq, Default)]
+#[cfg_attr(feature = "serde", derive(serde::Deserialize, serde::Serialize))]
 pub enum Orientation {
     Horizontal,
     #[default]
@@ -101,6 +102,7 @@ pub enum Orientation {
 
 /// Circle, Diamond, Square, Cross, …
 #[derive(Debug, PartialEq, Eq, Clone, Copy)]
+#[cfg_attr(feature = "serde", derive(serde::Deserialize, serde::Serialize))]
 pub enum MarkerShape {
     Circle,
     Diamond,
@@ -116,8 +118,8 @@ pub enum MarkerShape {
 
 impl MarkerShape {
     /// Get a vector containing all marker shapes.
-    pub fn all() -> impl ExactSizeIterator<Item = Self> {
-        [
+    pub fn all() -> Vec<Self> {
+        vec![
             Self::Circle,
             Self::Diamond,
             Self::Square,
@@ -129,7 +131,5 @@ impl MarkerShape {
             Self::Right,
             Self::Asterisk,
         ]
-        .iter()
-        .copied()
     }
 }

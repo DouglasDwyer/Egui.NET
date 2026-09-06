@@ -14,8 +14,8 @@ use crate::items::PlotGeometry;
 use crate::items::PlotItem;
 use crate::items::PlotItemBase;
 
-impl<'a> Arrows<'a> {
-    pub fn new(name: impl Into<String>, origins: impl Into<PlotPoints<'a>>, tips: impl Into<PlotPoints<'a>>) -> Self {
+impl Arrows {
+    pub fn new(name: impl Into<String>, origins: impl Into<PlotPoints>, tips: impl Into<PlotPoints>) -> Self {
         Self {
             base: PlotItemBase::new(name.into()),
             origins: origins.into(),
@@ -83,15 +83,16 @@ impl<'a> Arrows<'a> {
 }
 
 /// A set of arrows.
-pub struct Arrows<'a> {
+#[cfg_attr(feature = "serde", derive(serde::Deserialize, serde::Serialize))]
+pub struct Arrows {
     base: PlotItemBase,
-    pub(crate) origins: PlotPoints<'a>,
-    pub(crate) tips: PlotPoints<'a>,
+    pub(crate) origins: PlotPoints,
+    pub(crate) tips: PlotPoints,
     pub(crate) tip_length: Option<f32>,
     pub(crate) color: Color32,
 }
 
-impl PlotItem for Arrows<'_> {
+impl PlotItem for Arrows {
     fn shapes(&self, _ui: &Ui, transform: &PlotTransform, shapes: &mut Vec<Shape>) {
         let Self {
             origins,

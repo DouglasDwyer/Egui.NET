@@ -1,6 +1,6 @@
 using System.ComponentModel;
 
-namespace Egui.EguiExtras;
+namespace Egui.Extras;
 
 /// <summary>
 /// Builder for creating a new <see cref="Strip"/>. This can be used to do dynamic layouts.<br/>

@@ -17,16 +17,17 @@ use crate::items::PlotItem;
 use crate::items::PlotItemBase;
 
 /// A convex polygon.
-pub struct Polygon<'a> {
+#[cfg_attr(feature = "serde", derive(serde::Deserialize, serde::Serialize))]
+pub struct Polygon {
     base: PlotItemBase,
-    pub(crate) series: PlotPoints<'a>,
+    pub(crate) series: PlotPoints,
     pub(crate) stroke: Stroke,
     pub(crate) fill_color: Option<Color32>,
     pub(crate) style: LineStyle,
 }
 
-impl<'a> Polygon<'a> {
-    pub fn new(name: impl Into<String>, series: impl Into<PlotPoints<'a>>) -> Self {
+impl Polygon {
+    pub fn new(name: impl Into<String>, series: impl Into<PlotPoints>) -> Self {
         Self {
             base: PlotItemBase::new(name.into()),
             series: series.into(),
@@ -107,7 +108,7 @@ impl<'a> Polygon<'a> {
     }
 }
 
-impl PlotItem for Polygon<'_> {
+impl PlotItem for Polygon {
     fn shapes(&self, _ui: &Ui, transform: &PlotTransform, shapes: &mut Vec<Shape>) {
         let Self {
             base,
