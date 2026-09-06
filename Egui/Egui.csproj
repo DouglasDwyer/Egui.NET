@@ -3,7 +3,7 @@
         <PackageId>Egui</PackageId>
         <Title>Egui</Title>
         <Description>An easy-to-use immediate mode GUI</Description>
-        <Version>0.9.0+0.36.1</Version>
+        <Version>0.10.0+0.36.1</Version>
         <Authors>Douglas Dwyer</Authors>
         <RepositoryUrl>https://github.com/DouglasDwyer/Egui.NET</RepositoryUrl>
         <PackageReadmeFile>README.md</PackageReadmeFile>
