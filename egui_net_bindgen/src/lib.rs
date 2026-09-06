@@ -71,9 +71,7 @@ const BINDING_EXCLUDE_FNS: &[&str] = &[
     "egui_ui_Ui_next_auto_id",
     "egui_ui_Ui_separator",
     "egui_ui_Ui_spinner",
-    // Plot: bound manually (`show` takes a callback; the `allow_*` setters take a named generic
-    // type parameter rather than argument-position `impl Trait` - see the comment on their
-    // `.with()` calls in `egui_net`)
+    // Plot: bound manually
     "egui_plot_plot_Plot_show",
     "egui_plot_plot_Plot_allow_zoom",
     "egui_plot_plot_Plot_allow_drag",
@@ -157,14 +155,6 @@ const TYPE_RENAMES: &[(&str, &str)] = &[
     ("Vec2", "EVec2"),
     ("Vec2b", "EVec2b"),
     ("Widgets", "WidgetsStyle"),
-    // `RangeInclusive<Idx>`'s serde impl always calls `serialize_struct("RangeInclusive", 2)`
-    // regardless of `Idx`, so the registry only ever has one "RangeInclusive" entry - shaped
-    // according to whichever instantiation happened to get traced first (currently `f64`, via
-    // `egui_plot::items::Span::range`). Renaming it to spell out that instantiation means a
-    // second, differently-shaped `RangeInclusive<OtherIdx>` reaching the tracer (e.g. through a
-    // new field) collides loudly (a shape-mismatch panic in `Tracer::trace_simple_type`) instead
-    // of silently reusing this `f64` C# type for the wrong wire layout. See `bound_ty_name`'s
-    // `"RangeInclusive"` case for the other half of this fix.
     ("RangeInclusive", "RangeInclusiveF64"),
 ];
 
@@ -1256,12 +1246,6 @@ impl BindingsGenerator {
         }
 
         namespaces.insert("Duration".to_string(), "".to_string());
-        // `RangeInclusive` (unlike every other `TYPE_RENAMES` entry) is never itself declared in
-        // any of the traced crates - it's `std::ops::RangeInclusive`, only discovered
-        // transitively as a field type (see the comment on its `TYPE_RENAMES` entry) - so
-        // `find_public_paths` never assigns it a namespace. It's generated at the root, same as
-        // `Pos2`/`Vec2`/etc, so its `using` alias (see `emit_cs_fn_bindings`) needs the same
-        // `Egui` qualifier those get from `find_public_paths`.
         namespaces.insert("RangeInclusive".to_string(), "Egui".to_string());
 
         BindingsGenerator {
@@ -1543,14 +1527,6 @@ impl BindingsGenerator {
                     }
                 }
                 "String" | "str" => BoundTypeName::cs_rs("string", "String"),
-                // Unlike `Arc`/`Option`/`Vec` above, `RangeInclusive`'s C# shape isn't a built-in
-                // wrapper - it's a genuine traced struct (see the comment on its `TYPE_RENAMES`
-                // entry), traced only for `f64` (the one instantiation that's actually reachable
-                // as a struct field today, via `Span::range`). Its generic argument only needs
-                // threading into `rs_name` (to keep the emitted Rust wrapper signature valid), but
-                // only when it's `f64`: any other `Idx` would silently reuse the `f64` C# type for
-                // the wrong wire layout, so those fall through to the generic case below (which
-                // fails, since bare "RangeInclusive" isn't itself a valid Rust type).
                 "RangeInclusive" => {
                     let Some(GenericArgs::AngleBracketed { args, .. }) = path.args.as_deref()
                     else {
@@ -2738,10 +2714,6 @@ impl BindingsGenerator {
         result += "}\n";
 
         for (old, new) in TYPE_RENAMES {
-            // Every other `TYPE_RENAMES` entry aliases a plain, non-generic Rust type, but
-            // `RangeInclusive` is only ever renamed for its (currently sole) `f64` instantiation
-            // (see the comment on its `TYPE_RENAMES` entry), so the alias needs that argument
-            // filled in rather than the bare (invalid) `RangeInclusive`.
             if *old == "RangeInclusive" {
                 result += &format!("type {new} = {old}<f64>;\n");
             } else {

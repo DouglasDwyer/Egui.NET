@@ -1050,16 +1050,7 @@ impl EguiFnMap {
         self
     }
 
-    /// Copies every binding from `other` into `self`, overwriting any binding `self` already had
-    /// for the same [`EguiFn`].
-    ///
-    /// A chain of thousands of `.with()` calls is one enormous nested const-expression - each
-    /// call wraps the previous one - and evaluating that as a single constant has been observed
-    /// to overflow the compiler's stack on platforms with a smaller default stack size (e.g.
-    /// Windows). `merge` lets many separately-built chunks be combined with a flat loop instead:
-    /// unlike a `.with()` chain, a loop's nesting depth doesn't grow with the number of entries
-    /// it processes, so splitting one huge chain into many small chunks joined by `merge` keeps
-    /// every individual const-expression shallow regardless of the total function count.
+    /// Copies every binding from `other` into `self`, overwriting duplicates.
     pub const fn merge(mut self, other: &Self) -> Self {
         let mut i = 0;
         while i < self.inner.len() {
