@@ -26,7 +26,7 @@ pub use {
     kittest,
 };
 
-use std::{
+use core::{
     fmt::{Debug, Display, Formatter},
     time::Duration,
 };
@@ -47,7 +47,7 @@ pub struct ExceededMaxStepsError {
 }
 
 impl Display for ExceededMaxStepsError {
-    fn fmt(&self, f: &mut Formatter<'_>) -> std::fmt::Result {
+    fn fmt(&self, f: &mut Formatter<'_>) -> core::fmt::Result {
         write!(
             f,
             "Harness::run exceeded max_steps ({}). If your expect your ui to keep repainting \
@@ -78,6 +78,19 @@ pub struct Harness<'a, State = ()> {
     response: Option<egui::Response>,
     state: State,
     renderer: Box<dyn TestRenderer>,
+
+    /// The image of a pass we already rendered, keyed by [`egui::Context::cumulative_pass_nr`].
+    ///
+    /// A pass should be rendered at most once. A paint callback can do GPU work of its own —
+    /// schedule a readback, say — and running it a second time for the same pass corrupts that
+    /// work.
+    #[cfg(any(feature = "wgpu", feature = "snapshot"))]
+    last_render: Option<(u64, image::RgbaImage)>,
+
+    /// Render every pass. See [`HarnessBuilder::with_render_every_step`].
+    #[cfg(any(feature = "wgpu", feature = "snapshot"))]
+    render_every_step: bool,
+
     max_steps: u64,
     step_dt: f32,
     wait_for_pending_images: bool,
@@ -90,7 +103,7 @@ pub struct Harness<'a, State = ()> {
 }
 
 impl<State> Debug for Harness<'_, State> {
-    fn fmt(&self, f: &mut Formatter<'_>) -> std::fmt::Result {
+    fn fmt(&self, f: &mut Formatter<'_>) -> core::fmt::Result {
         self.kittest.fmt(f)
     }
 }
@@ -113,6 +126,9 @@ impl<'a, State> Harness<'a, State> {
             state: _,
             mut renderer,
             wait_for_pending_images,
+
+            #[cfg(any(feature = "wgpu", feature = "snapshot"))]
+            render_every_step,
 
             #[cfg(feature = "snapshot")]
             default_snapshot_options,
@@ -164,6 +180,13 @@ impl<'a, State> Harness<'a, State> {
             response,
             state,
             renderer,
+
+            #[cfg(any(feature = "wgpu", feature = "snapshot"))]
+            last_render: None,
+
+            #[cfg(any(feature = "wgpu", feature = "snapshot"))]
+            render_every_step,
+
             max_steps,
             step_dt,
             wait_for_pending_images,
@@ -245,7 +268,7 @@ impl<'a, State> Harness<'a, State> {
     /// This will call the app closure with each queued event and
     /// update the Harness.
     pub fn step(&mut self) {
-        let events = std::mem::take(&mut *self.queued_events.lock());
+        let events = core::mem::take(&mut *self.queued_events.lock());
         if events.is_empty() {
             self._step(false);
         }
@@ -271,6 +294,12 @@ impl<'a, State> Harness<'a, State> {
         );
         self.renderer.handle_delta(&mut output.textures_delta);
         self.output = output;
+
+        #[cfg(any(feature = "wgpu", feature = "snapshot"))]
+        if self.render_every_step {
+            self.render()
+                .expect("Failed to render during `render_every_step`");
+        }
 
         self.handle_viewport_commands();
     }
@@ -630,18 +659,45 @@ impl<'a, State> Harness<'a, State> {
     /// This will add a [`RectShape`] to the output shapes, for the current frame.
     /// Will be overwritten on the next call to [`Self::run`].
     pub fn mask(&mut self, rect: Rect) {
+        #[cfg(any(feature = "wgpu", feature = "snapshot"))]
+        {
+            // This changes what a render of this pass looks like.
+            self.last_render = None;
+        }
+
         self.output.shapes.push(ClippedShape {
             clip_rect: Rect::EVERYTHING,
             shape: Shape::Rect(RectShape::filled(rect, 0.0, Color32::MAGENTA)),
         });
     }
 
+    /// Should every step be rendered?
+    ///
+    /// Useful when test logic requires some specific gpu logic, e.g. reading data back from the gpu.
+    #[cfg(any(feature = "wgpu", feature = "snapshot"))]
+    #[inline]
+    pub fn set_render_every_step(&mut self, render_every_step: bool) {
+        self.render_every_step = render_every_step;
+    }
+
     /// Render the last output to an image.
+    ///
+    /// When calling this multiple times on the same frame, or when [`Self::set_render_every_step`] is
+    /// true, this will return the already-rendered frame.
     ///
     /// # Errors
     /// Returns an error if the rendering fails.
     #[cfg(any(feature = "wgpu", feature = "snapshot"))]
     pub fn render(&mut self) -> Result<image::RgbaImage, String> {
+        let pass_nr = self.ctx.cumulative_pass_nr();
+
+        // Rendering a pass twice would run its paint callbacks twice. See `last_render`.
+        if let Some((rendered_pass_nr, image)) = &self.last_render
+            && *rendered_pass_nr == pass_nr
+        {
+            return Ok(image.clone());
+        }
+
         let mut output = self.output.clone();
 
         if let Some(mouse_pos) = self.ctx.input(|i| i.pointer.hover_pos()) {
@@ -663,7 +719,9 @@ impl<'a, State> Harness<'a, State> {
             });
         }
 
-        self.renderer.render(&self.ctx, &output)
+        let image = self.renderer.render(&self.ctx, &output)?;
+        self.last_render = Some((pass_nr, image.clone()));
+        Ok(image)
     }
 
     /// Apply the [`egui::ViewportCommand`]s the app emitted during the last frame.
@@ -802,7 +860,7 @@ impl<'a, State> Harness<'a, State> {
             // SAFETY: `pthread_main_np` is a thread-safe libc query with no arguments.
             let is_main_thread = unsafe {
                 unsafe extern "C" {
-                    fn pthread_main_np() -> std::ffi::c_int;
+                    fn pthread_main_np() -> core::ffi::c_int;
                 }
                 pthread_main_np() != 0
             };

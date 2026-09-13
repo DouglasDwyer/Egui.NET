@@ -1,4 +1,5 @@
-use std::{any::Any, sync::Arc};
+use core::any::Any;
+use std::sync::Arc;
 
 use crate::{
     Context, CursorIcon, Id, LayerId, PointerButton, Popup, PopupKind, Sense, Tooltip, Ui,
@@ -159,7 +160,7 @@ mod response_serde_helper {
 #[test]
 fn test_response_size() {
     assert_eq!(
-        std::mem::size_of::<Response>(),
+        core::mem::size_of::<Response>(),
         88,
         "Keep Response small, because we create them often, and we want to keep it lean and fast"
     );
@@ -1195,7 +1196,7 @@ impl Response {
 /// ```
 ///
 /// Now `draw_vec2(ui, foo).hovered` is true if either [`DragValue`](crate::DragValue) were hovered.
-impl std::ops::BitOr for Response {
+impl core::ops::BitOr for Response {
     type Output = Self;
 
     fn bitor(self, rhs: Self) -> Self {
@@ -1216,7 +1217,7 @@ impl std::ops::BitOr for Response {
 /// if response.hovered() { ui.label("You hovered at least one of the widgets"); }
 /// # });
 /// ```
-impl std::ops::BitOrAssign for Response {
+impl core::ops::BitOrAssign for Response {
     fn bitor_assign(&mut self, rhs: Self) {
         *self = self.union(rhs);
     }
