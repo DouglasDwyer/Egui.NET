@@ -343,6 +343,22 @@ impl<'t> TextEdit<'t> {
         self
     }
 
+    /// Set which key presses this [`TextEdit`] captures while it has focus.
+    ///
+    /// Keys not captured by the filter are instead used by egui for
+    /// keyboard navigation (tab and arrows move focus, escape surrenders focus).
+    ///
+    /// The default captures the arrow keys, but not tab or escape.
+    /// This is useful e.g. to implement a code completion popup,
+    /// where tab and escape should act on the popup instead of moving focus away.
+    ///
+    /// See also [`Self::lock_focus`].
+    #[inline]
+    pub fn event_filter(mut self, event_filter: EventFilter) -> Self {
+        self.event_filter = event_filter;
+        self
+    }
+
     /// When `true` (default), the cursor will initially be placed at the end of the text.
     ///
     /// When `false`, the cursor will initially be placed at the beginning of the text.
@@ -478,7 +494,8 @@ impl TextEdit<'_> {
         let desired_width = desired_width
             .unwrap_or_else(|| ui.spacing().text_edit_width)
             .at_least(min_size.x);
-        let allocate_width = desired_width.at_most(available_width);
+        // `min_size` overrides available width
+        let allocate_width = desired_width.at_most(available_width).at_least(min_size.x);
 
         let font_id_clone = font_id.clone();
         let mut default_layouter = move |ui: &Ui, text: &dyn TextBuffer, wrap_width: f32| {
@@ -695,7 +712,7 @@ impl TextEdit<'_> {
             let custom_frame = frame.is_some();
             let frame = frame.unwrap_or_else(|| Frame::new().inner_margin(margin));
 
-            let min_height = min_inner_height + frame.total_margin().sum().y;
+            let min_height = (min_inner_height + frame.total_margin().sum().y).at_least(min_size.y);
 
             // This wrap mode only affects the hint_text
             let wrap_mode = if multiline {
@@ -1008,7 +1025,7 @@ impl TextEdit<'_> {
 
 fn mask_if_password(is_password: bool, text: &str) -> String {
     fn mask_password(text: &str) -> String {
-        std::iter::repeat_n(
+        core::iter::repeat_n(
             epaint::text::PASSWORD_REPLACEMENT_CHAR,
             text.chars().count(),
         )
@@ -1084,7 +1101,7 @@ fn events(
         Selection(CCursorRange),
         ImeComposition {
             cursor_range: CCursorRange,
-            active_range: Option<std::ops::Range<CCursor>>,
+            active_range: Option<core::ops::Range<CCursor>>,
         },
         ImeCompositionCursorRange(CCursorRange),
     }
