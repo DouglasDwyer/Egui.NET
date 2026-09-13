@@ -1,7 +1,7 @@
 use crate::{AtomLayout, FontSelection, Image, ImageSource, SizedAtomKind, Ui, WidgetText};
+use core::fmt::Debug;
 use emath::Vec2;
 use epaint::text::TextWrapMode;
-use std::fmt::Debug;
 
 /// Args passed when sizing an [`super::Atom`]
 #[cfg_attr(feature = "serde", derive(serde::Deserialize, serde::Serialize))]
@@ -91,7 +91,7 @@ impl Clone for AtomKind {
 }
 
 impl Debug for AtomKind {
-    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+    fn fmt(&self, f: &mut core::fmt::Formatter<'_>) -> core::fmt::Result {
         match self {
             AtomKind::Empty => write!(f, "AtomKind::Empty"),
             AtomKind::Text(text) => write!(f, "AtomKind::Text({text:?})"),
