@@ -1199,7 +1199,7 @@ dependencies = [
 
 [[package]]
 name = "egui_net"
-version = "0.10.1+0.36.2"
+version = "0.10.2+0.36.2"
 dependencies = [
  "ahash",
  "bincode 2.0.1",
@@ -1218,7 +1218,7 @@ dependencies = [
 
 [[package]]
 name = "egui_net_bindgen"
-version = "0.10.1+0.36.2"
+version = "0.10.2+0.36.2"
 dependencies = [
  "convert_case 0.11.0",
  "egui",
@@ -1233,7 +1233,7 @@ dependencies = [
 
 [[package]]
 name = "egui_net_ffi"
-version = "0.10.1+0.36.2"
+version = "0.10.2+0.36.2"
 dependencies = [
  "bincode 2.0.1",
  "egui",
