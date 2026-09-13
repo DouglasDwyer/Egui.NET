@@ -1,7 +1,7 @@
 using System.Collections.Immutable;
 using System.ComponentModel;
 
-namespace Egui.EguiExtras;
+namespace Egui.Extras;
 
 /// <summary>
 /// The body of a table. Do not store this: it should be used immediately.

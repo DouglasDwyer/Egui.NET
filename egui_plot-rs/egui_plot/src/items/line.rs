@@ -19,6 +19,7 @@ use crate::items::PlotItemBase;
 
 /// A horizontal line in a plot, filling the full width
 #[derive(Clone, Debug, PartialEq)]
+#[cfg_attr(feature = "serde", derive(serde::Deserialize, serde::Serialize))]
 pub struct HLine {
     base: PlotItemBase,
     pub(crate) y: f64,
@@ -154,6 +155,7 @@ impl PlotItem for HLine {
 
 /// A vertical line in a plot, filling the full width
 #[derive(Clone, Debug, PartialEq)]
+#[cfg_attr(feature = "serde", derive(serde::Deserialize, serde::Serialize))]
 pub struct VLine {
     base: PlotItemBase,
     pub(crate) x: f64,
