@@ -59,17 +59,14 @@ public readonly partial record struct DragPanButtons
     internal void Serialize(BincodeSerializer serializer)
     {
         serializer.increase_container_depth();
-        serializer.serialize_variant_index(_value);
+        serializer.serialize_u8(_value);
         serializer.decrease_container_depth();
     }
 
     internal static DragPanButtons Deserialize(BincodeDeserializer deserializer)
     {
         deserializer.increase_container_depth();
-        int index = deserializer.deserialize_variant_index();
-        if (!Enum.IsDefined(typeof(DragPanButtons), index))
-            throw new Serde.DeserializationException("Unknown variant index for DragPanButtons: " + index);
-        DragPanButtons value = (DragPanButtons)index;
+        DragPanButtons value = (DragPanButtons)deserializer.deserialize_u8();
         deserializer.decrease_container_depth();
         return value;
     }
