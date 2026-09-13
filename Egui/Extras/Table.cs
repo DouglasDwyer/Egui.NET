@@ -1,7 +1,7 @@
 using System.ComponentModel;
 using Egui.Containers;
 
-namespace Egui.EguiExtras;
+namespace Egui.Extras;
 
 /// <summary>
 /// A table, created after adding a header row via <see cref="TableBuilder.Header"/>.

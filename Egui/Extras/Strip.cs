@@ -1,4 +1,4 @@
-namespace Egui.EguiExtras;
+namespace Egui.Extras;
 
 /// <summary>
 /// A strip of cells which go in one direction, created with <see cref="StripBuilder"/>. Each

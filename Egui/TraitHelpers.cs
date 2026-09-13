@@ -1,4 +1,5 @@
 using System.Collections.Immutable;
+using Egui.Plot;
 
 namespace Egui;
 
@@ -31,6 +32,46 @@ static partial class TraitHelpers
         {
             return UiStack.Deserialize(deserializer);
         }
+    }
+
+    public static void serialize_option_LineStyle(LineStyle? value, BincodeSerializer serializer)
+    {
+        if (value is not null)
+        {
+            serializer.serialize_option_tag(true);
+            (value ?? default).Serialize(serializer);
+        }
+        else
+        {
+            serializer.serialize_option_tag(false);
+        }
+    }
+
+    public static LineStyle? deserialize_option_LineStyle(BincodeDeserializer deserializer)
+    {
+        bool tag = deserializer.deserialize_option_tag();
+        if (!tag) { return null; }
+        return LineStyle.Deserialize(deserializer);
+    }
+
+    public static void serialize_option_MarkerShape(MarkerShape? value, BincodeSerializer serializer)
+    {
+        if (value is not null)
+        {
+            serializer.serialize_option_tag(true);
+            (value ?? default).Serialize(serializer);
+        }
+        else
+        {
+            serializer.serialize_option_tag(false);
+        }
+    }
+
+    public static MarkerShape? deserialize_option_MarkerShape(BincodeDeserializer deserializer)
+    {
+        bool tag = deserializer.deserialize_option_tag();
+        if (!tag) { return null; }
+        return MarkerShapeSerdeExtensions.Deserialize(deserializer);
     }
 
     public static void serialize_vector_Color32(ImmutableArray<Egui.Color32> value, Bincode.BincodeSerializer serializer)

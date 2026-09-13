@@ -13,45 +13,48 @@ use crate::bounds::PlotPoint;
 /// These can be an owned `Vec`
 /// or generated on-the-fly by a function
 /// or borrowed from a slice.
-pub enum PlotPoints<'a> {
+#[cfg_attr(feature = "serde", derive(serde::Deserialize, serde::Serialize))]
+pub enum PlotPoints {
     Owned(Vec<PlotPoint>),
-    Generator(ExplicitGenerator<'a>),
-    Borrowed(&'a [PlotPoint]),
+    #[cfg_attr(feature = "serde", serde(skip))]
+    Generator(ExplicitGenerator),
+    #[cfg_attr(feature = "serde", serde(skip))]
+    Borrowed(&'static [PlotPoint]),
 }
 
-impl Default for PlotPoints<'_> {
+impl Default for PlotPoints {
     fn default() -> Self {
         Self::Owned(Vec::new())
     }
 }
 
-impl From<[f64; 2]> for PlotPoints<'_> {
+impl From<[f64; 2]> for PlotPoints {
     fn from(coordinate: [f64; 2]) -> Self {
         Self::new(vec![coordinate])
     }
 }
 
-impl From<Vec<[f64; 2]>> for PlotPoints<'_> {
+impl From<Vec<[f64; 2]>> for PlotPoints {
     #[inline]
     fn from(coordinates: Vec<[f64; 2]>) -> Self {
         Self::new(coordinates)
     }
 }
 
-impl<'a> From<&'a [PlotPoint]> for PlotPoints<'a> {
+impl From<&'static [PlotPoint]> for PlotPoints {
     #[inline]
-    fn from(points: &'a [PlotPoint]) -> Self {
+    fn from(points: &'static [PlotPoint]) -> Self {
         Self::Borrowed(points)
     }
 }
 
-impl FromIterator<[f64; 2]> for PlotPoints<'_> {
+impl FromIterator<[f64; 2]> for PlotPoints {
     fn from_iter<T: IntoIterator<Item = [f64; 2]>>(iter: T) -> Self {
         Self::Owned(iter.into_iter().map(|point| point.into()).collect())
     }
 }
 
-impl<'a> PlotPoints<'a> {
+impl PlotPoints {
     pub fn new(points: Vec<[f64; 2]>) -> Self {
         Self::from_iter(points)
     }
@@ -67,7 +70,7 @@ impl<'a> PlotPoints<'a> {
     /// Draw a line based on a function `y=f(x)`, a range (which can be
     /// infinite) for x and the number of points.
     pub fn from_explicit_callback(
-        function: impl Fn(f64) -> f64 + 'a,
+        function: impl Fn(f64) -> f64 + 'static,
         x_range: impl RangeBounds<f64>,
         points: usize,
     ) -> Self {
@@ -192,13 +195,13 @@ impl<'a> PlotPoints<'a> {
 
 /// Describes a function y = f(x) with an optional range for x and a number of
 /// points.
-pub struct ExplicitGenerator<'a> {
-    function: Box<dyn Fn(f64) -> f64 + 'a>,
+pub struct ExplicitGenerator {
+    function: Box<dyn Fn(f64) -> f64 + 'static>,
     x_range: RangeInclusive<f64>,
     points: usize,
 }
 
-impl ExplicitGenerator<'_> {
+impl ExplicitGenerator {
     fn estimate_bounds(&self) -> PlotBounds {
         let mut bounds = PlotBounds::NOTHING;
 

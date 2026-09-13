@@ -59,6 +59,7 @@ mod text;
 
 /// Base data shared by all plot items.
 #[derive(Clone, Debug, PartialEq, Eq)]
+#[cfg_attr(feature = "serde", derive(serde::Deserialize, serde::Serialize))]
 pub struct PlotItemBase {
     name: String,
     id: Id,

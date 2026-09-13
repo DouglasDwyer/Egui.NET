@@ -1,4 +1,4 @@
-namespace Egui.EguiExtras;
+namespace Egui.Extras;
 
 /// <summary>
 /// The row of a table.
