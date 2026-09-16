@@ -6,8 +6,13 @@ namespace Egui;
 /// This is what you use to place widgets.
 /// Represents a region of the screen with a type of layout (horizontal or vertical).
 /// </summary>
-public readonly ref partial struct Ui
+public ref partial struct Ui
 {
+    /// <summary>
+    /// The cached result of <see cref="Painter"/>, once it has been requested.
+    /// </summary>
+    private Painter? _painter;
+
     /// <summary>
     /// Use this to paint stuff within this <see cref="Ui"/>.
     /// </summary>
@@ -16,7 +21,12 @@ public readonly ref partial struct Ui
         get
         {
             AssertInitialized();
-            return new Painter(Ctx, EguiMarshal.Call<nuint, EguiHandle>(EguiFn.egui_ui_Ui_painter, Ptr));
+            if (_painter is null)
+            {
+                _painter = new Painter(Ctx, EguiMarshal.Call<nuint, EguiHandle>(EguiFn.egui_ui_Ui_painter, Ptr));
+            }
+
+            return _painter;
         }
     }
 
@@ -186,7 +196,7 @@ public readonly ref partial struct Ui
     ///
     /// See also <see cref="AddEnabledUi"/>  and <see cref="IsEnabled"/> .
     /// </summary>
-    public unsafe readonly Response AddEnabled<T>(bool enabled, T widget) where T : IWidget, allows ref struct
+    public unsafe Response AddEnabled<T>(bool enabled, T widget) where T : IWidget, allows ref struct
     {
 #pragma warning disable CS8500
         if (IsEnabled && !enabled)
@@ -213,7 +223,7 @@ public readonly ref partial struct Ui
     ///
     /// See also <see cref="AddSized"/>  and <see cref="Put"/> .
     /// </summary>
-    public unsafe readonly Response AddSized<T>(EVec2 maxSize, T widget) where T : IWidget, allows ref struct
+    public unsafe Response AddSized<T>(EVec2 maxSize, T widget) where T : IWidget, allows ref struct
     {
 #pragma warning disable CS8500
         var tp = &widget;
@@ -266,7 +276,7 @@ public readonly ref partial struct Ui
     ///
     /// See also <see cref="AddVisibleUi"/> , <see cref="SetVisible"/> and <see cref="IsVisible"/>.
     /// </summary>
-    public unsafe readonly Response AddVisible<T>(bool visible, T widget) where T : IWidget, allows ref struct
+    public unsafe Response AddVisible<T>(bool visible, T widget) where T : IWidget, allows ref struct
     {
 #pragma warning disable CS8500
         if (IsVisible && !visible)
@@ -291,13 +301,13 @@ public readonly ref partial struct Ui
     /// When finished, the amount of space actually used (<c>min_rect</c>) will be allocated.
     /// So you can request a lot of space and then use less.
     /// </summary>
-    public readonly InnerResponse AllocateUi(EVec2 desiredSize, Action<Ui> addContents)
+    public InnerResponse AllocateUi(EVec2 desiredSize, Action<Ui> addContents)
     {
         return AllocateUiWithLayout(desiredSize, Layout, addContents);
     }
 
     /// <inheritdoc cref="AllocateUi"/>
-    public readonly InnerResponse<R> AllocateUi<R>(EVec2 desiredSize, Func<Ui, R> addContents)
+    public InnerResponse<R> AllocateUi<R>(EVec2 desiredSize, Func<Ui, R> addContents)
     {
         return AllocateUiWithLayout(desiredSize, Layout, addContents);
     }
@@ -898,7 +908,7 @@ public readonly ref partial struct Ui
     /// Show a <see cref="RadioButton"/>. It is selected if <c>current_value == selected_value</c>.
     /// If clicked, <paramref name="alternative"/> is assigned to <paramref name="currentValue"/>.
     /// </summary>
-    public readonly Response RadioValue<V>(ref V currentValue, V alternative, Atoms atoms)
+    public Response RadioValue<V>(ref V currentValue, V alternative, Atoms atoms)
     {
         var equal = EqualityComparer<V>.Default.Equals(currentValue, alternative);
         var response = Radio(equal, atoms);
@@ -914,7 +924,7 @@ public readonly ref partial struct Ui
     /// Show selectable text. It is selected if <c>current_value == selected_value</c>.
     /// If clicked, <paramref name="alternative"/> is assigned to <paramref name="currentValue"/>.
     /// </summary>
-    public readonly Response SelectableValue<V>(ref V currentValue, V alternative, Atoms atoms)
+    public Response SelectableValue<V>(ref V currentValue, V alternative, Atoms atoms)
     {
         var equal = EqualityComparer<V>.Default.Equals(currentValue, alternative);
         var response = SelectableLabel(equal, atoms);
