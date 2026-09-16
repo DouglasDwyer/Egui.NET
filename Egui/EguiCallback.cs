@@ -1,3 +1,4 @@
+using System.Linq;
 using System.Runtime.CompilerServices;
 using System.Runtime.ExceptionServices;
 using System.Runtime.InteropServices;
@@ -49,11 +50,16 @@ internal unsafe partial struct EguiCallback
         /// <inheritdoc/>
         void IDisposable.Dispose()
         {
-            if (_context.LastException is not null)
+            if (_context.Exceptions is not null)
             {
-                var last = _context.LastException;
-                _context.LastException = null;
-                last.Throw();
+                if (_context.Exceptions.Count == 1)
+                {
+                    _context.Exceptions[0].Throw();
+                }
+                else
+                {
+                    throw new AggregateException(_context.Exceptions.Select(x => x.SourceException));
+                }
             }
         }
 
@@ -72,13 +78,14 @@ internal unsafe partial struct EguiCallback
             }
             catch (Exception e)
             {
-                context.LastException = ExceptionDispatchInfo.Capture(e);
+                context.Exceptions ??= new List<ExceptionDispatchInfo>();
+                context.Exceptions.Add(ExceptionDispatchInfo.Capture(e));
             }
         }
 
         /// <summary>
         /// Data to pass across the FFI boundary during calls.
-        /// Includes the user-provided function and any exception that it has thrown.
+        /// Includes the user-provided function and every exception that it has thrown.
         /// </summary>
         private struct Context
         {
@@ -88,10 +95,10 @@ internal unsafe partial struct EguiCallback
             public Action<nuint> F;
 
             /// <summary>
-            /// The captured exception that <see cref="F"/> threw, or <see langword="null"/>
-            /// if it succeeded.
+            /// The exceptions that <see cref="F"/> has thrown, in the order they occurred, or
+            /// <see langword="null"/> if it has not yet thrown.
             /// </summary>
-            public ExceptionDispatchInfo? LastException;
+            public List<ExceptionDispatchInfo>? Exceptions;
         }
     }
 
