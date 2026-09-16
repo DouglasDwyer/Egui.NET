@@ -260,8 +260,31 @@ internal static class EguiMarshal
                 Serialize = (_, _) => { };
                 Deserialize = _ => default!;
             }
+            else if (typeof(T).IsEnum && Enum.GetUnderlyingType(typeof(T)) == typeof(int))
+            {
+                Serialize = (serializer, value) =>
+                {
+                    serializer.increase_container_depth();
+                    serializer.serialize_variant_index(Unsafe.As<T, int>(ref value));
+                    serializer.decrease_container_depth();
+                };
+                Deserialize = deserializer =>
+                {
+                    deserializer.increase_container_depth();
+                    int index = deserializer.deserialize_variant_index();
+                    if (!Enum.IsDefined(typeof(T), index))
+                    {
+                        throw new EguiException($"Unknown variant index for {typeof(T)}: {index}");
+                    }
+
+                    deserializer.decrease_container_depth();
+                    return Unsafe.As<int, T>(ref index);
+                };
+            }
             else if (typeof(T).IsEnum)
             {
+                // Fallback for any enum not backed by `int` - boxes, but no such type is
+                // currently generated (see the branch above for the common, allocation-free path).
                 Serialize = (serializer, value) =>
                 {
                     serializer.increase_container_depth();
@@ -288,83 +311,147 @@ internal static class EguiMarshal
             }
             else if (typeof(T) == typeof(bool))
             {
-                Serialize = (serializer, value) => serializer.serialize_bool((bool)(object)value!);
-                Deserialize = deserializer => (T)(object)deserializer.deserialize_bool();
+                Serialize = (serializer, value) => serializer.serialize_bool(Unsafe.As<T, bool>(ref value));
+                Deserialize = deserializer =>
+                {
+                    bool result = deserializer.deserialize_bool();
+                    return Unsafe.As<bool, T>(ref result);
+                };
             }
             else if (typeof(T) == typeof(Rune))
             {
-                Serialize = (serializer, value) => serializer.serialize_rune((Rune)(object)value!);
-                Deserialize = deserializer => (T)(object)deserializer.deserialize_rune();
+                Serialize = (serializer, value) => serializer.serialize_rune(Unsafe.As<T, Rune>(ref value));
+                Deserialize = deserializer =>
+                {
+                    Rune result = deserializer.deserialize_rune();
+                    return Unsafe.As<Rune, T>(ref result);
+                };
             }
             else if (typeof(T) == typeof(byte))
             {
-                Serialize = (serializer, value) => serializer.serialize_u8((byte)(object)value!);
-                Deserialize = deserializer => (T)(object)deserializer.deserialize_u8();
+                Serialize = (serializer, value) => serializer.serialize_u8(Unsafe.As<T, byte>(ref value));
+                Deserialize = deserializer =>
+                {
+                    byte result = deserializer.deserialize_u8();
+                    return Unsafe.As<byte, T>(ref result);
+                };
             }
             else if (typeof(T) == typeof(ushort))
             {
-                Serialize = (serializer, value) => serializer.serialize_u16((ushort)(object)value!);
-                Deserialize = deserializer => (T)(object)deserializer.deserialize_u16();
+                Serialize = (serializer, value) => serializer.serialize_u16(Unsafe.As<T, ushort>(ref value));
+                Deserialize = deserializer =>
+                {
+                    ushort result = deserializer.deserialize_u16();
+                    return Unsafe.As<ushort, T>(ref result);
+                };
             }
             else if (typeof(T) == typeof(uint))
             {
-                Serialize = (serializer, value) => serializer.serialize_u32((uint)(object)value!);
-                Deserialize = deserializer => (T)(object)deserializer.deserialize_u32();
+                Serialize = (serializer, value) => serializer.serialize_u32(Unsafe.As<T, uint>(ref value));
+                Deserialize = deserializer =>
+                {
+                    uint result = deserializer.deserialize_u32();
+                    return Unsafe.As<uint, T>(ref result);
+                };
             }
             else if (typeof(T) == typeof(ulong))
             {
-                Serialize = (serializer, value) => serializer.serialize_u64((ulong)(object)value!);
-                Deserialize = deserializer => (T)(object)deserializer.deserialize_u64();
+                Serialize = (serializer, value) => serializer.serialize_u64(Unsafe.As<T, ulong>(ref value));
+                Deserialize = deserializer =>
+                {
+                    ulong result = deserializer.deserialize_u64();
+                    return Unsafe.As<ulong, T>(ref result);
+                };
             }
             else if (typeof(T) == typeof(nuint))
             {
-                Serialize = (serializer, value) => serializer.serialize_u64((nuint)(object)value!);
-                Deserialize = deserializer => (T)(object)(nuint)deserializer.deserialize_u64();
+                Serialize = (serializer, value) => serializer.serialize_u64(Unsafe.As<T, nuint>(ref value));
+                Deserialize = deserializer =>
+                {
+                    nuint result = (nuint)deserializer.deserialize_u64();
+                    return Unsafe.As<nuint, T>(ref result);
+                };
             }
             else if (typeof(T) == typeof(UInt128))
             {
-                Serialize = (serializer, value) => serializer.serialize_u128((UInt128)(object)value!);
-                Deserialize = deserializer => (T)(object)deserializer.deserialize_u128();
+                Serialize = (serializer, value) => serializer.serialize_u128(Unsafe.As<T, UInt128>(ref value));
+                Deserialize = deserializer =>
+                {
+                    UInt128 result = deserializer.deserialize_u128();
+                    return Unsafe.As<UInt128, T>(ref result);
+                };
             }
             else if (typeof(T) == typeof(sbyte))
             {
-                Serialize = (serializer, value) => serializer.serialize_i8((sbyte)(object)value!);
-                Deserialize = deserializer => (T)(object)deserializer.deserialize_i8();
+                Serialize = (serializer, value) => serializer.serialize_i8(Unsafe.As<T, sbyte>(ref value));
+                Deserialize = deserializer =>
+                {
+                    sbyte result = deserializer.deserialize_i8();
+                    return Unsafe.As<sbyte, T>(ref result);
+                };
             }
             else if (typeof(T) == typeof(short))
             {
-                Serialize = (serializer, value) => serializer.serialize_i16((short)(object)value!);
-                Deserialize = deserializer => (T)(object)deserializer.deserialize_i16();
+                Serialize = (serializer, value) => serializer.serialize_i16(Unsafe.As<T, short>(ref value));
+                Deserialize = deserializer =>
+                {
+                    short result = deserializer.deserialize_i16();
+                    return Unsafe.As<short, T>(ref result);
+                };
             }
             else if (typeof(T) == typeof(int))
             {
-                Serialize = (serializer, value) => serializer.serialize_i32((int)(object)value!);
-                Deserialize = deserializer => (T)(object)deserializer.deserialize_i32();
+                Serialize = (serializer, value) => serializer.serialize_i32(Unsafe.As<T, int>(ref value));
+                Deserialize = deserializer =>
+                {
+                    int result = deserializer.deserialize_i32();
+                    return Unsafe.As<int, T>(ref result);
+                };
             }
             else if (typeof(T) == typeof(long))
             {
-                Serialize = (serializer, value) => serializer.serialize_i64((long)(object)value!);
-                Deserialize = deserializer => (T)(object)deserializer.deserialize_i64();
+                Serialize = (serializer, value) => serializer.serialize_i64(Unsafe.As<T, long>(ref value));
+                Deserialize = deserializer =>
+                {
+                    long result = deserializer.deserialize_i64();
+                    return Unsafe.As<long, T>(ref result);
+                };
             }
             else if (typeof(T) == typeof(nint))
             {
-                Serialize = (serializer, value) => serializer.serialize_i64((nint)(object)value!);
-                Deserialize = deserializer => (T)(object)(nint)deserializer.deserialize_i64();
+                Serialize = (serializer, value) => serializer.serialize_i64(Unsafe.As<T, nint>(ref value));
+                Deserialize = deserializer =>
+                {
+                    nint result = (nint)deserializer.deserialize_i64();
+                    return Unsafe.As<nint, T>(ref result);
+                };
             }
             else if (typeof(T) == typeof(Int128))
             {
-                Serialize = (serializer, value) => serializer.serialize_i128((Int128)(object)value!);
-                Deserialize = deserializer => (T)(object)deserializer.deserialize_i128();
+                Serialize = (serializer, value) => serializer.serialize_i128(Unsafe.As<T, Int128>(ref value));
+                Deserialize = deserializer =>
+                {
+                    Int128 result = deserializer.deserialize_i128();
+                    return Unsafe.As<Int128, T>(ref result);
+                };
             }
             else if (typeof(T) == typeof(float))
             {
-                Serialize = (serializer, value) => serializer.serialize_f32((float)(object)value!);
-                Deserialize = deserializer => (T)(object)deserializer.deserialize_f32();
+                Serialize = (serializer, value) => serializer.serialize_f32(Unsafe.As<T, float>(ref value));
+                Deserialize = deserializer =>
+                {
+                    float result = deserializer.deserialize_f32();
+                    return Unsafe.As<float, T>(ref result);
+                };
             }
             else if (typeof(T) == typeof(double))
             {
-                Serialize = (serializer, value) => serializer.serialize_f64((double)(object)value!);
-                Deserialize = deserializer => (T)(object)deserializer.deserialize_f64();
+                Serialize = (serializer, value) => serializer.serialize_f64(Unsafe.As<T, double>(ref value));
+                Deserialize = deserializer =>
+                {
+                    double result = deserializer.deserialize_f64();
+                    return Unsafe.As<double, T>(ref result);
+                };
             }
             else if (typeof(T).IsGenericType && SerializerPrototypes.TryGetValue(typeof(T).GetGenericTypeDefinition(), out var methods))
             {
