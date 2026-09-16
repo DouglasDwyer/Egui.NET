@@ -23,8 +23,8 @@ public readonly ref partial struct TableRow
     public (Rect, Response) Col(Action<Ui> addCellContents)
     {
         var ctx = _ctx;
-        using var callback = new EguiCallback(uiPtr => addCellContents(new Ui(ctx, uiPtr)));
-        return EguiMarshal.Call<nuint, EguiCallback, (Rect, Response)>(EguiFn.egui_extras_table_TableRow_col, Ptr, callback);
+        using var callback = new EguiCallback.Pin(uiPtr => addCellContents(new Ui(ctx, uiPtr)));
+        return EguiMarshal.Call<nuint, EguiCallback, (Rect, Response)>(EguiFn.egui_extras_table_TableRow_col, Ptr, callback.AsNative());
     }
 
     /// <summary>

@@ -153,8 +153,8 @@ public sealed partial class Context : EguiObject
     /// </summary>
     public FullOutput Run(RawInput input, Action<Ui> runUi)
     {
-        using var callback = new EguiCallback(ui => runUi(new Ui(this, ui)));
-        return EguiMarshal.Call<nuint, RawInput, EguiCallback, FullOutput>(EguiFn.egui_context_Context_run_ui, Ptr, input, callback);
+        using var callback = new EguiCallback.Pin(ui => runUi(new Ui(this, ui)));
+        return EguiMarshal.Call<nuint, RawInput, EguiCallback, FullOutput>(EguiFn.egui_context_Context_run_ui, Ptr, input, callback.AsNative());
     }
 
     /// <summary>
@@ -165,8 +165,8 @@ public sealed partial class Context : EguiObject
     /// </summary>
     public unsafe void RunFfi(EguiFfi ffi, Action<Ui> runUi)
     {
-        using var callback = new EguiCallback(ui => runUi(new Ui(this, ui)));
-        EguiMarshal.Call(EguiFn.egui_context_Context_run_ffi, Ptr, ffi.Pointer, callback);
+        using var callback = new EguiCallback.Pin(ui => runUi(new Ui(this, ui)));
+        EguiMarshal.Call(EguiFn.egui_context_Context_run_ffi, Ptr, ffi.Pointer, callback.AsNative());
     }
 
     /// <summary>
@@ -182,8 +182,8 @@ public sealed partial class Context : EguiObject
     /// </summary>
     public LogicOutput RunLogic(RawInput input, Action<Context> logic)
     {
-        using var callback = new EguiCallback(_ => logic(this));
-        return EguiMarshal.Call<nuint, RawInput, EguiCallback, LogicOutput>(EguiFn.egui_context_Context_run_logic, Ptr, input, callback);
+        using var callback = new EguiCallback.Pin(_ => logic(this));
+        return EguiMarshal.Call<nuint, RawInput, EguiCallback, LogicOutput>(EguiFn.egui_context_Context_run_logic, Ptr, input, callback.AsNative());
     }
 
     /// <summary>
@@ -295,8 +295,8 @@ public sealed partial class Context : EguiObject
     public R Fonts<R>(Func<FontsView, R> reader)
     {
         R result = default!;
-        using var callback = new EguiCallback(f => result = reader(new FontsView(f)));
-        EguiMarshal.Call(EguiFn.egui_context_Context_fonts_mut, Ptr, callback);
+        using var callback = new EguiCallback.Pin(f => result = reader(new FontsView(f)));
+        EguiMarshal.Call(EguiFn.egui_context_Context_fonts_mut, Ptr, callback.AsNative());
         return result;
     }
 
@@ -490,8 +490,8 @@ public sealed partial class Context : EguiObject
     private R Memory<R>(Func<Memory, R> writer)
     {
         R result = default!;
-        using var callback = new EguiCallback(m => result = writer(new Memory(m)));
-        EguiMarshal.Call(EguiFn.egui_context_Context_memory_mut, Ptr, callback);
+        using var callback = new EguiCallback.Pin(m => result = writer(new Memory(m)));
+        EguiMarshal.Call(EguiFn.egui_context_Context_memory_mut, Ptr, callback.AsNative());
         return result;
     }
 
@@ -511,8 +511,8 @@ public sealed partial class Context : EguiObject
     public R MemoryMut<R>(Func<Memory, R> writer)
     {
         R result = default!;
-        using var callback = new EguiCallback(m => result = writer(new Memory(m)));
-        EguiMarshal.Call(EguiFn.egui_context_Context_memory_mut, Ptr, callback);
+        using var callback = new EguiCallback.Pin(m => result = writer(new Memory(m)));
+        EguiMarshal.Call(EguiFn.egui_context_Context_memory_mut, Ptr, callback.AsNative());
         return result;
     }
 

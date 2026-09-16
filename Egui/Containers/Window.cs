@@ -79,10 +79,10 @@ public ref struct Window
     /// </summary>
     public readonly InnerResponse? Show(Context ctx, Action<Ui> addContents)
     {
-        using var callback = new EguiCallback(ui => addContents(new Ui(ctx, ui)));
+        using var callback = new EguiCallback.Pin(ui => addContents(new Ui(ctx, ui)));
 
         bool? isOpen = _hasOpen ? _open : null;
-        var (response, setOpen) = EguiMarshal.Call<nuint, WindowInner, bool?, EguiCallback, (Response?, bool)>(EguiFn.egui_containers_window_Window_show, ctx.Ptr, new WindowInner(this), isOpen, callback);
+        var (response, setOpen) = EguiMarshal.Call<nuint, WindowInner, bool?, EguiCallback, (Response?, bool)>(EguiFn.egui_containers_window_Window_show, ctx.Ptr, new WindowInner(this), isOpen, callback.AsNative());
 
         if (_hasOpen)
         {
@@ -106,10 +106,10 @@ public ref struct Window
     public readonly InnerResponse<R?>? Show<R>(Context ctx, Func<Ui, R> addContents)
     {
         R? result = default;
-        using var callback = new EguiCallback(ui => result = addContents(new Ui(ctx, ui)));
+        using var callback = new EguiCallback.Pin(ui => result = addContents(new Ui(ctx, ui)));
 
         bool? isOpen = _hasOpen ? _open : null;
-        var (response, setOpen) = EguiMarshal.Call<nuint, WindowInner, bool?, EguiCallback, (Response?, bool)>(EguiFn.egui_containers_window_Window_show, ctx.Ptr, new WindowInner(this), isOpen, callback);
+        var (response, setOpen) = EguiMarshal.Call<nuint, WindowInner, bool?, EguiCallback, (Response?, bool)>(EguiFn.egui_containers_window_Window_show, ctx.Ptr, new WindowInner(this), isOpen, callback.AsNative());
 
         if (_hasOpen)
         {

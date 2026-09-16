@@ -463,8 +463,8 @@ public ref partial struct Popup
     public readonly InnerResponse? Show(Action<Ui> addContents)
     {
         var ctx = Ctx;
-        using var callback = new EguiCallback(ui => addContents(new Ui(ctx, ui)));
-        var (response, setOpen) = EguiMarshal.Call<nuint, SerializablePopup, bool, EguiCallback, (Response?, bool)>(EguiFn.egui_containers_popup_Popup_show, Ctx.Ptr, new SerializablePopup(this), IsOpen, callback);
+        using var callback = new EguiCallback.Pin(ui => addContents(new Ui(ctx, ui)));
+        var (response, setOpen) = EguiMarshal.Call<nuint, SerializablePopup, bool, EguiCallback, (Response?, bool)>(EguiFn.egui_containers_popup_Popup_show, Ctx.Ptr, new SerializablePopup(this), IsOpen, callback.AsNative());
 
         if (_openKind == OpenKind.Bool)
         {
@@ -489,8 +489,8 @@ public ref partial struct Popup
     {
         var ctx = Ctx;
         R result = default!;
-        using var callback = new EguiCallback(ui => result = addContents(new Ui(ctx, ui)));
-        var (response, setOpen) = EguiMarshal.Call<nuint, SerializablePopup, bool, EguiCallback, (Response?, bool)>(EguiFn.egui_containers_popup_Popup_show, Ctx.Ptr, new SerializablePopup(this), IsOpen, callback);
+        using var callback = new EguiCallback.Pin(ui => result = addContents(new Ui(ctx, ui)));
+        var (response, setOpen) = EguiMarshal.Call<nuint, SerializablePopup, bool, EguiCallback, (Response?, bool)>(EguiFn.egui_containers_popup_Popup_show, Ctx.Ptr, new SerializablePopup(this), IsOpen, callback.AsNative());
 
         if (_openKind == OpenKind.Bool)
         {
@@ -518,8 +518,8 @@ public ref partial struct Popup
     {
         var ctx = Ctx;
         R result = default!;
-        using var callback = new EguiCallback(ui => result = addContents(new Ui(ctx, ui)));
-        var (response, setOpen) = EguiMarshal.Call<nuint, SerializablePopup, LayerId, Id, EguiCallback, (Response?, bool)>(EguiFn.egui_containers_tooltip_Tooltip_show, Ctx.Ptr, new SerializablePopup(this), parentLayer, parentId, callback);
+        using var callback = new EguiCallback.Pin(ui => result = addContents(new Ui(ctx, ui)));
+        var (response, setOpen) = EguiMarshal.Call<nuint, SerializablePopup, LayerId, Id, EguiCallback, (Response?, bool)>(EguiFn.egui_containers_tooltip_Tooltip_show, Ctx.Ptr, new SerializablePopup(this), parentLayer, parentId, callback.AsNative());
 
         if (_openKind == OpenKind.Bool)
         {

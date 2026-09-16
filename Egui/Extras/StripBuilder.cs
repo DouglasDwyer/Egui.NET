@@ -110,8 +110,8 @@ public ref struct StripBuilder
         var ctx = _ui.Ctx;
         var options = ToOptions();
 
-        using var callback = new EguiCallback(stripPtr => addStripContents(new Strip(ctx, stripPtr)));
-        return EguiMarshal.Call<nuint, StripOptions, EguiCallback, Response>(func, _ui.Ptr, options, callback);
+        using var callback = new EguiCallback.Pin(stripPtr => addStripContents(new Strip(ctx, stripPtr)));
+        return EguiMarshal.Call<nuint, StripOptions, EguiCallback, Response>(func, _ui.Ptr, options, callback.AsNative());
     }
 
     private readonly StripOptions ToOptions() => new StripOptions

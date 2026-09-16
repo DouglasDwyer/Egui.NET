@@ -390,8 +390,8 @@ public ref partial struct TextEdit : IWidget
         var ctx = ui.Ctx;
         var layouter = _layouter;
 
-        EguiCallback? layouterCallback = layouter is not null
-            ? new EguiCallback(paramsPtr =>
+        EguiCallback.Pin? layouterCallback = layouter is not null
+            ? new EguiCallback.Pin(paramsPtr =>
             {
                 var p = *(EguiTextEditLayouterParams*)paramsPtr;
                 var text = System.Text.Encoding.UTF8.GetString((byte*)p.text_ptr, (int)p.text_len);
@@ -403,7 +403,7 @@ public ref partial struct TextEdit : IWidget
         try
         {
             var (response, newText) = EguiMarshal.Call<nuint, TextEditInner, string, bool, EguiCallback?, (Response, string)>(
-                EguiFn.egui_widgets_text_edit_builder_TextEdit_ui, ui.Ptr, _inner, textToSend!, _textImmutable is null, layouterCallback);
+                EguiFn.egui_widgets_text_edit_builder_TextEdit_ui, ui.Ptr, _inner, textToSend!, _textImmutable is null, layouterCallback?.AsNative());
             if (mutable)
             {
                 _textMutable = newText;
@@ -412,7 +412,7 @@ public ref partial struct TextEdit : IWidget
         }
         finally
         {
-            if (layouterCallback is EguiCallback lc)
+            if (layouterCallback is EguiCallback.Pin lc)
             {
                 ((IDisposable)lc).Dispose();
             }

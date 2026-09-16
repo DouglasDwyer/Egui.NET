@@ -12,8 +12,8 @@ public partial record struct CollapsingState
     {
         ui.AssertInitialized();
         var ctx = ui.Ctx;
-        using var callback = new EguiCallback(ui => addBody(new Ui(ctx, ui)));
-        var (response, newState) = EguiMarshal.Call<nuint, CollapsingState, Response, EguiCallback, (Response?, CollapsingState)>(EguiFn.egui_containers_collapsing_header_CollapsingState_show_body_indented, ui.Ptr, this, headerResponse, callback);
+        using var callback = new EguiCallback.Pin(ui => addBody(new Ui(ctx, ui)));
+        var (response, newState) = EguiMarshal.Call<nuint, CollapsingState, Response, EguiCallback, (Response?, CollapsingState)>(EguiFn.egui_containers_collapsing_header_CollapsingState_show_body_indented, ui.Ptr, this, headerResponse, callback.AsNative());
         this = newState;
         if (response.HasValue)
         {
@@ -34,8 +34,8 @@ public partial record struct CollapsingState
         ui.AssertInitialized();
         var ctx = ui.Ctx;
         R result = default!;
-        using var callback = new EguiCallback(ui => result = addBody(new Ui(ctx, ui)));
-        var (response, newState) = EguiMarshal.Call<nuint, CollapsingState, Response, EguiCallback, (Response?, CollapsingState)>(EguiFn.egui_containers_collapsing_header_CollapsingState_show_body_indented, ui.Ptr, this, headerResponse, callback);
+        using var callback = new EguiCallback.Pin(ui => result = addBody(new Ui(ctx, ui)));
+        var (response, newState) = EguiMarshal.Call<nuint, CollapsingState, Response, EguiCallback, (Response?, CollapsingState)>(EguiFn.egui_containers_collapsing_header_CollapsingState_show_body_indented, ui.Ptr, this, headerResponse, callback.AsNative());
         this = newState;
         if (response.HasValue)
         {
@@ -60,8 +60,8 @@ public partial record struct CollapsingState
     {
         ui.AssertInitialized();
         var ctx = ui.Ctx;
-        using var callback = new EguiCallback(ui => addBody(new Ui(ctx, ui)));
-        var (response, newState) = EguiMarshal.Call<nuint, CollapsingState, EguiCallback, (Response?, CollapsingState)>(EguiFn.egui_containers_collapsing_header_CollapsingState_show_body_unindented, ui.Ptr, this, callback);
+        using var callback = new EguiCallback.Pin(ui => addBody(new Ui(ctx, ui)));
+        var (response, newState) = EguiMarshal.Call<nuint, CollapsingState, EguiCallback, (Response?, CollapsingState)>(EguiFn.egui_containers_collapsing_header_CollapsingState_show_body_unindented, ui.Ptr, this, callback.AsNative());
         this = newState;
         if (response.HasValue)
         {
@@ -82,8 +82,8 @@ public partial record struct CollapsingState
         ui.AssertInitialized();
         var ctx = ui.Ctx;
         R result = default!;
-        using var callback = new EguiCallback(ui => result = addBody(new Ui(ctx, ui)));
-        var (response, newState) = EguiMarshal.Call<nuint, CollapsingState, EguiCallback, (Response?, CollapsingState)>(EguiFn.egui_containers_collapsing_header_CollapsingState_show_body_unindented, ui.Ptr, this, callback);
+        using var callback = new EguiCallback.Pin(ui => result = addBody(new Ui(ctx, ui)));
+        var (response, newState) = EguiMarshal.Call<nuint, CollapsingState, EguiCallback, (Response?, CollapsingState)>(EguiFn.egui_containers_collapsing_header_CollapsingState_show_body_unindented, ui.Ptr, this, callback.AsNative());
         this = newState;
         if (response.HasValue)
         {
@@ -119,8 +119,8 @@ public partial record struct CollapsingState
         R result = default!;
         ui.AssertInitialized();
         var ctx = ui.Ctx;
-        using var callback = new EguiCallback(ui => result = addHeader(new Ui(ctx, ui)));
-        var (toggleResponse, headerResponse, newState) = EguiMarshal.Call<nuint, CollapsingState, EguiCallback, (Response, Response, CollapsingState)>(EguiFn.egui_containers_collapsing_header_CollapsingState_show_header, ui.Ptr, this, callback);
+        using var callback = new EguiCallback.Pin(ui => result = addHeader(new Ui(ctx, ui)));
+        var (toggleResponse, headerResponse, newState) = EguiMarshal.Call<nuint, CollapsingState, EguiCallback, (Response, Response, CollapsingState)>(EguiFn.egui_containers_collapsing_header_CollapsingState_show_header, ui.Ptr, this, callback.AsNative());
         return new HeaderResponse<R>(this, ui, toggleResponse, new InnerResponse<R>
         {
             Inner = result,
@@ -135,11 +135,11 @@ public partial record struct CollapsingState
     {
         ui.AssertInitialized();
         var ctx = ui.Ctx;
-        using var callback = new EguiCallback(paramPack =>
+        using var callback = new EguiCallback.Pin(paramPack =>
         {
             var (ui, openness, response) = EguiMarshal.Call<nuint, (nuint, float, Response)>(EguiFn.egui_containers_collapsing_header_EguiCollapsingStateShowToggleButtonParams_unpack, paramPack);
             iconFn(new Ui(ctx, ui), openness, response);
         });
-        return EguiMarshal.Call<nuint, CollapsingState, EguiCallback, Response>(EguiFn.egui_containers_collapsing_header_CollapsingState_show_toggle_button, ui.Ptr, this, callback);
+        return EguiMarshal.Call<nuint, CollapsingState, EguiCallback, Response>(EguiFn.egui_containers_collapsing_header_CollapsingState_show_toggle_button, ui.Ptr, this, callback.AsNative());
     }
 }

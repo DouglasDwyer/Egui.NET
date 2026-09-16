@@ -234,8 +234,8 @@ public readonly ref partial struct Ui
         AssertInitialized();
         var tp = &widget;
         var ctx = Ctx;
-        using var callback = new EguiCallback(ui => (*tp).Ui(new Ui(ctx, ui)));
-        return EguiMarshal.Call<nuint, Rect, EguiCallback, Response>(EguiFn.egui_ui_Ui_place, Ptr, maxRect, callback);
+        using var callback = new EguiCallback.Pin(ui => (*tp).Ui(new Ui(ctx, ui)));
+        return EguiMarshal.Call<nuint, Rect, EguiCallback, Response>(EguiFn.egui_ui_Ui_place, Ptr, maxRect, callback.AsNative());
 #pragma warning restore CS8500
     }
 
@@ -312,8 +312,8 @@ public readonly ref partial struct Ui
     {
         AssertInitialized();
         var ctx = Ctx;
-        using var callback = new EguiCallback(ui => addContents(new Ui(ctx, ui)));
-        var response = EguiMarshal.Call<nuint, EVec2, Layout, EguiCallback, Response>(EguiFn.egui_ui_Ui_allocate_ui_with_layout, Ptr, desiredSize, layout, callback);
+        using var callback = new EguiCallback.Pin(ui => addContents(new Ui(ctx, ui)));
+        var response = EguiMarshal.Call<nuint, EVec2, Layout, EguiCallback, Response>(EguiFn.egui_ui_Ui_allocate_ui_with_layout, Ptr, desiredSize, layout, callback.AsNative());
         return new InnerResponse
         {
             Response = response
@@ -326,8 +326,8 @@ public readonly ref partial struct Ui
         AssertInitialized();
         R result = default!;
         var ctx = Ctx;
-        using var callback = new EguiCallback(ui => result = addContents(new Ui(ctx, ui)));
-        var response = EguiMarshal.Call<nuint, EVec2, Layout, EguiCallback, Response>(EguiFn.egui_ui_Ui_allocate_ui_with_layout, Ptr, desiredSize, layout, callback);
+        using var callback = new EguiCallback.Pin(ui => result = addContents(new Ui(ctx, ui)));
+        var response = EguiMarshal.Call<nuint, EVec2, Layout, EguiCallback, Response>(EguiFn.egui_ui_Ui_allocate_ui_with_layout, Ptr, desiredSize, layout, callback.AsNative());
         return new InnerResponse<R>
         {
             Inner = result,
@@ -342,8 +342,8 @@ public readonly ref partial struct Ui
     {
         AssertInitialized();
         var ctx = Ctx;
-        using var callback = new EguiCallback(uiArray => addContents(new UiArray(ctx, (nuint*)uiArray, (int)numColumns)));
-        EguiMarshal.Call(EguiFn.egui_ui_Ui_columns, Ptr, numColumns, callback);
+        using var callback = new EguiCallback.Pin(uiArray => addContents(new UiArray(ctx, (nuint*)uiArray, (int)numColumns)));
+        EguiMarshal.Call(EguiFn.egui_ui_Ui_columns, Ptr, numColumns, callback.AsNative());
     }
 
     /// <inheritdoc cref="Columns"/>
@@ -352,8 +352,8 @@ public readonly ref partial struct Ui
         AssertInitialized();
         R result = default!;
         var ctx = Ctx;
-        using var callback = new EguiCallback(uiArray => result = addContents(new UiArray(ctx, (nuint*)uiArray, (int)numColumns)));
-        EguiMarshal.Call(EguiFn.egui_ui_Ui_columns, Ptr, numColumns, callback);
+        using var callback = new EguiCallback.Pin(uiArray => result = addContents(new UiArray(ctx, (nuint*)uiArray, (int)numColumns)));
+        EguiMarshal.Call(EguiFn.egui_ui_Ui_columns, Ptr, numColumns, callback.AsNative());
         return result;
     }
 
@@ -364,8 +364,8 @@ public readonly ref partial struct Ui
     {
         AssertInitialized();
         var ctx = Ctx;
-        using var callback = new EguiCallback(ui => addContents(new Ui(ctx, ui)));
-        var response = EguiMarshal.Call<nuint, EguiCallback, Response>(EguiFn.egui_ui_Ui_group, Ptr, callback);
+        using var callback = new EguiCallback.Pin(ui => addContents(new Ui(ctx, ui)));
+        var response = EguiMarshal.Call<nuint, EguiCallback, Response>(EguiFn.egui_ui_Ui_group, Ptr, callback.AsNative());
         return new InnerResponse
         {
             Response = response
@@ -378,8 +378,8 @@ public readonly ref partial struct Ui
         AssertInitialized();
         R result = default!;
         var ctx = Ctx;
-        using var callback = new EguiCallback(ui => result = addContents(new Ui(ctx, ui)));
-        var response = EguiMarshal.Call<nuint, EguiCallback, Response>(EguiFn.egui_ui_Ui_group, Ptr, callback);
+        using var callback = new EguiCallback.Pin(ui => result = addContents(new Ui(ctx, ui)));
+        var response = EguiMarshal.Call<nuint, EguiCallback, Response>(EguiFn.egui_ui_Ui_group, Ptr, callback.AsNative());
         return new InnerResponse<R>
         {
             Inner = result,
@@ -396,8 +396,8 @@ public readonly ref partial struct Ui
     {
         AssertInitialized();
         var ctx = Ctx;
-        using var callback = new EguiCallback(ui => addContents(new Ui(ctx, ui)));
-        var response = EguiMarshal.Call<nuint, EguiCallback, Response>(EguiFn.egui_ui_Ui_centered_and_justified, Ptr, callback);
+        using var callback = new EguiCallback.Pin(ui => addContents(new Ui(ctx, ui)));
+        var response = EguiMarshal.Call<nuint, EguiCallback, Response>(EguiFn.egui_ui_Ui_centered_and_justified, Ptr, callback.AsNative());
         return new InnerResponse
         {
             Response = response
@@ -410,8 +410,8 @@ public readonly ref partial struct Ui
         AssertInitialized();
         R result = default!;
         var ctx = Ctx;
-        using var callback = new EguiCallback(ui => result = addContents(new Ui(ctx, ui)));
-        var response = EguiMarshal.Call<nuint, EguiCallback, Response>(EguiFn.egui_ui_Ui_centered_and_justified, Ptr, callback);
+        using var callback = new EguiCallback.Pin(ui => result = addContents(new Ui(ctx, ui)));
+        var response = EguiMarshal.Call<nuint, EguiCallback, Response>(EguiFn.egui_ui_Ui_centered_and_justified, Ptr, callback.AsNative());
         return new InnerResponse<R>
         {
             Inner = result,
@@ -439,8 +439,8 @@ public readonly ref partial struct Ui
     {
         AssertInitialized();
         var ctx = Ctx;
-        using var callback = new EguiCallback(ui => addContents(new Ui(ctx, ui)));
-        var response = EguiMarshal.Call<nuint, EguiCallback, Response>(EguiFn.egui_ui_Ui_horizontal, Ptr, callback);
+        using var callback = new EguiCallback.Pin(ui => addContents(new Ui(ctx, ui)));
+        var response = EguiMarshal.Call<nuint, EguiCallback, Response>(EguiFn.egui_ui_Ui_horizontal, Ptr, callback.AsNative());
         return new InnerResponse
         {
             Response = response
@@ -453,8 +453,8 @@ public readonly ref partial struct Ui
         AssertInitialized();
         R result = default!;
         var ctx = Ctx;
-        using var callback = new EguiCallback(ui => result = addContents(new Ui(ctx, ui)));
-        var response = EguiMarshal.Call<nuint, EguiCallback, Response>(EguiFn.egui_ui_Ui_horizontal, Ptr, callback);
+        using var callback = new EguiCallback.Pin(ui => result = addContents(new Ui(ctx, ui)));
+        var response = EguiMarshal.Call<nuint, EguiCallback, Response>(EguiFn.egui_ui_Ui_horizontal, Ptr, callback.AsNative());
         return new InnerResponse<R>
         {
             Inner = result,
@@ -469,8 +469,8 @@ public readonly ref partial struct Ui
     {
         AssertInitialized();
         var ctx = Ctx;
-        using var callback = new EguiCallback(ui => addContents(new Ui(ctx, ui)));
-        var response = EguiMarshal.Call<nuint, EguiCallback, Response>(EguiFn.egui_ui_Ui_horizontal_centered, Ptr, callback);
+        using var callback = new EguiCallback.Pin(ui => addContents(new Ui(ctx, ui)));
+        var response = EguiMarshal.Call<nuint, EguiCallback, Response>(EguiFn.egui_ui_Ui_horizontal_centered, Ptr, callback.AsNative());
         return new InnerResponse
         {
             Response = response
@@ -483,8 +483,8 @@ public readonly ref partial struct Ui
         AssertInitialized();
         R result = default!;
         var ctx = Ctx;
-        using var callback = new EguiCallback(ui => result = addContents(new Ui(ctx, ui)));
-        var response = EguiMarshal.Call<nuint, EguiCallback, Response>(EguiFn.egui_ui_Ui_horizontal_centered, Ptr, callback);
+        using var callback = new EguiCallback.Pin(ui => result = addContents(new Ui(ctx, ui)));
+        var response = EguiMarshal.Call<nuint, EguiCallback, Response>(EguiFn.egui_ui_Ui_horizontal_centered, Ptr, callback.AsNative());
         return new InnerResponse<R>
         {
             Inner = result,
@@ -499,8 +499,8 @@ public readonly ref partial struct Ui
     {
         AssertInitialized();
         var ctx = Ctx;
-        using var callback = new EguiCallback(ui => addContents(new Ui(ctx, ui)));
-        var response = EguiMarshal.Call<nuint, EguiCallback, Response>(EguiFn.egui_ui_Ui_horizontal_top, Ptr, callback);
+        using var callback = new EguiCallback.Pin(ui => addContents(new Ui(ctx, ui)));
+        var response = EguiMarshal.Call<nuint, EguiCallback, Response>(EguiFn.egui_ui_Ui_horizontal_top, Ptr, callback.AsNative());
         return new InnerResponse
         {
             Response = response
@@ -513,8 +513,8 @@ public readonly ref partial struct Ui
         AssertInitialized();
         R result = default!;
         var ctx = Ctx;
-        using var callback = new EguiCallback(ui => result = addContents(new Ui(ctx, ui)));
-        var response = EguiMarshal.Call<nuint, EguiCallback, Response>(EguiFn.egui_ui_Ui_horizontal_top, Ptr, callback);
+        using var callback = new EguiCallback.Pin(ui => result = addContents(new Ui(ctx, ui)));
+        var response = EguiMarshal.Call<nuint, EguiCallback, Response>(EguiFn.egui_ui_Ui_horizontal_top, Ptr, callback.AsNative());
         return new InnerResponse<R>
         {
             Inner = result,
@@ -543,8 +543,8 @@ public readonly ref partial struct Ui
     {
         AssertInitialized();
         var ctx = Ctx;
-        using var callback = new EguiCallback(ui => addContents(new Ui(ctx, ui)));
-        var response = EguiMarshal.Call<nuint, EguiCallback, Response>(EguiFn.egui_ui_Ui_horizontal_wrapped, Ptr, callback);
+        using var callback = new EguiCallback.Pin(ui => addContents(new Ui(ctx, ui)));
+        var response = EguiMarshal.Call<nuint, EguiCallback, Response>(EguiFn.egui_ui_Ui_horizontal_wrapped, Ptr, callback.AsNative());
         return new InnerResponse
         {
             Response = response
@@ -557,8 +557,8 @@ public readonly ref partial struct Ui
         AssertInitialized();
         R result = default!;
         var ctx = Ctx;
-        using var callback = new EguiCallback(ui => result = addContents(new Ui(ctx, ui)));
-        var response = EguiMarshal.Call<nuint, EguiCallback, Response>(EguiFn.egui_ui_Ui_horizontal_wrapped, Ptr, callback);
+        using var callback = new EguiCallback.Pin(ui => result = addContents(new Ui(ctx, ui)));
+        var response = EguiMarshal.Call<nuint, EguiCallback, Response>(EguiFn.egui_ui_Ui_horizontal_wrapped, Ptr, callback.AsNative());
         return new InnerResponse<R>
         {
             Inner = result,
@@ -574,8 +574,8 @@ public readonly ref partial struct Ui
     {
         AssertInitialized();
         var ctx = Ctx;
-        using var callback = new EguiCallback(ui => addContents(new Ui(ctx, ui)));
-        var response = EguiMarshal.Call<nuint, EguiCallback, Response>(EguiFn.egui_ui_Ui_vertical, Ptr, callback);
+        using var callback = new EguiCallback.Pin(ui => addContents(new Ui(ctx, ui)));
+        var response = EguiMarshal.Call<nuint, EguiCallback, Response>(EguiFn.egui_ui_Ui_vertical, Ptr, callback.AsNative());
         return new InnerResponse
         {
             Response = response
@@ -588,8 +588,8 @@ public readonly ref partial struct Ui
         AssertInitialized();
         R result = default!;
         var ctx = Ctx;
-        using var callback = new EguiCallback(ui => result = addContents(new Ui(ctx, ui)));
-        var response = EguiMarshal.Call<nuint, EguiCallback, Response>(EguiFn.egui_ui_Ui_vertical, Ptr, callback);
+        using var callback = new EguiCallback.Pin(ui => result = addContents(new Ui(ctx, ui)));
+        var response = EguiMarshal.Call<nuint, EguiCallback, Response>(EguiFn.egui_ui_Ui_vertical, Ptr, callback.AsNative());
         return new InnerResponse<R>
         {
             Inner = result,
@@ -605,8 +605,8 @@ public readonly ref partial struct Ui
     {
         AssertInitialized();
         var ctx = Ctx;
-        using var callback = new EguiCallback(ui => addContents(new Ui(ctx, ui)));
-        var response = EguiMarshal.Call<nuint, EguiCallback, Response>(EguiFn.egui_ui_Ui_vertical_centered, Ptr, callback);
+        using var callback = new EguiCallback.Pin(ui => addContents(new Ui(ctx, ui)));
+        var response = EguiMarshal.Call<nuint, EguiCallback, Response>(EguiFn.egui_ui_Ui_vertical_centered, Ptr, callback.AsNative());
         return new InnerResponse
         {
             Response = response
@@ -619,8 +619,8 @@ public readonly ref partial struct Ui
         AssertInitialized();
         R result = default!;
         var ctx = Ctx;
-        using var callback = new EguiCallback(ui => result = addContents(new Ui(ctx, ui)));
-        var response = EguiMarshal.Call<nuint, EguiCallback, Response>(EguiFn.egui_ui_Ui_vertical_centered, Ptr, callback);
+        using var callback = new EguiCallback.Pin(ui => result = addContents(new Ui(ctx, ui)));
+        var response = EguiMarshal.Call<nuint, EguiCallback, Response>(EguiFn.egui_ui_Ui_vertical_centered, Ptr, callback.AsNative());
         return new InnerResponse<R>
         {
             Inner = result,
@@ -636,8 +636,8 @@ public readonly ref partial struct Ui
     {
         AssertInitialized();
         var ctx = Ctx;
-        using var callback = new EguiCallback(ui => addContents(new Ui(ctx, ui)));
-        var response = EguiMarshal.Call<nuint, EguiCallback, Response>(EguiFn.egui_ui_Ui_vertical_centered_justified, Ptr, callback);
+        using var callback = new EguiCallback.Pin(ui => addContents(new Ui(ctx, ui)));
+        var response = EguiMarshal.Call<nuint, EguiCallback, Response>(EguiFn.egui_ui_Ui_vertical_centered_justified, Ptr, callback.AsNative());
         return new InnerResponse
         {
             Response = response
@@ -650,8 +650,8 @@ public readonly ref partial struct Ui
         AssertInitialized();
         R result = default!;
         var ctx = Ctx;
-        using var callback = new EguiCallback(ui => result = addContents(new Ui(ctx, ui)));
-        var response = EguiMarshal.Call<nuint, EguiCallback, Response>(EguiFn.egui_ui_Ui_vertical_centered_justified, Ptr, callback);
+        using var callback = new EguiCallback.Pin(ui => result = addContents(new Ui(ctx, ui)));
+        var response = EguiMarshal.Call<nuint, EguiCallback, Response>(EguiFn.egui_ui_Ui_vertical_centered_justified, Ptr, callback.AsNative());
         return new InnerResponse<R>
         {
             Inner = result,
@@ -762,8 +762,8 @@ public readonly ref partial struct Ui
     {
         AssertInitialized();
         var ctx = Ctx;
-        using var callback = new EguiCallback(ui => addContents(new Ui(ctx, ui)));
-        var response = EguiMarshal.Call<nuint, UiBuilder, EguiCallback, Response>(EguiFn.egui_ui_Ui_scope_builder, Ptr, uiBuilder, callback);
+        using var callback = new EguiCallback.Pin(ui => addContents(new Ui(ctx, ui)));
+        var response = EguiMarshal.Call<nuint, UiBuilder, EguiCallback, Response>(EguiFn.egui_ui_Ui_scope_builder, Ptr, uiBuilder, callback.AsNative());
         return new InnerResponse
         {
             Response = response
@@ -776,8 +776,8 @@ public readonly ref partial struct Ui
         AssertInitialized();
         R result = default!;
         var ctx = Ctx;
-        using var callback = new EguiCallback(ui => result = addContents(new Ui(ctx, ui)));
-        var response = EguiMarshal.Call<nuint, UiBuilder, EguiCallback, Response>(EguiFn.egui_ui_Ui_scope_builder, Ptr, uiBuilder, callback);
+        using var callback = new EguiCallback.Pin(ui => result = addContents(new Ui(ctx, ui)));
+        var response = EguiMarshal.Call<nuint, UiBuilder, EguiCallback, Response>(EguiFn.egui_ui_Ui_scope_builder, Ptr, uiBuilder, callback.AsNative());
         return new InnerResponse<R>
         {
             Inner = result,
@@ -797,8 +797,8 @@ public readonly ref partial struct Ui
     {
         AssertInitialized();
         var ctx = Ctx;
-        using var callback = new EguiCallback(ui => addContents(new Ui(ctx, ui)));
-        var response = EguiMarshal.Call<nuint, TSTransform, EguiCallback, Response>(EguiFn.egui_ui_Ui_with_visual_transform, Ptr, transform, callback);
+        using var callback = new EguiCallback.Pin(ui => addContents(new Ui(ctx, ui)));
+        var response = EguiMarshal.Call<nuint, TSTransform, EguiCallback, Response>(EguiFn.egui_ui_Ui_with_visual_transform, Ptr, transform, callback.AsNative());
         return new InnerResponse
         {
             Response = response
@@ -811,8 +811,8 @@ public readonly ref partial struct Ui
         AssertInitialized();
         R result = default!;
         var ctx = Ctx;
-        using var callback = new EguiCallback(ui => result = addContents(new Ui(ctx, ui)));
-        var response = EguiMarshal.Call<nuint, TSTransform, EguiCallback, Response>(EguiFn.egui_ui_Ui_with_visual_transform, Ptr, transform, callback);
+        using var callback = new EguiCallback.Pin(ui => result = addContents(new Ui(ctx, ui)));
+        var response = EguiMarshal.Call<nuint, TSTransform, EguiCallback, Response>(EguiFn.egui_ui_Ui_with_visual_transform, Ptr, transform, callback.AsNative());
         return new InnerResponse<R>
         {
             Inner = result,
@@ -829,8 +829,8 @@ public readonly ref partial struct Ui
     {
         AssertInitialized();
         var ctx = Ctx;
-        using var callback = new EguiCallback(ui => addContents(new Ui(ctx, ui)));
-        var response = EguiMarshal.Call<nuint, Id, EguiCallback, Response>(EguiFn.egui_ui_Ui_indent, Ptr, idSalt, callback);
+        using var callback = new EguiCallback.Pin(ui => addContents(new Ui(ctx, ui)));
+        var response = EguiMarshal.Call<nuint, Id, EguiCallback, Response>(EguiFn.egui_ui_Ui_indent, Ptr, idSalt, callback.AsNative());
         return new InnerResponse
         {
             Response = response
@@ -843,8 +843,8 @@ public readonly ref partial struct Ui
         AssertInitialized();
         R result = default!;
         var ctx = Ctx;
-        using var callback = new EguiCallback(ui => result = addContents(new Ui(ctx, ui)));
-        var response = EguiMarshal.Call<nuint, Id, EguiCallback, Response>(EguiFn.egui_ui_Ui_indent, Ptr, idSalt, callback);
+        using var callback = new EguiCallback.Pin(ui => result = addContents(new Ui(ctx, ui)));
+        var response = EguiMarshal.Call<nuint, Id, EguiCallback, Response>(EguiFn.egui_ui_Ui_indent, Ptr, idSalt, callback.AsNative());
         return new InnerResponse<R>
         {
             Inner = result,

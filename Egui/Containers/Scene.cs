@@ -11,8 +11,8 @@ public partial record struct Scene
     {
         parentUi.AssertInitialized();
         var ctx = parentUi.Ctx;
-        using var callback = new EguiCallback(ui => addContents(new Ui(ctx, ui)));
-        var (response, newRect) = EguiMarshal.Call<nuint, Scene, Rect, EguiCallback, (Response, Rect)>(EguiFn.egui_containers_scene_Scene_show, parentUi.Ptr, this, sceneRect, callback);
+        using var callback = new EguiCallback.Pin(ui => addContents(new Ui(ctx, ui)));
+        var (response, newRect) = EguiMarshal.Call<nuint, Scene, Rect, EguiCallback, (Response, Rect)>(EguiFn.egui_containers_scene_Scene_show, parentUi.Ptr, this, sceneRect, callback.AsNative());
         sceneRect = newRect;
         return new InnerResponse
         {
@@ -26,8 +26,8 @@ public partial record struct Scene
         parentUi.AssertInitialized();
         var ctx = parentUi.Ctx;
         R result = default!;
-        using var callback = new EguiCallback(ui => result = addContents(new Ui(ctx, ui)));
-        var (response, newRect) = EguiMarshal.Call<nuint, Scene, Rect, EguiCallback, (Response, Rect)>(EguiFn.egui_containers_scene_Scene_show, parentUi.Ptr, this, sceneRect, callback);
+        using var callback = new EguiCallback.Pin(ui => result = addContents(new Ui(ctx, ui)));
+        var (response, newRect) = EguiMarshal.Call<nuint, Scene, Rect, EguiCallback, (Response, Rect)>(EguiFn.egui_containers_scene_Scene_show, parentUi.Ptr, this, sceneRect, callback.AsNative());
         return new InnerResponse<R>
         {
             Inner = result,

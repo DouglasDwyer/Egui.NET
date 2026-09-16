@@ -10,8 +10,8 @@ public partial record struct ComboBox
     {
         ui.AssertInitialized();
         var ctx = ui.Ctx;
-        using var callback = new EguiCallback(ui => addContents(new Ui(ctx, ui)));
-        var response = EguiMarshal.Call<nuint, ComboBox, EguiCallback, Response>(EguiFn.egui_containers_combo_box_ComboBox_show_ui, ui.Ptr, this, callback);
+        using var callback = new EguiCallback.Pin(ui => addContents(new Ui(ctx, ui)));
+        var response = EguiMarshal.Call<nuint, ComboBox, EguiCallback, Response>(EguiFn.egui_containers_combo_box_ComboBox_show_ui, ui.Ptr, this, callback.AsNative());
         return new InnerResponse
         {
             Response = response
@@ -24,8 +24,8 @@ public partial record struct ComboBox
         ui.AssertInitialized();
         var ctx = ui.Ctx;
         R? result = default;
-        using var callback = new EguiCallback(ui => result = addContents(new Ui(ctx, ui)));
-        var response = EguiMarshal.Call<nuint, ComboBox, EguiCallback, Response>(EguiFn.egui_containers_combo_box_ComboBox_show_ui, ui.Ptr, this, callback);
+        using var callback = new EguiCallback.Pin(ui => result = addContents(new Ui(ctx, ui)));
+        var response = EguiMarshal.Call<nuint, ComboBox, EguiCallback, Response>(EguiFn.egui_containers_combo_box_ComboBox_show_ui, ui.Ptr, this, callback.AsNative());
         return new InnerResponse<R?>
         {
             Inner = result,

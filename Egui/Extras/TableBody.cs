@@ -31,8 +31,8 @@ public readonly ref struct TableBody
     public void Row(float height, Action<TableRow> addRowContent)
     {
         var ctx = _ctx;
-        using var callback = new EguiCallback(rowPtr => addRowContent(new TableRow(ctx, rowPtr)));
-        EguiMarshal.Call(EguiFn.egui_extras_table_TableBody_row, Ptr, height, callback);
+        using var callback = new EguiCallback.Pin(rowPtr => addRowContent(new TableRow(ctx, rowPtr)));
+        EguiMarshal.Call(EguiFn.egui_extras_table_TableBody_row, Ptr, height, callback.AsNative());
     }
 
     /// <summary>
@@ -49,8 +49,8 @@ public readonly ref struct TableBody
     public void Rows(float rowHeightSansSpacing, nuint totalRows, Action<TableRow> addRowContent)
     {
         var ctx = _ctx;
-        using var callback = new EguiCallback(rowPtr => addRowContent(new TableRow(ctx, rowPtr)));
-        EguiMarshal.Call(EguiFn.egui_extras_table_TableBody_rows, Ptr, rowHeightSansSpacing, totalRows, callback);
+        using var callback = new EguiCallback.Pin(rowPtr => addRowContent(new TableRow(ctx, rowPtr)));
+        EguiMarshal.Call(EguiFn.egui_extras_table_TableBody_rows, Ptr, rowHeightSansSpacing, totalRows, callback.AsNative());
     }
 
     /// <summary>
@@ -66,8 +66,8 @@ public readonly ref struct TableBody
     public void HeterogeneousRows(ImmutableArray<float> heights, Action<TableRow> addRowContent)
     {
         var ctx = _ctx;
-        using var callback = new EguiCallback(rowPtr => addRowContent(new TableRow(ctx, rowPtr)));
-        EguiMarshal.Call(EguiFn.egui_extras_table_TableBody_heterogeneous_rows, Ptr, heights, callback);
+        using var callback = new EguiCallback.Pin(rowPtr => addRowContent(new TableRow(ctx, rowPtr)));
+        EguiMarshal.Call(EguiFn.egui_extras_table_TableBody_heterogeneous_rows, Ptr, heights, callback.AsNative());
     }
 
     /// <summary>
@@ -92,7 +92,7 @@ public readonly ref struct TableBody
     public void Ui(Action<Ui> addContents)
     {
         var ctx = _ctx;
-        using var callback = new EguiCallback(uiPtr => addContents(new Ui(ctx, uiPtr)));
-        EguiMarshal.Call(EguiFn.egui_extras_table_TableBody_ui_mut, Ptr, callback);
+        using var callback = new EguiCallback.Pin(uiPtr => addContents(new Ui(ctx, uiPtr)));
+        EguiMarshal.Call(EguiFn.egui_extras_table_TableBody_ui_mut, Ptr, callback.AsNative());
     }
 }

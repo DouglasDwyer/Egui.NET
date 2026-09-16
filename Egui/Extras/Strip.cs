@@ -23,8 +23,8 @@ public readonly ref partial struct Strip
     public void Cell(Action<Ui> addContents)
     {
         var ctx = _ctx;
-        using var callback = new EguiCallback(uiPtr => addContents(new Ui(ctx, uiPtr)));
-        EguiMarshal.Call(EguiFn.egui_extras_strip_Strip_cell, Ptr, callback);
+        using var callback = new EguiCallback.Pin(uiPtr => addContents(new Ui(ctx, uiPtr)));
+        EguiMarshal.Call(EguiFn.egui_extras_strip_Strip_cell, Ptr, callback.AsNative());
     }
 
     /// <summary>

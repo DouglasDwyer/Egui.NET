@@ -6,9 +6,9 @@ public partial record struct Sides
     {
         ui.AssertInitialized();
         var ctx = ui.Ctx;
-        using var leftCallback = new EguiCallback(ui => addLeft(new Ui(ctx, ui)));
-        using var rightCallback = new EguiCallback(ui => addRight(new Ui(ctx, ui)));
-        EguiMarshal.Call(EguiFn.egui_containers_sides_Sides_show, ui.Ptr, this, leftCallback, rightCallback);
+        using var leftCallback = new EguiCallback.Pin(ui => addLeft(new Ui(ctx, ui)));
+        using var rightCallback = new EguiCallback.Pin(ui => addRight(new Ui(ctx, ui)));
+        EguiMarshal.Call(EguiFn.egui_containers_sides_Sides_show, ui.Ptr, this, leftCallback.AsNative(), rightCallback.AsNative());
     }
 
     public readonly (L, R) Show<L, R>(Ui ui, Func<Ui, L> addLeft, Func<Ui, R> addRight)
@@ -17,9 +17,9 @@ public partial record struct Sides
         var ctx = ui.Ctx;
         L lResult = default!;
         R rResult = default!;
-        using var leftCallback = new EguiCallback(ui => lResult = addLeft(new Ui(ctx, ui)));
-        using var rightCallback = new EguiCallback(ui => rResult = addRight(new Ui(ctx, ui)));
-        EguiMarshal.Call(EguiFn.egui_containers_sides_Sides_show, ui.Ptr, this, leftCallback, rightCallback);
+        using var leftCallback = new EguiCallback.Pin(ui => lResult = addLeft(new Ui(ctx, ui)));
+        using var rightCallback = new EguiCallback.Pin(ui => rResult = addRight(new Ui(ctx, ui)));
+        EguiMarshal.Call(EguiFn.egui_containers_sides_Sides_show, ui.Ptr, this, leftCallback.AsNative(), rightCallback.AsNative());
         return (lResult, rResult);
     }
 }
