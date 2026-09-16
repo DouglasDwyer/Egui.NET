@@ -29,8 +29,8 @@ public partial record struct SubMenuButton
         ui.AssertInitialized();
         var ctx = ui.Ctx;
         R result = default!;
-        using var callback = new EguiCallback(ui => result = addContents(new Ui(ctx, ui)));
-        var (response, maybeInner) = EguiMarshal.Call<nuint, SubMenuButton, EguiCallback, (Response, Response?)>(EguiFn.egui_containers_menu_SubMenuButton_ui, ui.Ptr, this, callback);
+        using var callback = new EguiCallback.Pin(ui => result = addContents(new Ui(ctx, ui)));
+        var (response, maybeInner) = EguiMarshal.Call<nuint, SubMenuButton, EguiCallback, (Response, Response?)>(EguiFn.egui_containers_menu_SubMenuButton_ui, ui.Ptr, this, callback.AsNative());
 
         return (response, maybeInner.HasValue ? new InnerResponse<R>
         {

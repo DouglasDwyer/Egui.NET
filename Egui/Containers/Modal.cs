@@ -7,8 +7,8 @@ public partial record struct Modal
     /// </summary>
     public readonly ModalResponse Show(Context ctx, Action<Ui> addContents)
     {
-        using var callback = new EguiCallback(ui => addContents(new Ui(ctx, ui)));
-        var (response, backdropResponse, isTopModal, anyPopupOpen) = EguiMarshal.Call<nuint, Modal, EguiCallback, (Response, Response, bool, bool)>(EguiFn.egui_containers_modal_Modal_show, ctx.Ptr, this, callback);
+        using var callback = new EguiCallback.Pin(ui => addContents(new Ui(ctx, ui)));
+        var (response, backdropResponse, isTopModal, anyPopupOpen) = EguiMarshal.Call<nuint, Modal, EguiCallback, (Response, Response, bool, bool)>(EguiFn.egui_containers_modal_Modal_show, ctx.Ptr, this, callback.AsNative());
         return new ModalResponse
         {
             Response = response,
@@ -22,8 +22,8 @@ public partial record struct Modal
     public readonly ModalResponse<R> Show<R>(Context ctx, Func<Ui, R> addContents)
     {
         R result = default!;
-        using var callback = new EguiCallback(ui => result = addContents(new Ui(ctx, ui)));
-        var (response, backdropResponse, isTopModal, anyPopupOpen) = EguiMarshal.Call<nuint, Modal, EguiCallback, (Response, Response, bool, bool)>(EguiFn.egui_containers_modal_Modal_show, ctx.Ptr, this, callback);
+        using var callback = new EguiCallback.Pin(ui => result = addContents(new Ui(ctx, ui)));
+        var (response, backdropResponse, isTopModal, anyPopupOpen) = EguiMarshal.Call<nuint, Modal, EguiCallback, (Response, Response, bool, bool)>(EguiFn.egui_containers_modal_Modal_show, ctx.Ptr, this, callback.AsNative());
         return new ModalResponse<R>
         {
             Response = response,

@@ -35,8 +35,8 @@ public partial record struct Grid
         }
 
         var ctx = ui.Ctx;
-        using var callback = new EguiCallback(ui => addContents(new Ui(ctx, ui)));
-        var response = EguiMarshal.Call<nuint, Grid, EguiCallback, Response>(EguiFn.egui_grid_Grid_show, ui.Ptr, this, callback);
+        using var callback = new EguiCallback.Pin(ui => addContents(new Ui(ctx, ui)));
+        var response = EguiMarshal.Call<nuint, Grid, EguiCallback, Response>(EguiFn.egui_grid_Grid_show, ui.Ptr, this, callback.AsNative());
 
         if (_striped.HasValue)
         {
@@ -63,8 +63,8 @@ public partial record struct Grid
 
         R result = default!;
         var ctx = ui.Ctx;
-        using var callback = new EguiCallback(ui => result = addContents(new Ui(ctx, ui)));
-        var response = EguiMarshal.Call<nuint, Grid, EguiCallback, Response>(EguiFn.egui_grid_Grid_show, ui.Ptr, this, callback);
+        using var callback = new EguiCallback.Pin(ui => result = addContents(new Ui(ctx, ui)));
+        var response = EguiMarshal.Call<nuint, Grid, EguiCallback, Response>(EguiFn.egui_grid_Grid_show, ui.Ptr, this, callback.AsNative());
 
         if (_striped.HasValue)
         {

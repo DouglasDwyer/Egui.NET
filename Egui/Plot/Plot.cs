@@ -8,9 +8,9 @@ public partial record struct Plot
     public readonly PlotResponse Show(Ui ui, Action<PlotUi> buildFn)
     {
         var ctx = ui.Ctx;
-        using var callback = new EguiCallback(ptr => buildFn(new PlotUi(ctx, ptr)));
+        using var callback = new EguiCallback.Pin(ptr => buildFn(new PlotUi(ctx, ptr)));
         var (response, transform, hoveredPlotItem) = EguiMarshal.Call<nuint, Plot, EguiCallback, (Response, PlotTransform, Id?)>(
-            EguiFn.egui_plot_plot_Plot_show, ui.Ptr, this, callback);
+            EguiFn.egui_plot_plot_Plot_show, ui.Ptr, this, callback.AsNative());
 
         return new PlotResponse
         {
@@ -25,9 +25,9 @@ public partial record struct Plot
     {
         var ctx = ui.Ctx;
         R result = default!;
-        using var callback = new EguiCallback(ptr => result = buildFn(new PlotUi(ctx, ptr)));
+        using var callback = new EguiCallback.Pin(ptr => result = buildFn(new PlotUi(ctx, ptr)));
         var (response, transform, hoveredPlotItem) = EguiMarshal.Call<nuint, Plot, EguiCallback, (Response, PlotTransform, Id?)>(
-            EguiFn.egui_plot_plot_Plot_show, ui.Ptr, this, callback);
+            EguiFn.egui_plot_plot_Plot_show, ui.Ptr, this, callback.AsNative());
 
         return new PlotResponse<R>
         {

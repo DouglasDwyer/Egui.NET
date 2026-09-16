@@ -7,53 +7,91 @@ namespace Egui;
 /// <summary>
 /// A callback that may be passed to unmanaged code.
 /// </summary>
-internal unsafe partial struct EguiCallback : IDisposable
+internal unsafe partial struct EguiCallback
 {
     /// <summary>
-    /// The last exception that occurred.
+    /// Facilitates sending a callback to unmanaged code without incurring a
+    /// <see cref="GCHandle"/> allocation: the callback and its exception state live inline in
+    /// this stack-resident struct, and <see cref="AsNative"/> takes their address directly.
     /// </summary>
-    [ThreadStatic]
-    private static ExceptionDispatchInfo? _lastException;
-
-    /// <summary>
-    /// Creates a new object for invoking the given callback.
-    /// </summary>
-    /// <param name="callback">The callback to invoke.</param>
-    public EguiCallback(Action<nuint> callback)
+    public unsafe struct Pin : IDisposable
     {
-        func = &InvokeCallback;
-        data = (void*)(nint)GCHandle.Alloc(callback);
-    }
+        /// <summary>
+        /// The function pointer to invoke from unmanaged code.
+        /// </summary>
+        private readonly delegate* unmanaged[Cdecl]<void*, void*, void> _callbackFunc;
 
-    /// <inheritdoc/>
-    void IDisposable.Dispose()
-    {
-        GCHandle.FromIntPtr((nint)data).Free();
+        /// <summary>
+        /// Data to pass across the FFI boundary during calls.
+        /// </summary>
+        private Context _context;
 
-        if (_lastException is not null)
+        /// <summary>
+        /// Creates a new object for invoking the given callback.
+        /// </summary>
+        /// <param name="callback">The callback to invoke.</param>
+        public Pin(Action<nuint> callback)
         {
-            var last = _lastException;
-            _lastException = null;
-            last.Throw();
+            _callbackFunc = &InvokeCallback;
+            _context = new Context { F = callback };
         }
-    }
 
-    /// <summary>
-    /// Invokes a C# callback.
-    /// </summary>
-    /// <param name="callback">A GC handle to the callback that should be invoked.</param>
-    /// <param name="data">The data to provide to the callback.</param>
-    [UnmanagedCallersOnly(CallConvs = [typeof(CallConvCdecl)])]
-    private static void InvokeCallback(void* argument, void* data)
-    {
-        try
+        /// <summary>
+        /// Gets the native object representing the callback.
+        /// </summary>
+        /// <returns>The native representation.</returns>
+        public EguiCallback AsNative() => new EguiCallback
         {
-            var action = (Action<nuint>)GCHandle.FromIntPtr((nint)data).Target!;
-            action((nuint)argument);
+            func = _callbackFunc,
+            data = Unsafe.AsPointer(ref _context)
+        };
+
+        /// <inheritdoc/>
+        void IDisposable.Dispose()
+        {
+            if (_context.LastException is not null)
+            {
+                var last = _context.LastException;
+                _context.LastException = null;
+                last.Throw();
+            }
         }
-        catch (Exception e)
+
+        /// <summary>
+        /// Invokes a C# callback.
+        /// </summary>
+        /// <param name="argument">The caller-provided argument.</param>
+        /// <param name="data">A pointer to the <see cref="Context"/> to invoke.</param>
+        [UnmanagedCallersOnly(CallConvs = [typeof(CallConvCdecl)])]
+        private static void InvokeCallback(void* argument, void* data)
         {
-            _lastException = ExceptionDispatchInfo.Capture(e);
+            ref var context = ref Unsafe.AsRef<Context>(data);
+            try
+            {
+                context.F((nuint)argument);
+            }
+            catch (Exception e)
+            {
+                context.LastException = ExceptionDispatchInfo.Capture(e);
+            }
+        }
+
+        /// <summary>
+        /// Data to pass across the FFI boundary during calls.
+        /// Includes the user-provided function and any exception that it has thrown.
+        /// </summary>
+        private struct Context
+        {
+            /// <summary>
+            /// The managed function.
+            /// </summary>
+            public Action<nuint> F;
+
+            /// <summary>
+            /// The captured exception that <see cref="F"/> threw, or <see langword="null"/>
+            /// if it succeeded.
+            /// </summary>
+            public ExceptionDispatchInfo? LastException;
         }
     }
 

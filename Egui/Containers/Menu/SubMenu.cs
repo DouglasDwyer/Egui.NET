@@ -9,8 +9,8 @@ public partial record struct SubMenu
     {
         ui.AssertInitialized();
         var ctx = ui.Ctx;
-        using var callback = new EguiCallback(ui => content(new Ui(ctx, ui)));
-        var response = EguiMarshal.Call<nuint, SubMenu, Response, EguiCallback, Response?>(EguiFn.egui_containers_menu_SubMenu_show, ui.Ptr, this, buttonResponse, callback);
+        using var callback = new EguiCallback.Pin(ui => content(new Ui(ctx, ui)));
+        var response = EguiMarshal.Call<nuint, SubMenu, Response, EguiCallback, Response?>(EguiFn.egui_containers_menu_SubMenu_show, ui.Ptr, this, buttonResponse, callback.AsNative());
         if (response.HasValue)
         {
             return new InnerResponse
@@ -30,8 +30,8 @@ public partial record struct SubMenu
         ui.AssertInitialized();
         var ctx = ui.Ctx;
         R result = default!;
-        using var callback = new EguiCallback(ui => result = content(new Ui(ctx, ui)));
-        var response = EguiMarshal.Call<nuint, SubMenu, Response, EguiCallback, Response?>(EguiFn.egui_containers_menu_SubMenu_show, ui.Ptr, this, buttonResponse, callback);
+        using var callback = new EguiCallback.Pin(ui => result = content(new Ui(ctx, ui)));
+        var response = EguiMarshal.Call<nuint, SubMenu, Response, EguiCallback, Response?>(EguiFn.egui_containers_menu_SubMenu_show, ui.Ptr, this, buttonResponse, callback.AsNative());
         if (response.HasValue)
         {
             return new InnerResponse<R>

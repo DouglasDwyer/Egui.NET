@@ -296,15 +296,15 @@ public ref struct TableBuilder
         var ctx = _ui.Ctx;
         var options = ToOptions();
 
-        EguiCallback? headerEguiCallback = headerCallback is not null
-            ? new EguiCallback(rowPtr => headerCallback(new TableRow(ctx, rowPtr)))
+        EguiCallback.Pin? headerEguiCallback = headerCallback is not null
+            ? new EguiCallback.Pin(rowPtr => headerCallback(new TableRow(ctx, rowPtr)))
             : null;
 
         try
         {
-            using var bodyEguiCallback = new EguiCallback(bodyPtr => addBodyContents(new TableBody(ctx, bodyPtr)));
+            using var bodyEguiCallback = new EguiCallback.Pin(bodyPtr => addBodyContents(new TableBody(ctx, bodyPtr)));
             var (id, state, contentSize, innerRect) = EguiMarshal.Call<nuint, TableOptions, float?, EguiCallback?, EguiCallback, (Id, State, EVec2, Rect)>(
-                EguiFn.egui_extras_table_TableBuilder_show, _ui.Ptr, options, headerHeight, headerEguiCallback, bodyEguiCallback);
+                EguiFn.egui_extras_table_TableBuilder_show, _ui.Ptr, options, headerHeight, headerEguiCallback?.AsNative(), bodyEguiCallback.AsNative());
             return new ScrollAreaOutput
             {
                 Id = id,
@@ -315,7 +315,7 @@ public ref struct TableBuilder
         }
         finally
         {
-            if (headerEguiCallback is EguiCallback hc)
+            if (headerEguiCallback is EguiCallback.Pin hc)
             {
                 ((IDisposable)hc).Dispose();
             }

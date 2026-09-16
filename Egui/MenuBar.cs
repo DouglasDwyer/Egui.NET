@@ -23,8 +23,8 @@ public partial record struct MenuBar
         ui.AssertInitialized();
         var ctx = ui.Ctx;
         R result = default!;
-        using var callback = new EguiCallback(ui => result = addContents(new Ui(ctx, ui)));
-        var response = EguiMarshal.Call<nuint, MenuBar, EguiCallback, Response>(EguiFn.egui_containers_menu_MenuBar_ui, ui.Ptr, this, callback);
+        using var callback = new EguiCallback.Pin(ui => result = addContents(new Ui(ctx, ui)));
+        var response = EguiMarshal.Call<nuint, MenuBar, EguiCallback, Response>(EguiFn.egui_containers_menu_MenuBar_ui, ui.Ptr, this, callback.AsNative());
         return new InnerResponse<R>
         {
             Inner = result,

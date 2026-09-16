@@ -9,8 +9,8 @@ public partial record struct Panel
     {
         ui.AssertInitialized();
         var ctx = ui.Ctx;
-        using var callback = new EguiCallback(innerUi => addContents(new Ui(ctx, innerUi)));
-        var response = EguiMarshal.Call<nuint, Panel, EguiCallback, Response>(EguiFn.egui_containers_panel_Panel_show, ui.Ptr, this, callback);
+        using var callback = new EguiCallback.Pin(innerUi => addContents(new Ui(ctx, innerUi)));
+        var response = EguiMarshal.Call<nuint, Panel, EguiCallback, Response>(EguiFn.egui_containers_panel_Panel_show, ui.Ptr, this, callback.AsNative());
         return new InnerResponse
         {
             Response = response
@@ -23,8 +23,8 @@ public partial record struct Panel
         ui.AssertInitialized();
         var ctx = ui.Ctx;
         R result = default!;
-        using var callback = new EguiCallback(innerUi => result = addContents(new Ui(ctx, innerUi)));
-        var response = EguiMarshal.Call<nuint, Panel, EguiCallback, Response>(EguiFn.egui_containers_panel_Panel_show, ui.Ptr, this, callback);
+        using var callback = new EguiCallback.Pin(innerUi => result = addContents(new Ui(ctx, innerUi)));
+        var response = EguiMarshal.Call<nuint, Panel, EguiCallback, Response>(EguiFn.egui_containers_panel_Panel_show, ui.Ptr, this, callback.AsNative());
         return new InnerResponse<R>
         {
             Inner = result,
@@ -40,8 +40,8 @@ public partial record struct Panel
     {
         ui.AssertInitialized();
         var ctx = ui.Ctx;
-        using var callback = new EguiCallback(innerUi => addContents(new Ui(ctx, innerUi)));
-        var (response, expanded) = EguiMarshal.Call<nuint, bool, Panel, EguiCallback, (Response?, bool)>(EguiFn.egui_containers_panel_Panel_show_collapsible, ui.Ptr, isExpanded, this, callback);
+        using var callback = new EguiCallback.Pin(innerUi => addContents(new Ui(ctx, innerUi)));
+        var (response, expanded) = EguiMarshal.Call<nuint, bool, Panel, EguiCallback, (Response?, bool)>(EguiFn.egui_containers_panel_Panel_show_collapsible, ui.Ptr, isExpanded, this, callback.AsNative());
         isExpanded = expanded;
 
         if (response.HasValue)
@@ -63,8 +63,8 @@ public partial record struct Panel
         ui.AssertInitialized();
         var ctx = ui.Ctx;
         R result = default!;
-        using var callback = new EguiCallback(innerUi => result = addContents(new Ui(ctx, innerUi)));
-        var (response, expanded) = EguiMarshal.Call<nuint, bool, Panel, EguiCallback, (Response?, bool)>(EguiFn.egui_containers_panel_Panel_show_collapsible, ui.Ptr, isExpanded, this, callback);
+        using var callback = new EguiCallback.Pin(innerUi => result = addContents(new Ui(ctx, innerUi)));
+        var (response, expanded) = EguiMarshal.Call<nuint, bool, Panel, EguiCallback, (Response?, bool)>(EguiFn.egui_containers_panel_Panel_show_collapsible, ui.Ptr, isExpanded, this, callback.AsNative());
         isExpanded = expanded;
 
         if (response.HasValue)
@@ -89,13 +89,13 @@ public partial record struct Panel
     {
         ui.AssertInitialized();
         var ctx = ui.Ctx;
-        using var callback = new EguiCallback(data =>
+        using var callback = new EguiCallback.Pin(data =>
         {
             EguiSwitchedUi switchedUi = *(EguiSwitchedUi*)data;
             addContents(new Ui(ctx, switchedUi.ui), switchedUi.expanded);
         });
 
-        var (response, expanded) = EguiMarshal.Call<nuint, bool, Panel, Panel, EguiCallback, (Response, bool)>(EguiFn.egui_containers_panel_Panel_show_switched, ui.Ptr, isExpanded, collapsedPanel, expandedPanel, callback);
+        var (response, expanded) = EguiMarshal.Call<nuint, bool, Panel, Panel, EguiCallback, (Response, bool)>(EguiFn.egui_containers_panel_Panel_show_switched, ui.Ptr, isExpanded, collapsedPanel, expandedPanel, callback.AsNative());
         isExpanded = expanded;
         return new InnerResponse
         {
@@ -109,13 +109,13 @@ public partial record struct Panel
         ui.AssertInitialized();
         var ctx = ui.Ctx;
         R result = default!;
-        using var callback = new EguiCallback(data =>
+        using var callback = new EguiCallback.Pin(data =>
         {
             EguiSwitchedUi switchedUi = *(EguiSwitchedUi*)data;
             result = addContents(new Ui(ctx, switchedUi.ui), switchedUi.expanded);
         });
 
-        var (response, expanded) = EguiMarshal.Call<nuint, bool, Panel, Panel, EguiCallback, (Response, bool)>(EguiFn.egui_containers_panel_Panel_show_switched, ui.Ptr, isExpanded, collapsedPanel, expandedPanel, callback);
+        var (response, expanded) = EguiMarshal.Call<nuint, bool, Panel, Panel, EguiCallback, (Response, bool)>(EguiFn.egui_containers_panel_Panel_show_switched, ui.Ptr, isExpanded, collapsedPanel, expandedPanel, callback.AsNative());
         isExpanded = expanded;
         return new InnerResponse<R>
         {

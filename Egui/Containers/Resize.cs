@@ -6,8 +6,8 @@ public partial record struct Resize
     {
         ui.AssertInitialized();
         var ctx = ui.Ctx;
-        using var callback = new EguiCallback(ui => addContents(new Ui(ctx, ui)));
-        EguiMarshal.Call(EguiFn.egui_containers_resize_Resize_show, ui.Ptr, this, callback);
+        using var callback = new EguiCallback.Pin(ui => addContents(new Ui(ctx, ui)));
+        EguiMarshal.Call(EguiFn.egui_containers_resize_Resize_show, ui.Ptr, this, callback.AsNative());
     }
 
     public readonly R Show<R>(Ui ui, Func<Ui, R> addContents)
@@ -15,8 +15,8 @@ public partial record struct Resize
         ui.AssertInitialized();
         var ctx = ui.Ctx;
         R result = default!;
-        using var callback = new EguiCallback(ui => result = addContents(new Ui(ctx, ui)));
-        EguiMarshal.Call(EguiFn.egui_containers_resize_Resize_show, ui.Ptr, this, callback);
+        using var callback = new EguiCallback.Pin(ui => result = addContents(new Ui(ctx, ui)));
+        EguiMarshal.Call(EguiFn.egui_containers_resize_Resize_show, ui.Ptr, this, callback.AsNative());
         return result;
     }
 }
