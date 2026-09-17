@@ -66,13 +66,29 @@ namespace Serde
 
         public ReadOnlySpan<byte> get_bytes() => new ReadOnlySpan<byte>(buffer.GetBuffer(), 0, (int)buffer.Length);
 
-        public void serialize_str(string value) => serialize_bytes(utf8.GetBytes(value).ToImmutableArray());
+        public void serialize_str(string value)
+        {
+            var byteCount = utf8.GetByteCount(value);
+            serialize_len(byteCount);
+
+            if (byteCount <= 256)
+            {
+                Span<byte> bytes = stackalloc byte[byteCount];
+                utf8.GetBytes(value, bytes);
+                output.Write(bytes);
+            }
+            else
+            {
+                var bytes = new byte[byteCount];
+                utf8.GetBytes(value, bytes);
+                output.Write(bytes);
+            }
+        }
 
         public void serialize_bytes(ImmutableArray<byte> value)
         {
             serialize_len(value.Length);
-            foreach (byte b in value)
-                output.Write(b);
+            output.Write(value.AsSpan());
         }
 
         public unsafe void serialize_seq_unmanaged<T>(ReadOnlySpan<T> value) where T : unmanaged
