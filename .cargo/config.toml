@@ -10,3 +10,24 @@ rustflags = [
     "-Z", "threads=8",
     "-C", "panic=unwind"
 ]
+
+[target.x86_64-pc-windows-msvc]
+rustflags = [
+    "-Z", "share-generics=y",
+    "-Z", "threads=8",
+    "-C", "target-cpu=x86-64-v3"
+]
+
+[target.x86_64-unknown-linux-gnu]
+rustflags = [
+    "-Z", "share-generics=y",
+    "-Z", "threads=8",
+    "-C", "target-cpu=x86-64-v3"
+]
+
+[target.x86_64-apple-darwin]
+rustflags = [
+    "-Z", "share-generics=y",
+    "-Z", "threads=8",
+    "-C", "target-cpu=x86-64-v3"
+]
