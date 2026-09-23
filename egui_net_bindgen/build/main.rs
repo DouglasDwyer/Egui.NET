@@ -11,7 +11,6 @@ const EXCLUDE_TYPES: &[&str] = &[
     "PointerState",
     "SyntectSettings",
     "Undoer",
-    // `Galley` is a reference-handle type, not a plain value - see `HANDLE_TYPES`.
     "Galley",
 ];
 

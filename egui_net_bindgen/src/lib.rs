@@ -125,7 +125,7 @@ const HANDLE_TYPES: &[&str] = &["Context", "Painter", "TextureHandle", "Galley"]
 /// `[MethodImpl(MethodImplOptions.Synchronized)]`: `Context` does its own fine-grained locking
 /// internally, and `Galley` is immutable read-only data once constructed, so per-call locking
 /// would only add overhead without protecting anything.
-const UNSYNCHRONIZED_HANDLE_TYPES: &[&str] = &["Context", "Galley"];
+const IMMUTABLE_HANDLE_TYPES: &[&str] = &["Context", "Galley"];
 
 /// Maps a [`HANDLE_TYPES`] entry to the Rust type that is actually heap-allocated for it.
 /// Most handle types box themselves directly, but `Galley` is normally passed around
@@ -2104,7 +2104,7 @@ impl BindingsGenerator {
             if !self.is_property(id, fn_type, returns_this, func) {
                 if let Some(name) = ty_name
                     && HANDLE_TYPES.contains(&name)
-                    && !UNSYNCHRONIZED_HANDLE_TYPES.contains(&name)
+                    && !IMMUTABLE_HANDLE_TYPES.contains(&name)
                 {
                     writeln!(
                         f,
@@ -2187,7 +2187,7 @@ impl BindingsGenerator {
         }
 
         let synchronized = ty_name
-            .map(|name| HANDLE_TYPES.contains(&name) && !UNSYNCHRONIZED_HANDLE_TYPES.contains(&name))
+            .map(|name| HANDLE_TYPES.contains(&name) && !IMMUTABLE_HANDLE_TYPES.contains(&name))
             .unwrap_or_default();
 
         if property {

@@ -5,10 +5,9 @@ namespace Egui;
 /// <summary>
 /// Text that has been laid out, ready for painting.<br/>
 ///
-/// You can create a <see cref="Galley"/> using <c>FontsView.LayoutJob</c>.<br/>
+/// You can create a <see cref="Galley"/> using <see cref="Egui.Epaint.FontsView.LayoutJob"/>.<br/>
 ///
-/// Backed by a reference-counted Rust <c>Arc&lt;Galley&gt;</c>, so cloning and repeated layout of
-/// identical text is cheap.
+/// This is a reference-counted handle, so cloning and repeated layout of identical text is cheap.
 /// </summary>
 public sealed partial class Galley : EguiObject
 {
