@@ -11,6 +11,8 @@ const EXCLUDE_TYPES: &[&str] = &[
     "PointerState",
     "SyntectSettings",
     "Undoer",
+    // `Galley` is a reference-handle type, not a plain value - see `HANDLE_TYPES`.
+    "Galley",
 ];
 
 /// A crate for which rustdoc JSON should be generated.

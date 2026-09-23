@@ -1119,6 +1119,70 @@ impl Galley {
     }
 }
 
+// `egui_net` treats `Galley` as a handle; these let an `Arc<Galley>` field opt into that too.
+#[cfg(feature = "serde")]
+impl Galley {
+    /// Serializes an `Arc<Galley>` field as an opaque handle instead of a deep copy. The wire
+    /// layout matches `egui_net`'s generic `EguiHandle::to_heap` byte-for-byte, and ownership of
+    /// the resulting heap box transfers to whoever deserializes it.
+    pub fn ffi_serialize_arc_handle<S: serde::Serializer>(
+        value: &Arc<Self>,
+        serializer: S,
+    ) -> Result<S::Ok, S::Error> {
+        // Address of a plain `fn` item is stable, so it's safe to hand out as a raw pointer.
+        unsafe fn drop_boxed_arc_galley(ptr: usize) {
+            drop(unsafe { Box::from_raw(ptr as *mut Arc<crate::Galley>) });
+        }
+
+        // Named (shadowing the real `Galley`) so the C# generator infers the field's type as `Galley` instead of a raw array.
+        #[derive(serde::Serialize)]
+        struct Galley(u64, u64);
+
+        let ptr = Box::into_raw(Box::new(Arc::clone(value))) as u64;
+        let drop_fn = drop_boxed_arc_galley as *const () as usize as u64;
+        serde::Serialize::serialize(&Galley(ptr, drop_fn), serializer)
+    }
+
+    /// Deserializes an `Arc<Galley>` field written by [`Self::ffi_serialize_arc_handle`], by
+    /// borrowing (not consuming) the pointer - the sender keeps ownership of the heap box. Guards
+    /// against the C# code generator's reflection tracer, which runs this against fabricated
+    /// placeholder bytes; any implausibly-small `ptr` returns an empty `Galley` instead of being
+    /// dereferenced (matching how `Response::ctx` handles the same problem).
+    ///
+    /// # Safety invariant
+    /// `ptr` must come from [`Self::ffi_serialize_arc_handle`] and not yet be freed.
+    pub fn ffi_deserialize_arc_handle<'de, D: serde::Deserializer<'de>>(
+        deserializer: D,
+    ) -> Result<Arc<Self>, D::Error> {
+        // Shadowing struct matching `Self::ffi_serialize_arc_handle`'s wire format.
+        #[derive(serde::Deserialize)]
+        struct Galley(u64, u64);
+
+        let Galley(ptr, _drop_fn) = serde::Deserialize::deserialize(deserializer)?;
+        if ptr < 8 {
+            return Ok(Self::ffi_empty());
+        }
+        let boxed_arc = unsafe { &*(ptr as *const Arc<crate::Galley>) };
+        Ok(Arc::clone(boxed_arc))
+    }
+
+    /// An empty, valid `Galley` used as a placeholder by [`Self::ffi_deserialize_arc_handle`]
+    /// when run by the C# code generator's reflection tracer.
+    fn ffi_empty() -> Arc<Self> {
+        Arc::new(Self {
+            job: Arc::new(LayoutJob::default()),
+            rows: Vec::new(),
+            elided: false,
+            rect: Rect::ZERO,
+            mesh_bounds: Rect::ZERO,
+            num_vertices: 0,
+            num_indices: 0,
+            pixels_per_point: 1.0,
+            intrinsic_size: Vec2::ZERO,
+        })
+    }
+}
+
 impl AsRef<str> for Galley {
     #[inline]
     fn as_ref(&self) -> &str {

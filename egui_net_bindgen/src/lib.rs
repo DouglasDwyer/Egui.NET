@@ -111,6 +111,7 @@ const BINDING_EXCLUDE_TYPE_DEFINITIONS: &[&str] = &[
     "Color32",
     "DragPanButtons",
     "Duration",
+    "Galley",
     "Id",
     "Response",
     "Sense",
@@ -118,7 +119,24 @@ const BINDING_EXCLUDE_TYPE_DEFINITIONS: &[&str] = &[
 ];
 
 /// Types that should be converted to `class`es in C# backed by opaque handles.
-const HANDLE_TYPES: &[&str] = &["Context", "Painter", "TextureHandle"];
+const HANDLE_TYPES: &[&str] = &["Context", "Painter", "TextureHandle", "Galley"];
+
+/// [`HANDLE_TYPES`] whose instance methods should *not* be marked
+/// `[MethodImpl(MethodImplOptions.Synchronized)]`: `Context` does its own fine-grained locking
+/// internally, and `Galley` is immutable read-only data once constructed, so per-call locking
+/// would only add overhead without protecting anything.
+const UNSYNCHRONIZED_HANDLE_TYPES: &[&str] = &["Context", "Galley"];
+
+/// Maps a [`HANDLE_TYPES`] entry to the Rust type that is actually heap-allocated for it.
+/// Most handle types box themselves directly, but `Galley` is normally passed around
+/// behind an `Arc` (so that repeated identical layouts can be returned cheaply via
+/// [`std::sync::Arc::clone`]), so the boxed/pointee type for it is `Arc<Galley>` instead.
+fn handle_storage_ty_name(name: &str) -> String {
+    match name {
+        "Galley" => "Arc<Galley>".to_string(),
+        _ => name.to_string(),
+    }
+}
 
 /// Types that should be converted to `ref struct`s in C# backed by pointers.
 const POINTER_TYPES: &[&str] = &["FontsView", "Memory", "PlotUi", "Strip", "TableRow", "Ui"];
@@ -176,6 +194,15 @@ const CUSTOM_FNS: &[&str] = &[
     "egui_widgets_text_edit_builder_TextEdit_set_galley",
     // `index` collides with the globally-ignored `Index` trait method name
     "egui_extras_table_TableRow_index",
+    // `Galley`'s fields are plain fields, not methods, so these are hand-written getters.
+    "epaint_text_text_layout_types_Galley_job",
+    "epaint_text_text_layout_types_Galley_rows",
+    "epaint_text_text_layout_types_Galley_elided",
+    "epaint_text_text_layout_types_Galley_rect",
+    "epaint_text_text_layout_types_Galley_mesh_bounds",
+    "epaint_text_text_layout_types_Galley_num_vertices",
+    "epaint_text_text_layout_types_Galley_num_indices",
+    "epaint_text_text_layout_types_Galley_pixels_per_point",
 ];
 
 /// A list of fully-qualified function IDs to ignore during generation.
@@ -1477,8 +1504,9 @@ impl BindingsGenerator {
                     BoundType {
                         kind: BoundTypeKind::Pointer {
                             mutable: *is_mutable,
+                            owned: false,
                         },
-                        name: BoundTypeName::cs_rs(name, name),
+                        name: BoundTypeName::cs_rs(name, handle_storage_ty_name(name)),
                     }
                 } else {
                     BoundType {
@@ -1489,16 +1517,69 @@ impl BindingsGenerator {
                     }
                 }
             }
-            _ => BoundType {
-                kind: BoundTypeKind::Value,
-                name: self.bound_ty_name(self_ty, ty)?,
+            _ => {
+                if let Some(bound) = Self::owned_handle_bound_ty(self_ty, ty) {
+                    bound
+                } else {
+                    BoundType {
+                        kind: BoundTypeKind::Value,
+                        name: self.bound_ty_name(self_ty, ty)?,
+                    }
+                }
+            }
+        })
+    }
+
+    /// Recognizes a bare-value occurrence of a [`HANDLE_TYPES`] type: an owned `Arc<T>` (e.g.
+    /// `Arc<Galley>` taken by value) or a plain `T`/`Self` return. Both are reported as
+    /// [`BoundTypeKind::Pointer`], since an owned `Arc<T>` still crosses as a pointer that C#
+    /// keeps ownership of, and a bare `T`/`Self` has no valid representation and must be rejected
+    /// the same way a pointer return is.
+    fn owned_handle_bound_ty(self_ty: Option<&str>, ty: &Type) -> Option<BoundType> {
+        let name = match ty {
+            Type::ResolvedPath(path) if path.path == "Arc" => {
+                let Some(GenericArgs::AngleBracketed { args, .. }) = path.args.as_deref() else {
+                    return None;
+                };
+                let [GenericArg::Type(Type::ResolvedPath(inner))] = args.as_slice() else {
+                    return None;
+                };
+                inner.path.split("::").last()?
+            }
+            Type::ResolvedPath(path) => path.path.split("::").last()?,
+            Type::Generic(x) if x == "Self" => self_ty?,
+            _ => return None,
+        };
+        if !HANDLE_TYPES.contains(&name) {
+            return None;
+        }
+
+        Some(BoundType {
+            kind: BoundTypeKind::Pointer {
+                mutable: false,
+                owned: true,
             },
+            name: BoundTypeName::cs_rs(name, handle_storage_ty_name(name)),
         })
     }
 
     /// Gets the C# and Rust names for a by-value type, or returns [`None`] if the type
     /// could not be resolved.
     fn bound_ty_name(&self, self_ty: Option<&str>, ty: &Type) -> Option<BoundTypeName> {
+        // A bare (non-`Arc`-wrapped) `HANDLE_TYPES` type, even nested in a `Vec`/`Option`/tuple, has no by-value binding.
+        let is_bare_handle_ty = match ty {
+            Type::ResolvedPath(path) => {
+                HANDLE_TYPES.contains(&path.path.split("::").last().unwrap_or(&path.path))
+            }
+            Type::Generic(x) if x == "Self" => {
+                self_ty.is_some_and(|name| HANDLE_TYPES.contains(&name))
+            }
+            _ => false,
+        };
+        if is_bare_handle_ty {
+            return None;
+        }
+
         Some(match ty {
             Type::ResolvedPath(path) => match path.path.as_str() {
                 "Arc" | "Option" | "Vec" => {
@@ -2023,7 +2104,7 @@ impl BindingsGenerator {
             if !self.is_property(id, fn_type, returns_this, func) {
                 if let Some(name) = ty_name
                     && HANDLE_TYPES.contains(&name)
-                    && name != "Context"
+                    && !UNSYNCHRONIZED_HANDLE_TYPES.contains(&name)
                 {
                     writeln!(
                         f,
@@ -2106,7 +2187,7 @@ impl BindingsGenerator {
         }
 
         let synchronized = ty_name
-            .map(|name| HANDLE_TYPES.contains(&name) && name != "Context")
+            .map(|name| HANDLE_TYPES.contains(&name) && !UNSYNCHRONIZED_HANDLE_TYPES.contains(&name))
             .unwrap_or_default();
 
         if property {
@@ -2481,8 +2562,9 @@ impl BindingsGenerator {
                     .bound_ty(self_ty, ty)
                     .expect("Failed to get binding for type");
                 match bound_ty.kind {
-                    BoundTypeKind::Pointer { mutable: false } => format!("{name}_.get()"),
-                    BoundTypeKind::Pointer { mutable: true } => format!("{name}_.get_mut()"),
+                    BoundTypeKind::Pointer { owned: true, .. } => format!("{name}_.get().clone()"),
+                    BoundTypeKind::Pointer { mutable: false, .. } => format!("{name}_.get()"),
+                    BoundTypeKind::Pointer { mutable: true, .. } => format!("{name}_.get_mut()"),
                     BoundTypeKind::Reference { mutable: false } => format!("&{name}_"),
                     BoundTypeKind::Reference { mutable: true } => format!("&mut {name}_"),
                     BoundTypeKind::Value => format!("{name}_"),
@@ -3570,6 +3652,9 @@ enum BoundTypeKind {
     Pointer {
         /// Whether the pointer is mutable.
         mutable: bool,
+        /// Whether the pointee must be cloned out from behind the pointer (e.g. an owned
+        /// `Arc<Galley>` parameter) rather than merely borrowed.
+        owned: bool,
     },
     /// During function calls, the type should be deserialized and then passed by reference.
     Reference {

@@ -100,7 +100,13 @@ mod sized_atom_kind_serde_helper {
     #[derive(serde::Deserialize, serde::Serialize)]
     pub enum SizedAtomKind {
         Empty { size: Option<Vec2> },
-        Text(Arc<Galley>),
+        Text(
+            #[serde(
+                serialize_with = "Galley::ffi_serialize_arc_handle",
+                deserialize_with = "Galley::ffi_deserialize_arc_handle"
+            )]
+            Arc<Galley>,
+        ),
         Image { image: Image, size: Vec2 },
     }
 }

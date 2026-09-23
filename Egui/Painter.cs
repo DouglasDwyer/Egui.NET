@@ -92,4 +92,28 @@ public sealed partial class Painter : EguiObject
 
     /// <inheritdoc cref="Context.Fonts"/>
     public R Fonts<R>(Func<FontsView, R> reader) => Ctx.Fonts(reader);
+
+    /// <summary>
+    /// Will wrap text at the given width and line break at <c>\n</c>.<br/>
+    ///
+    /// Paint the results with the <see cref="Galley"/> method.
+    /// </summary>
+    public Galley Layout(string text, FontId fontId, Color32 color, float wrapWidth)
+        => new Galley(EguiMarshal.Call<nuint, string, FontId, Color32, float, EguiHandle>(EguiFn.egui_painter_Painter_layout, Ptr, text, fontId, color, wrapWidth));
+
+    /// <summary>
+    /// Will line break at <c>\n</c>.<br/>
+    ///
+    /// Paint the results with the <see cref="Galley"/> method.
+    /// </summary>
+    public Galley LayoutNoWrap(string text, FontId fontId, Color32 color)
+        => new Galley(EguiMarshal.Call<nuint, string, FontId, Color32, EguiHandle>(EguiFn.egui_painter_Painter_layout_no_wrap, Ptr, text, fontId, color));
+
+    /// <summary>
+    /// Lay out this text layout job in a galley.<br/>
+    ///
+    /// Paint the results with the <see cref="Galley"/> method.
+    /// </summary>
+    public Galley LayoutJob(Egui.Text.LayoutJob layoutJob)
+        => new Galley(EguiMarshal.Call<nuint, Egui.Text.LayoutJob, EguiHandle>(EguiFn.egui_painter_Painter_layout_job, Ptr, layoutJob));
 }

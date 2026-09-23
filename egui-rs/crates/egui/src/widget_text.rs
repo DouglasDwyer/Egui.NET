@@ -538,7 +538,16 @@ pub enum WidgetText {
     ///
     /// You can color the text however you want, or use [`Color32::PLACEHOLDER`]
     /// which will be replaced with a color chosen by the widget that paints the text.
-    Galley(Arc<Galley>),
+    Galley(
+        #[cfg_attr(
+            feature = "serde",
+            serde(
+                serialize_with = "Galley::ffi_serialize_arc_handle",
+                deserialize_with = "Galley::ffi_deserialize_arc_handle"
+            )
+        )]
+        Arc<Galley>,
+    ),
 }
 
 impl core::fmt::Debug for WidgetText {

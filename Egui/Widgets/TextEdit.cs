@@ -396,7 +396,7 @@ public ref partial struct TextEdit : IWidget
                 var p = *(EguiTextEditLayouterParams*)paramsPtr;
                 var text = System.Text.Encoding.UTF8.GetString((byte*)p.text_ptr, (int)p.text_len);
                 var galley = layouter(new Ui(ctx, p.ui), text, p.wrap_width);
-                EguiMarshal.Call(EguiFn.egui_widgets_text_edit_builder_TextEdit_set_galley, p.out_galley, galley);
+                EguiMarshal.Call(EguiFn.egui_widgets_text_edit_builder_TextEdit_set_galley, p.out_galley, galley.Ptr);
             })
             : null;
 
