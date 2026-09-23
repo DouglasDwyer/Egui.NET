@@ -11,6 +11,7 @@ const EXCLUDE_TYPES: &[&str] = &[
     "PointerState",
     "SyntectSettings",
     "Undoer",
+    "Galley",
 ];
 
 /// A crate for which rustdoc JSON should be generated.

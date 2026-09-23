@@ -16,6 +16,13 @@ pub struct TextShape {
     pub pos: Pos2,
 
     /// The laid out text, from [`FontsView::layout_job`].
+    #[cfg_attr(
+        feature = "serde",
+        serde(
+            serialize_with = "Galley::ffi_serialize_arc_handle",
+            deserialize_with = "Galley::ffi_deserialize_arc_handle"
+        )
+    )]
     pub galley: Arc<Galley>,
 
     /// Add this underline to the whole text.

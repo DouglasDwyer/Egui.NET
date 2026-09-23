@@ -15,6 +15,12 @@ public class EguiObject
     internal nuint Ptr => _handle.ptr;
 
     /// <summary>
+    /// The underlying handle, for types like <see cref="Galley"/> that need to re-serialize it
+    /// when embedded as a field inside another serialized value.
+    /// </summary>
+    internal EguiHandle Handle => _handle;
+
+    /// <summary>
     /// The underlying handle that represents the heap-allocated Rust object.
     /// </summary>
     private readonly EguiHandle _handle;
