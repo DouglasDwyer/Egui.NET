@@ -41,7 +41,8 @@ csbindgen = { version = "1.9.7", default-features = false }
 egui = { version = "0.36.2", default-features = false }
 egui_extras = { version = "0.36.2", default-features = false, features = [ "datepicker", "image", "serde", "svg", "svg_text", "syntect" ] }
 egui_plot = { version = "0.37.0", default-features = false, features = [ "serde" ] }
-image = { version = "0.25.9", default-features = false, features = [ "default-formats" ] }
+# `default-formats` minus `avif`: that pulls in the rav1e AVIF *encoder*, which egui never uses and which drags in wasm-bindgen on wasm32.
+image = { version = "0.25.9", default-features = false, features = [ "bmp", "dds", "exr", "ff", "gif", "hdr", "ico", "jpeg", "png", "pnm", "qoi", "tga", "tiff", "webp" ] }
 jiff = { version = "0.2.29", default-features = false, features = [ "std", "tz-system" ] }
 mimalloc = { version = "0.1.52", default-features = false }
 rustdoc-types = { version = "0.61.0", default-features = false }
