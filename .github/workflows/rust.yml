@@ -39,6 +39,24 @@ jobs:
       - name: Format
         run: cargo fmt --all -- --check
 
+  wasm-bindgen:
+    name: no wasm-bindgen in egui_net (wasm32)
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Install Rust
+        uses: dsherret/rust-toolchain-file@v1
+
+      # egui_net is statically linked next to other Rust code, so it must not export wasm-bindgen symbols.
+      - name: Check dependency tree
+        run: |
+          if cargo tree -p egui_net --target wasm32-unknown-unknown -i wasm-bindgen; then
+            echo "::error::egui_net pulls in wasm-bindgen on wasm32-unknown-unknown"
+            exit 1
+          fi
+
   test:
     name: cargo test
     runs-on: ubuntu-latest

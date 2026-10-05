@@ -33,7 +33,7 @@ pub trait DroppedFile: core::fmt::Debug {
     fn bytes(&self) -> Result<Vec<u8>, String>;
 
     /// The browser file handle, if this file was dropped on the web.
-    #[cfg(target_arch = "wasm32")]
+    #[cfg(all(target_arch = "wasm32", feature = "web_file"))]
     fn web_file(&self) -> Option<&web_sys::File> {
         None
     }
@@ -46,6 +46,6 @@ pub type DroppedFileHandle = Arc<dyn DroppedFile + Send + Sync>;
 /// A shared reference to a dropped file.
 ///
 /// This is not necessarily `Send + Sync` when wasm threads are enabled, because
-/// [`web_sys::File`] is not thread-safe in that configuration.
+/// `web_sys::File` is not thread-safe in that configuration.
 #[cfg(all(target_arch = "wasm32", target_feature = "atomics"))]
 pub type DroppedFileHandle = Arc<dyn DroppedFile>;
