@@ -14,22 +14,16 @@ namespace Egui;
 internal static class EguiMarshal
 {
     /// <summary>
-    /// The serializer to use for temporary operations.
+    /// The call state reused by non-re-entrant calls on this thread.
     /// </summary>
     [ThreadStatic]
-    private static BincodeSerializer? _serializer;
+    private static CallState? _cachedState;
 
     /// <summary>
-    /// The deserializer to use for temporary operations.
+    /// Whether <see cref="_cachedState"/> is currently held by an in-flight call.
     /// </summary>
     [ThreadStatic]
-    private static BincodeDeserializer? _deserializer;
-
-    /// <summary>
-    /// The stream to provide to the deserializer.
-    /// </summary>
-    [ThreadStatic]
-    private static EguiResultStream? _deserializerStream;
+    private static bool _cachedStateInUse;
 
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
     public static void Call(EguiFn func)
@@ -106,108 +100,122 @@ internal static class EguiMarshal
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
     public static void Call<[DynamicallyAccessedMembers(DynamicallyAccessedMemberTypes.NonPublicMethods)] A0, [DynamicallyAccessedMembers(DynamicallyAccessedMemberTypes.NonPublicMethods)] A1, [DynamicallyAccessedMembers(DynamicallyAccessedMemberTypes.NonPublicMethods)] A2, [DynamicallyAccessedMembers(DynamicallyAccessedMemberTypes.NonPublicMethods)] A3, [DynamicallyAccessedMembers(DynamicallyAccessedMemberTypes.NonPublicMethods)] A4, [DynamicallyAccessedMembers(DynamicallyAccessedMemberTypes.NonPublicMethods)] A5>(EguiFn func, A0 arg0, A1 arg1, A2 arg2, A3 arg3, A4 arg4, A5 arg5)
     {
-        unsafe
+        var state = AcquireState();
+        try
         {
-            var serializer = GetSerializer();
-            SerializerCache<A0>.Serialize(serializer, arg0);
-            SerializerCache<A1>.Serialize(serializer, arg1);
-            SerializerCache<A2>.Serialize(serializer, arg2);
-            SerializerCache<A3>.Serialize(serializer, arg3);
-            SerializerCache<A4>.Serialize(serializer, arg4);
-            SerializerCache<A5>.Serialize(serializer, arg5);
+                SerializerCache<A0>.Serialize(state.Serializer, arg0);
+                SerializerCache<A1>.Serialize(state.Serializer, arg1);
+                SerializerCache<A2>.Serialize(state.Serializer, arg2);
+                SerializerCache<A3>.Serialize(state.Serializer, arg3);
+                SerializerCache<A4>.Serialize(state.Serializer, arg4);
+                SerializerCache<A5>.Serialize(state.Serializer, arg5);
 
-            var bytes = serializer.get_bytes();
-            fixed (byte* bytePtr = bytes)
-            {
-                var result = EguiBindings.egui_invoke(func, new EguiSliceU8
-                {
-                    ptr = bytePtr,
-                    len = (nuint)bytes.Length
-                });
-
-                AssertSuccess(result);
-            }
+            Invoke(func, state);
+            AssertSuccess(state);
+        }
+        finally
+        {
+            ReleaseState(state);
         }
     }
 
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
     public static R Call<[DynamicallyAccessedMembers(DynamicallyAccessedMemberTypes.NonPublicMethods)] A0, [DynamicallyAccessedMembers(DynamicallyAccessedMemberTypes.NonPublicMethods)] A1, [DynamicallyAccessedMembers(DynamicallyAccessedMemberTypes.NonPublicMethods)] A2, [DynamicallyAccessedMembers(DynamicallyAccessedMemberTypes.NonPublicMethods)] A3, [DynamicallyAccessedMembers(DynamicallyAccessedMemberTypes.NonPublicMethods)] A4, [DynamicallyAccessedMembers(DynamicallyAccessedMemberTypes.NonPublicMethods)] A5, [DynamicallyAccessedMembers(DynamicallyAccessedMemberTypes.NonPublicMethods)] R>(EguiFn func, A0 arg0, A1 arg1, A2 arg2, A3 arg3, A4 arg4, A5 arg5)
     {
-        unsafe
+        var state = AcquireState();
+        try
         {
-            var serializer = GetSerializer();
-            SerializerCache<A0>.Serialize(serializer, arg0);
-            SerializerCache<A1>.Serialize(serializer, arg1);
-            SerializerCache<A2>.Serialize(serializer, arg2);
-            SerializerCache<A3>.Serialize(serializer, arg3);
-            SerializerCache<A4>.Serialize(serializer, arg4);
-            SerializerCache<A5>.Serialize(serializer, arg5);
+                SerializerCache<A0>.Serialize(state.Serializer, arg0);
+                SerializerCache<A1>.Serialize(state.Serializer, arg1);
+                SerializerCache<A2>.Serialize(state.Serializer, arg2);
+                SerializerCache<A3>.Serialize(state.Serializer, arg3);
+                SerializerCache<A4>.Serialize(state.Serializer, arg4);
+                SerializerCache<A5>.Serialize(state.Serializer, arg5);
 
-            var bytes = serializer.get_bytes();
-            fixed (byte* bytePtr = bytes)
+            Invoke(func, state);
+            return DeserializeResult<R>(state);
+        }
+        finally
+        {
+            ReleaseState(state);
+        }
+    }
+
+    /// <summary>
+    /// Sends the serialized arguments in <paramref name="state"/> to Rust and
+    /// stores the result in its buffer.
+    /// </summary>
+    private unsafe static void Invoke(EguiFn func, CallState state)
+    {
+        var bytes = state.Serializer.get_bytes();
+        bool success;
+        fixed (byte* bytePtr = bytes)
+        {
+            success = EguiBindings.egui_invoke(func, new EguiSliceU8
             {
-                var result = EguiBindings.egui_invoke(func, new EguiSliceU8
-                {
-                    ptr = bytePtr,
-                    len = (nuint)bytes.Length
-                });
-
-                return DeserializeResult<R>(result);
-            }
+                ptr = bytePtr,
+                len = (nuint)bytes.Length
+            }, state.Buffer.Handle);
         }
+
+        state.Buffer.Refresh();
+        state.Success = success;
     }
 
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
-    private unsafe static R DeserializeResult<[DynamicallyAccessedMembers(DynamicallyAccessedMemberTypes.NonPublicMethods)] R>(EguiInvokeResult result)
+    private static R DeserializeResult<[DynamicallyAccessedMembers(DynamicallyAccessedMemberTypes.NonPublicMethods)] R>(CallState state)
     {
-        AssertSuccess(result);
-        var deserializer = GetDeserializer(result.return_value);
-        return SerializerCache<R>.Deserialize(deserializer);
+        AssertSuccess(state);
+        return SerializerCache<R>.Deserialize(state.Deserializer);
     }
 
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
-    internal unsafe static void AssertSuccess(EguiInvokeResult result)
+    private static void AssertSuccess(CallState state)
     {
-        if (!result.success)
+        if (!state.Success)
         {
-            throw new EguiException(new string((char*)result.return_value.ptr, 0, (int)result.return_value.len / sizeof(char)));
+            throw new EguiException(new string(System.Runtime.InteropServices.MemoryMarshal.Cast<byte, char>(state.Buffer.AsSpan())));
         }
     }
 
     /// <summary>
-    /// Obtains a serializer to use for temporary operations.
-    /// The returned object is only valid until the next call to this function
-    /// (because the underlying buffer is reused).
+    /// Obtains the state for a call. The thread's cached state is reused unless
+    /// it is already held by an enclosing call on this thread (for example, when a
+    /// type initializer or Rust callback makes a nested call mid-serialization or
+    /// mid-deserialization), in which case a fresh state is allocated.
     /// </summary>
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
-    private static BincodeSerializer GetSerializer()
+    private static CallState AcquireState()
     {
-        if (_serializer is null)
+        CallState state;
+        if (_cachedStateInUse)
         {
-            _serializer = new BincodeSerializer();
+            state = new CallState();
+        }
+        else
+        {
+            state = _cachedState ??= new CallState();
+            _cachedStateInUse = true;
         }
 
-        _serializer.Reset();
-        return _serializer;
+        state.Serializer.Reset();
+        return state;
     }
 
     /// <summary>
-    /// Obtains a deserializer to use for the given result data.
+    /// Releases a state obtained from <see cref="AcquireState"/>.
     /// </summary>
-    /// <remarks>Safety: the deserializer can only be safely used while the <paramref name="resultData"/> buffer is valid,
-    /// and until this function is called again (because the underlying buffer is reused).</remarks>
-    /// <param name="resultData">The result that was returned.</param>
-    /// <returns>The deserializer.</returns>
-    private unsafe static BincodeDeserializer GetDeserializer(EguiSliceU8 resultData)
+    [MethodImpl(MethodImplOptions.AggressiveInlining)]
+    private static void ReleaseState(CallState state)
     {
-        if (_deserializer is null)
+        if (ReferenceEquals(state, _cachedState))
         {
-            _deserializerStream = new EguiResultStream();
-            _deserializer = new BincodeDeserializer(_deserializerStream);
+            _cachedStateInUse = false;
         }
-
-        _deserializerStream!.Initialize(resultData);
-        return _deserializer;
+        else
+        {
+            state.Dispose();
+        }
     }
 
     /// <summary>
@@ -731,34 +739,39 @@ internal static class EguiMarshal
     }
 
     /// <summary>
-    /// Allows for reading <c>egui</c> result data from unmanaged memory.
+    /// The serializer, result buffer and deserializer used by a single call.
     /// </summary>
-    private unsafe sealed class EguiResultStream : UnmanagedMemoryStream
+    private sealed class CallState : IDisposable
     {
         /// <summary>
-        /// Returns true if the stream can be read; otherwise returns false.
+        /// Serializes the call arguments.
         /// </summary>
-        public override bool CanRead => true;
+        public readonly BincodeSerializer Serializer = new BincodeSerializer();
 
         /// <summary>
-        /// Returns true if the stream can seek; otherwise returns false.
+        /// Holds the result that Rust wrote.
         /// </summary>
-        public override bool CanSeek => true;
+        public readonly EguiBuffer Buffer = new EguiBuffer();
 
         /// <summary>
-        /// Creates a new, uninitialized stream.
+        /// Reads the result from <see cref="Buffer"/>.
         /// </summary>
-        public EguiResultStream() { }
+        public readonly BincodeDeserializer Deserializer;
 
         /// <summary>
-        /// Sets the buffer referenced by the stream.
+        /// Whether the last call succeeded. If not, <see cref="Buffer"/> holds an error message.
         /// </summary>
-        /// <param name="slice">The buffer to use.</param>
-        public void Initialize(EguiSliceU8 slice)
+        public bool Success;
+
+        public CallState()
         {
-            Dispose(true);
-            Initialize(slice.ptr, (long)slice.len, (long)slice.len, FileAccess.Read);
-            Position = 0;
+            Deserializer = new BincodeDeserializer(Buffer);
+        }
+
+        public void Dispose()
+        {
+            Deserializer.Dispose();
+            Serializer.Dispose();
         }
     }
 }
