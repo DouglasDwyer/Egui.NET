@@ -1022,11 +1022,14 @@ pub unsafe extern "C" fn egui_init() {
     panic::set_hook(Box::new(|_| ()));
 }
 
-/// Allocates a growable byte buffer to which [`egui_invoke`] can write results.
-/// Must be freed with [`egui_buffer_free`].
+/// An opaque handle to a Rust `Vec<u8>` to which [`egui_invoke`] writes results.
+/// Only ever used behind a pointer from [`egui_buffer_new`].
+pub struct EguiByteVec;
+
+/// Allocates a new, empty buffer. Must be freed with [`egui_buffer_drop`].
 #[unsafe(no_mangle)]
-pub unsafe extern "C" fn egui_buffer_new() -> usize {
-    Box::into_raw(Box::new(Vec::<u8>::new())) as usize
+pub unsafe extern "C" fn egui_buffer_new() -> *mut EguiByteVec {
+    Box::into_raw(Box::new(Vec::<u8>::new())) as *mut EguiByteVec
 }
 
 /// Frees a buffer created with [`egui_buffer_new`].
@@ -1035,7 +1038,7 @@ pub unsafe extern "C" fn egui_buffer_new() -> usize {
 ///
 /// `buffer` must come from [`egui_buffer_new`] and must not be used afterwards.
 #[unsafe(no_mangle)]
-pub unsafe extern "C" fn egui_buffer_free(buffer: usize) {
+pub unsafe extern "C" fn egui_buffer_drop(buffer: *mut EguiByteVec) {
     drop(Box::from_raw(buffer as *mut Vec<u8>));
 }
 
@@ -1046,7 +1049,7 @@ pub unsafe extern "C" fn egui_buffer_free(buffer: usize) {
 ///
 /// `buffer` must come from [`egui_buffer_new`] and not have been freed.
 #[unsafe(no_mangle)]
-pub unsafe extern "C" fn egui_buffer_data(buffer: usize) -> EguiSliceU8 {
+pub unsafe extern "C" fn egui_buffer_data(buffer: *const EguiByteVec) -> EguiSliceU8 {
     EguiSliceU8::from_slice(&*(buffer as *const Vec<u8>))
 }
 
@@ -1060,7 +1063,7 @@ pub unsafe extern "C" fn egui_buffer_data(buffer: usize) -> EguiSliceU8 {
 /// `buffer` must come from [`egui_buffer_new`], not have been freed, and not be
 /// in use by any other in-progress call.
 #[unsafe(no_mangle)]
-pub unsafe extern "C" fn egui_invoke(f: EguiFn, args: EguiSliceU8, buffer: usize) -> bool {
+pub unsafe extern "C" fn egui_invoke(f: EguiFn, args: EguiSliceU8, buffer: *mut EguiByteVec) -> bool {
     let buffer = buffer as *mut Vec<u8>;
 
     match catch_unwind(|| {

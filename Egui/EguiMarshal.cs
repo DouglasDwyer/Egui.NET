@@ -2,6 +2,7 @@ using System.Collections.Immutable;
 using System.Diagnostics.CodeAnalysis;
 using System.Reflection;
 using System.Runtime.CompilerServices;
+using System.Runtime.InteropServices;
 using System.Text;
 using Bincode;
 using Serde;
@@ -174,7 +175,7 @@ internal static class EguiMarshal
     {
         if (!state.Success)
         {
-            throw new EguiException(new string(System.Runtime.InteropServices.MemoryMarshal.Cast<byte, char>(state.Buffer.AsSpan())));
+            throw new EguiException(new string(MemoryMarshal.Cast<byte, char>(state.Buffer.AsSpan())));
         }
     }
 
@@ -772,6 +773,7 @@ internal static class EguiMarshal
         {
             Deserializer.Dispose();
             Serializer.Dispose();
+            Buffer.Dispose();
         }
     }
 }

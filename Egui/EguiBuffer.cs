@@ -11,9 +11,9 @@ namespace Egui;
 internal sealed unsafe class EguiBuffer : Stream
 {
     /// <summary>
-    /// The address of the underlying Rust <c>Vec&lt;u8&gt;</c>.
+    /// The underlying Rust <c>Vec&lt;u8&gt;</c>, or null once disposed.
     /// </summary>
-    private nuint _handle;
+    private EguiByteVec* _handle;
 
     /// <summary>
     /// The start of the buffer contents, as of the last <see cref="Refresh"/>.
@@ -47,9 +47,9 @@ internal sealed unsafe class EguiBuffer : Stream
     }
 
     /// <summary>
-    /// The address of the underlying Rust buffer, to pass to native calls.
+    /// The underlying Rust buffer, to pass to native calls.
     /// </summary>
-    public nuint Handle => _handle != 0 ? _handle : throw new ObjectDisposedException(nameof(EguiBuffer));
+    public EguiByteVec* Handle => _handle != null ? _handle : throw new ObjectDisposedException(nameof(EguiBuffer));
 
     /// <summary>
     /// Re-reads the buffer's location and length from Rust and rewinds to the start.
@@ -84,7 +84,7 @@ internal sealed unsafe class EguiBuffer : Stream
     public override long Position
     {
         get => _position;
-        set => _position = checked((int)value);
+        set => _position = value >= 0 && value <= int.MaxValue ? (int)value : throw new ArgumentOutOfRangeException(nameof(value));
     }
 
     /// <inheritdoc/>
@@ -126,10 +126,10 @@ internal sealed unsafe class EguiBuffer : Stream
     /// <inheritdoc/>
     protected override void Dispose(bool disposing)
     {
-        if (_handle != 0)
+        if (_handle != null)
         {
-            EguiBindings.egui_buffer_free(_handle);
-            _handle = 0;
+            EguiBindings.egui_buffer_drop(_handle);
+            _handle = null;
             _data = null;
             _length = 0;
         }
