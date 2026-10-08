@@ -45,6 +45,8 @@ public class Program
 
     private static PlotDemo _plotDemo = new PlotDemo();
 
+    private static CollapsingStateDemo _collapsingStateDemo = new CollapsingStateDemo();
+
     // Whether each demo window is open. All windows used to be shown unconditionally, which got
     // laggy in debug mode - the master panel below lets you open only the ones you need.
     private static bool _readmeOpen = true;
@@ -54,6 +56,7 @@ public class Program
     private static bool _tableOpen = false;
     private static bool _codeEditorOpen = false;
     private static bool _plotOpen = false;
+    private static bool _collapsingStateOpen = false;
 
     public static void Main(string[] args)
     {
@@ -161,6 +164,14 @@ public class Program
             {
                 _plotDemo.Show(ui);
             });
+
+            new Window("⏷ CollapsingState")
+                .DefaultWidth(360)
+                .Open(ref _collapsingStateOpen)
+                .Show(ctx, ui =>
+            {
+                _collapsingStateDemo.Show(ui);
+            });
         });
     }
 
@@ -186,6 +197,7 @@ public class Program
             ui.ToggleValue(ref _tableOpen, "☰ Table");
             ui.ToggleValue(ref _codeEditorOpen, "🖮 Code Editor");
             ui.ToggleValue(ref _plotOpen, "📈 Plot");
+            ui.ToggleValue(ref _collapsingStateOpen, "⏷ CollapsingState");
 
             ui.Separator();
             if (ui.Button("Organize windows").Clicked)
@@ -635,6 +647,126 @@ public class Program
                     plotUi.Line(new Line("sin(x)", new PlotPoints.Owned(sinPoints)).Stroke(new Stroke { Width = 2.0f, Color = Color32.LightBlue }));
                     plotUi.Points(new Points("cos(x)", new PlotPoints.Owned(markers)).Shape(MarkerShape.Circle).Radius(3.0f).Color(Color32.Orange));
                 });
+        }
+    }
+
+    /// <summary>
+    /// Exercises each way of driving a <see cref="CollapsingState"/> directly.
+    /// </summary>
+    private class CollapsingStateDemo
+    {
+        public void Show(Ui ui)
+        {
+            var ctx = ui.Ctx;
+
+            ui.Label("Each section below drives a CollapsingState by hand.");
+            ui.Separator();
+
+            // ShowHeader: a custom header, followed by an indented body.
+            ui.Strong("ShowHeader + Body");
+            {
+                var state = CollapsingState.LoadWithDefaultOpen(ctx, new Id("collapsing_state_demo_header"), false);
+                var header = state.ShowHeader(ui, ui =>
+                {
+                    ui.Label("Custom header (click the arrow)");
+                });
+                header.Body(ui =>
+                {
+                    ui.Label("This body was shown by HeaderResponse.Body.");
+                });
+            }
+            ui.Separator();
+
+            // ShowHeader + BodyUnindented: the body is not indented under the header.
+            ui.Strong("ShowHeader + BodyUnindented");
+            {
+                var state = CollapsingState.LoadWithDefaultOpen(ctx, new Id("collapsing_state_demo_header_unindented"), false);
+                var header = state.ShowHeader(ui, ui =>
+                {
+                    ui.Label("Custom header, unindented body");
+                });
+                header.BodyUnindented(ui =>
+                {
+                    ui.Label("This body was shown by HeaderResponse.BodyUnindented.");
+                });
+            }
+            ui.Separator();
+
+            // ShowBodyIndented: toggled by our own button instead of the built-in arrow.
+            ui.Strong("ShowBodyIndented");
+            {
+                var state = CollapsingState.LoadWithDefaultOpen(ctx, new Id("collapsing_state_demo_indented"), false);
+                var headerResponse = ui.Button("Toggle indented body");
+                if (headerResponse.Clicked)
+                {
+                    state.Toggle(ui);
+                }
+                state.ShowBodyIndented(headerResponse, ui, ui =>
+                {
+                    ui.Label("This body was shown by CollapsingState.ShowBodyIndented.");
+                });
+                ui.Label($"IsOpen: {state.IsOpen}");
+            }
+            ui.Separator();
+
+            // ShowBodyUnindented: as above, but returning a value from the body.
+            ui.Strong("ShowBodyUnindented");
+            {
+                var state = CollapsingState.LoadWithDefaultOpen(ctx, new Id("collapsing_state_demo_unindented"), false);
+                if (ui.Button("Toggle unindented body").Clicked)
+                {
+                    state.Toggle(ui);
+                }
+                var result = state.ShowBodyUnindented(ui, ui =>
+                {
+                    ui.Label("This body was shown by CollapsingState.ShowBodyUnindented.");
+                    return ui.Button("Click me").Clicked;
+                });
+                if (result?.Inner == true)
+                {
+                    ui.Label("The button in the body was clicked!");
+                }
+            }
+            ui.Separator();
+
+            // ShowToggleButton: the arrow button on its own, with a custom icon painter.
+            ui.Strong("ShowToggleButton (custom icon)");
+            {
+                var state = CollapsingState.LoadWithDefaultOpen(ctx, new Id("collapsing_state_demo_toggle_button"), false);
+                var row = ui.Horizontal(ui =>
+                {
+                    state.ShowToggleButton(ui, (ui, openness, response) =>
+                    {
+                        // A circle that grows as the region opens.
+                        var radius = 3.0f + 4.0f * openness;
+                        ui.Painter.CircleFilled(response.Rect.Center, radius, Color32.Orange);
+                    });
+                    ui.Label("Click the circle");
+                });
+                state.ShowBodyIndented(row.Response, ui, ui =>
+                {
+                    ui.Label("The state toggled by ShowToggleButton persists across frames.");
+                });
+            }
+            ui.Separator();
+
+            // ShowToggleButton again, with the default egui arrow icon.
+            ui.Strong("ShowToggleButton (default icon)");
+            {
+                var state = CollapsingState.LoadWithDefaultOpen(ctx, new Id("collapsing_state_demo_toggle_button_default"), true);
+                var row = ui.Horizontal(ui =>
+                {
+                    state.ShowToggleButton(ui, (ui, openness, response) =>
+                    {
+                        ContainersHelpers.PaintDefaultIcon(ui, openness, response);
+                    });
+                    ui.Label("Click the arrow");
+                });
+                state.ShowBodyIndented(row.Response, ui, ui =>
+                {
+                    ui.Label("This one starts open.");
+                });
+            }
         }
     }
 
