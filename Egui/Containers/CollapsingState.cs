@@ -121,7 +121,7 @@ public partial record struct CollapsingState
         var ctx = ui.Ctx;
         using var callback = new EguiCallback.Pin(ui => result = addHeader(new Ui(ctx, ui)));
         var (toggleResponse, headerResponse, newState) = EguiMarshal.Call<nuint, CollapsingState, EguiCallback, (Response, Response, CollapsingState)>(EguiFn.egui_containers_collapsing_header_CollapsingState_show_header, ui.Ptr, this, callback.AsNative());
-        return new HeaderResponse<R>(this, ui, toggleResponse, new InnerResponse<R>
+        return new HeaderResponse<R>(newState, ui, toggleResponse, new InnerResponse<R>
         {
             Inner = result,
             Response = headerResponse
@@ -140,6 +140,8 @@ public partial record struct CollapsingState
             var (ui, openness, response) = EguiMarshal.Call<nuint, (nuint, float, Response)>(EguiFn.egui_containers_collapsing_header_EguiCollapsingStateShowToggleButtonParams_unpack, paramPack);
             iconFn(new Ui(ctx, ui), openness, response);
         });
-        return EguiMarshal.Call<nuint, CollapsingState, EguiCallback, Response>(EguiFn.egui_containers_collapsing_header_CollapsingState_show_toggle_button, ui.Ptr, this, callback.AsNative());
+        var (response, newState) = EguiMarshal.Call<nuint, CollapsingState, EguiCallback, (Response, CollapsingState)>(EguiFn.egui_containers_collapsing_header_CollapsingState_show_toggle_button, ui.Ptr, this, callback.AsNative());
+        this = newState;
+        return response;
     }
 }
