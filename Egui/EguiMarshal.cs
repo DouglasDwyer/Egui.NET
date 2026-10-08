@@ -18,7 +18,7 @@ internal static class EguiMarshal
     /// The call state reused by non-re-entrant calls on this thread.
     /// </summary>
     [ThreadStatic]
-    private static CallState? _cachedState;
+    private static FfiCallState? _cachedState;
 
     /// <summary>
     /// Whether <see cref="_cachedState"/> is currently held by an in-flight call.
@@ -146,7 +146,7 @@ internal static class EguiMarshal
     /// Sends the serialized arguments in <paramref name="state"/> to Rust and
     /// stores the result in its buffer.
     /// </summary>
-    private unsafe static void Invoke(EguiFn func, CallState state)
+    private unsafe static void Invoke(EguiFn func, FfiCallState state)
     {
         var bytes = state.Serializer.get_bytes();
         bool success;
@@ -159,23 +159,23 @@ internal static class EguiMarshal
             }, state.Buffer.Handle);
         }
 
-        state.Buffer.Refresh();
+        state.ResultStream.Initialize(state.Buffer.AsReadOnlySpan());
         state.Success = success;
     }
 
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
-    private static R DeserializeResult<[DynamicallyAccessedMembers(DynamicallyAccessedMemberTypes.NonPublicMethods)] R>(CallState state)
+    private static R DeserializeResult<[DynamicallyAccessedMembers(DynamicallyAccessedMemberTypes.NonPublicMethods)] R>(FfiCallState state)
     {
         AssertSuccess(state);
         return SerializerCache<R>.Deserialize(state.Deserializer);
     }
 
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
-    private static void AssertSuccess(CallState state)
+    private static void AssertSuccess(FfiCallState state)
     {
         if (!state.Success)
         {
-            throw new EguiException(new string(MemoryMarshal.Cast<byte, char>(state.Buffer.AsSpan())));
+            throw new EguiException(new string(MemoryMarshal.Cast<byte, char>(state.Buffer.AsReadOnlySpan())));
         }
     }
 
@@ -186,16 +186,16 @@ internal static class EguiMarshal
     /// mid-deserialization), in which case a fresh state is allocated.
     /// </summary>
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
-    private static CallState AcquireState()
+    private static FfiCallState AcquireState()
     {
-        CallState state;
+        FfiCallState state;
         if (_cachedStateInUse)
         {
-            state = new CallState();
+            state = new FfiCallState();
         }
         else
         {
-            state = _cachedState ??= new CallState();
+            state = _cachedState ??= new FfiCallState();
             _cachedStateInUse = true;
         }
 
@@ -207,7 +207,7 @@ internal static class EguiMarshal
     /// Releases a state obtained from <see cref="AcquireState"/>.
     /// </summary>
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
-    private static void ReleaseState(CallState state)
+    private static void ReleaseState(FfiCallState state)
     {
         if (ReferenceEquals(state, _cachedState))
         {
@@ -742,7 +742,7 @@ internal static class EguiMarshal
     /// <summary>
     /// The serializer, result buffer and deserializer used by a single call.
     /// </summary>
-    private sealed class CallState : IDisposable
+    private sealed class FfiCallState : IDisposable
     {
         /// <summary>
         /// Serializes the call arguments.
@@ -752,10 +752,15 @@ internal static class EguiMarshal
         /// <summary>
         /// Holds the result that Rust wrote.
         /// </summary>
-        public readonly EguiBuffer Buffer = new EguiBuffer();
+        public readonly ManagedEguiBuffer Buffer = new ManagedEguiBuffer();
 
         /// <summary>
-        /// Reads the result from <see cref="Buffer"/>.
+        /// A stream over the contents of <see cref="Buffer"/>.
+        /// </summary>
+        public readonly EguiResultStream ResultStream = new EguiResultStream();
+
+        /// <summary>
+        /// Reads the result from <see cref="ResultStream"/>.
         /// </summary>
         public readonly BincodeDeserializer Deserializer;
 
@@ -764,9 +769,9 @@ internal static class EguiMarshal
         /// </summary>
         public bool Success;
 
-        public CallState()
+        public FfiCallState()
         {
-            Deserializer = new BincodeDeserializer(Buffer);
+            Deserializer = new BincodeDeserializer(ResultStream);
         }
 
         public void Dispose()
@@ -774,6 +779,43 @@ internal static class EguiMarshal
             Deserializer.Dispose();
             Serializer.Dispose();
             Buffer.Dispose();
+        }
+    }
+
+    /// <summary>
+    /// Allows for reading <c>egui</c> result data from unmanaged memory.
+    /// </summary>
+    private unsafe sealed class EguiResultStream : UnmanagedMemoryStream
+    {
+        /// <summary>
+        /// Returns true if the stream can be read; otherwise returns false.
+        /// </summary>
+        public override bool CanRead => true;
+
+        /// <summary>
+        /// Returns true if the stream can seek; otherwise returns false.
+        /// </summary>
+        public override bool CanSeek => true;
+
+        /// <summary>
+        /// Creates a new, uninitialized stream.
+        /// </summary>
+        public EguiResultStream() { }
+
+        /// <summary>
+        /// Sets the memory referenced by the stream.
+        /// </summary>
+        /// <param name="data">The data to read. It must stay valid for as long as the stream is read.</param>
+        public void Initialize(ReadOnlySpan<byte> data)
+        {
+            Dispose(true);
+            // Taking the reference (rather than `fixed (... = data)`) keeps the pointer non-null for empty results.
+            fixed (byte* ptr = &MemoryMarshal.GetReference(data))
+            {
+                Initialize(ptr, data.Length, data.Length, FileAccess.Read);
+            }
+
+            Position = 0;
         }
     }
 }

@@ -1022,14 +1022,28 @@ pub unsafe extern "C" fn egui_init() {
     panic::set_hook(Box::new(|_| ()));
 }
 
-/// An opaque handle to a Rust `Vec<u8>` to which [`egui_invoke`] writes results.
+/// A growable byte buffer to which [`egui_invoke`] writes results.
 /// Only ever used behind a pointer from [`egui_buffer_new`].
-pub struct EguiByteVec;
+pub struct EguiBuffer(Vec<u8>);
+
+impl Deref for EguiBuffer {
+    type Target = Vec<u8>;
+
+    fn deref(&self) -> &Vec<u8> {
+        &self.0
+    }
+}
+
+impl DerefMut for EguiBuffer {
+    fn deref_mut(&mut self) -> &mut Vec<u8> {
+        &mut self.0
+    }
+}
 
 /// Allocates a new, empty buffer. Must be freed with [`egui_buffer_drop`].
 #[unsafe(no_mangle)]
-pub unsafe extern "C" fn egui_buffer_new() -> *mut EguiByteVec {
-    Box::into_raw(Box::new(Vec::<u8>::new())) as *mut EguiByteVec
+pub unsafe extern "C" fn egui_buffer_new() -> *mut EguiBuffer {
+    Box::into_raw(Box::new(EguiBuffer(Vec::new())))
 }
 
 /// Frees a buffer created with [`egui_buffer_new`].
@@ -1038,8 +1052,8 @@ pub unsafe extern "C" fn egui_buffer_new() -> *mut EguiByteVec {
 ///
 /// `buffer` must come from [`egui_buffer_new`] and must not be used afterwards.
 #[unsafe(no_mangle)]
-pub unsafe extern "C" fn egui_buffer_drop(buffer: *mut EguiByteVec) {
-    drop(Box::from_raw(buffer as *mut Vec<u8>));
+pub unsafe extern "C" fn egui_buffer_drop(buffer: *mut EguiBuffer) {
+    drop(Box::from_raw(buffer));
 }
 
 /// Gets the current contents of a buffer. The returned slice is only valid
@@ -1049,8 +1063,8 @@ pub unsafe extern "C" fn egui_buffer_drop(buffer: *mut EguiByteVec) {
 ///
 /// `buffer` must come from [`egui_buffer_new`] and not have been freed.
 #[unsafe(no_mangle)]
-pub unsafe extern "C" fn egui_buffer_data(buffer: *const EguiByteVec) -> EguiSliceU8 {
-    EguiSliceU8::from_slice(&*(buffer as *const Vec<u8>))
+pub unsafe extern "C" fn egui_buffer_data(buffer: *const EguiBuffer) -> EguiSliceU8 {
+    EguiSliceU8::from_slice(&*buffer)
 }
 
 /// Invokes a bound `egui` function, writing its result to `buffer`.
@@ -1063,12 +1077,11 @@ pub unsafe extern "C" fn egui_buffer_data(buffer: *const EguiByteVec) -> EguiSli
 /// `buffer` must come from [`egui_buffer_new`], not have been freed, and not be
 /// in use by any other in-progress call.
 #[unsafe(no_mangle)]
-pub unsafe extern "C" fn egui_invoke(f: EguiFn, args: EguiSliceU8, buffer: *mut EguiByteVec) -> bool {
-    let buffer = buffer as *mut Vec<u8>;
+pub unsafe extern "C" fn egui_invoke(f: EguiFn, args: EguiSliceU8, buffer: *mut EguiBuffer) -> bool {
 
     match catch_unwind(|| {
         if let Some(invoker) = EGUI_FNS.inner[f as usize] {
-            invoker.invoke(f, args.to_ptr(), buffer);
+            invoker.invoke(f, args.to_ptr(), &mut **buffer);
         } else {
             panic!("Function {f:?} not implemented")
         }
@@ -1080,7 +1093,7 @@ pub unsafe extern "C" fn egui_invoke(f: EguiFn, args: EguiSliceU8, buffer: *mut 
                 .map(|x| x.to_string())
                 .unwrap_or_else(|| error.downcast_ref::<String>().cloned().unwrap_or_default());
 
-            let return_buffer = &mut *buffer;
+            let return_buffer = &mut **buffer;
             return_buffer.clear();
             for character in error_message.encode_utf16() {
                 return_buffer.extend(character.to_ne_bytes());
