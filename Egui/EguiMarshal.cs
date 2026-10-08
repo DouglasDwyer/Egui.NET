@@ -769,11 +769,17 @@ internal static class EguiMarshal
         /// </summary>
         public bool Success;
 
+        /// <summary>
+        /// Creates a new state with its own serializer, buffer and deserializer.
+        /// </summary>
         public FfiCallState()
         {
             Deserializer = new BincodeDeserializer(ResultStream);
         }
 
+        /// <summary>
+        /// Frees the native buffer and the serialization objects.
+        /// </summary>
         public void Dispose()
         {
             Deserializer.Dispose();

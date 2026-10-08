@@ -1077,8 +1077,11 @@ pub unsafe extern "C" fn egui_buffer_data(buffer: *const EguiBuffer) -> EguiSlic
 /// `buffer` must come from [`egui_buffer_new`], not have been freed, and not be
 /// in use by any other in-progress call.
 #[unsafe(no_mangle)]
-pub unsafe extern "C" fn egui_invoke(f: EguiFn, args: EguiSliceU8, buffer: *mut EguiBuffer) -> bool {
-
+pub unsafe extern "C" fn egui_invoke(
+    f: EguiFn,
+    args: EguiSliceU8,
+    buffer: *mut EguiBuffer,
+) -> bool {
     match catch_unwind(|| {
         if let Some(invoker) = EGUI_FNS.inner[f as usize] {
             invoker.invoke(f, args.to_ptr(), &mut **buffer);
