@@ -1,6 +1,5 @@
 #![allow(warnings)]
 #![feature(fn_traits)]
-#![feature(thread_local)]
 #![feature(tuple_trait)]
 #![feature(unboxed_closures)]
 
@@ -965,17 +964,6 @@ impl EguiHandle {
     }
 }
 
-/// Describes the result of an `egui` call.
-#[derive(Copy, Clone)]
-#[repr(C)]
-pub struct EguiInvokeResult {
-    /// Whether `return_value` holds a serialized value or an error string.
-    pub success: bool,
-    /// If [`Self::success`], then the serialized data that the function returned.
-    /// Otherwise, holds a UTF8 string describing what went wrong.
-    pub return_value: EguiSliceU8,
-}
-
 /// Describes a section of a `u8` array.
 #[derive(Copy, Clone)]
 #[repr(C)]
@@ -1034,41 +1022,87 @@ pub unsafe extern "C" fn egui_init() {
     panic::set_hook(Box::new(|_| ()));
 }
 
-/// Invokes a bound `egui` function.
-#[unsafe(no_mangle)]
-pub unsafe extern "C" fn egui_invoke(f: EguiFn, args: EguiSliceU8) -> EguiInvokeResult {
-    /// The serialization buffer to which results will be written.
-    #[thread_local]
-    static mut RETURN_BUFFER: Vec<u8> = Vec::new();
+/// A growable byte buffer to which [`egui_invoke`] writes results.
+/// Only ever used behind a pointer from [`egui_buffer_new`].
+pub struct EguiBuffer(Vec<u8>);
 
+impl Deref for EguiBuffer {
+    type Target = Vec<u8>;
+
+    fn deref(&self) -> &Vec<u8> {
+        &self.0
+    }
+}
+
+impl DerefMut for EguiBuffer {
+    fn deref_mut(&mut self) -> &mut Vec<u8> {
+        &mut self.0
+    }
+}
+
+/// Allocates a new, empty buffer. Must be freed with [`egui_buffer_drop`].
+#[unsafe(no_mangle)]
+pub unsafe extern "C" fn egui_buffer_new() -> *mut EguiBuffer {
+    Box::into_raw(Box::new(EguiBuffer(Vec::new())))
+}
+
+/// Frees a buffer created with [`egui_buffer_new`].
+///
+/// # Safety
+///
+/// `buffer` must come from [`egui_buffer_new`] and must not be used afterwards.
+#[unsafe(no_mangle)]
+pub unsafe extern "C" fn egui_buffer_drop(buffer: *mut EguiBuffer) {
+    drop(Box::from_raw(buffer));
+}
+
+/// Gets the current contents of a buffer. The returned slice is only valid
+/// until the next call that writes to `buffer`.
+///
+/// # Safety
+///
+/// `buffer` must come from [`egui_buffer_new`] and not have been freed.
+#[unsafe(no_mangle)]
+pub unsafe extern "C" fn egui_buffer_data(buffer: *const EguiBuffer) -> EguiSliceU8 {
+    EguiSliceU8::from_slice(&*buffer)
+}
+
+/// Invokes a bound `egui` function, writing its result to `buffer`.
+///
+/// Returns `true` if `buffer` now holds the serialized return value, or `false`
+/// if it holds a UTF-16 string describing what went wrong.
+///
+/// # Safety
+///
+/// `buffer` must come from [`egui_buffer_new`], not have been freed, and not be
+/// in use by any other in-progress call.
+#[unsafe(no_mangle)]
+pub unsafe extern "C" fn egui_invoke(
+    f: EguiFn,
+    args: EguiSliceU8,
+    buffer: *mut EguiBuffer,
+) -> bool {
     match catch_unwind(|| {
         if let Some(invoker) = EGUI_FNS.inner[f as usize] {
-            invoker.invoke(f, args.to_ptr(), std::ptr::addr_of_mut!(RETURN_BUFFER));
-            EguiInvokeResult {
-                success: true,
-                return_value: EguiSliceU8::from_slice(&*std::ptr::addr_of_mut!(RETURN_BUFFER)),
-            }
+            invoker.invoke(f, args.to_ptr(), &mut **buffer);
         } else {
             panic!("Function {f:?} not implemented")
         }
     }) {
-        Ok(x) => x,
+        Ok(()) => true,
         Err(error) => {
             let error_message = error
                 .downcast_ref::<&'static str>()
                 .map(|x| x.to_string())
                 .unwrap_or_else(|| error.downcast_ref::<String>().cloned().unwrap_or_default());
 
-            let return_buffer = &mut *std::ptr::addr_of_mut!(RETURN_BUFFER);
+            let return_buffer = &mut **buffer;
             return_buffer.clear();
             for character in error_message.encode_utf16() {
                 return_buffer.extend(character.to_ne_bytes());
             }
 
-            EguiInvokeResult {
-                success: false,
-                return_value: EguiSliceU8::from_slice(&return_buffer),
-            }
+            false
         }
     }
 }
