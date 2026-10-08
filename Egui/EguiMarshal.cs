@@ -104,12 +104,12 @@ internal static class EguiMarshal
         var state = AcquireState();
         try
         {
-                SerializerCache<A0>.Serialize(state.Serializer, arg0);
-                SerializerCache<A1>.Serialize(state.Serializer, arg1);
-                SerializerCache<A2>.Serialize(state.Serializer, arg2);
-                SerializerCache<A3>.Serialize(state.Serializer, arg3);
-                SerializerCache<A4>.Serialize(state.Serializer, arg4);
-                SerializerCache<A5>.Serialize(state.Serializer, arg5);
+            SerializerCache<A0>.Serialize(state.Serializer, arg0);
+            SerializerCache<A1>.Serialize(state.Serializer, arg1);
+            SerializerCache<A2>.Serialize(state.Serializer, arg2);
+            SerializerCache<A3>.Serialize(state.Serializer, arg3);
+            SerializerCache<A4>.Serialize(state.Serializer, arg4);
+            SerializerCache<A5>.Serialize(state.Serializer, arg5);
 
             Invoke(func, state);
             AssertSuccess(state);
@@ -126,12 +126,12 @@ internal static class EguiMarshal
         var state = AcquireState();
         try
         {
-                SerializerCache<A0>.Serialize(state.Serializer, arg0);
-                SerializerCache<A1>.Serialize(state.Serializer, arg1);
-                SerializerCache<A2>.Serialize(state.Serializer, arg2);
-                SerializerCache<A3>.Serialize(state.Serializer, arg3);
-                SerializerCache<A4>.Serialize(state.Serializer, arg4);
-                SerializerCache<A5>.Serialize(state.Serializer, arg5);
+            SerializerCache<A0>.Serialize(state.Serializer, arg0);
+            SerializerCache<A1>.Serialize(state.Serializer, arg1);
+            SerializerCache<A2>.Serialize(state.Serializer, arg2);
+            SerializerCache<A3>.Serialize(state.Serializer, arg3);
+            SerializerCache<A4>.Serialize(state.Serializer, arg4);
+            SerializerCache<A5>.Serialize(state.Serializer, arg5);
 
             Invoke(func, state);
             return DeserializeResult<R>(state);
