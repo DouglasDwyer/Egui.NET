@@ -42,6 +42,9 @@ use std::borrow::*;
 use std::collections::*;
 use std::path::*;
 
+/// Types with a lifetime parameter that only ever holds skipped callbacks, so FFI signatures use `'static`.
+const STATIC_LIFETIME_TYS: &[&str] = &["ValueFormat"];
+
 /// Functions to exclude when automatically generating bindings.
 const BINDING_EXCLUDE_FNS: &[&str] = &[
     // These functions return references which need to be converted to values
@@ -80,14 +83,16 @@ const BINDING_EXCLUDE_FNS: &[&str] = &[
     "egui_plot_plot_Plot_allow_drag",
     "egui_plot_plot_Plot_allow_scroll",
     "egui_plot_plot_Plot_allow_axis_zoom_drag",
+    // ValueFormat: the callbacks are not serialized, so a format built by these would silently lose them
+    "egui_widgets_value_format_ValueFormat_binary",
+    "egui_widgets_value_format_ValueFormat_octal",
+    "egui_widgets_value_format_ValueFormat_hexadecimal",
     // Popup: bound manually
     "egui_containers_popup_Popup_open_id",
     // Moved or new in egui 0.37: cannot be bound
     "egui_text_selection_accesskit_text_update_accesskit_for_text_widget",
     "epaint_text_font_data_FontData_from_static",
     "egui_id_salt_IdSalt_new",
-    // Id::with: bound manually as `With(IdSalt)` over `with_salt`; the generated call would hash the salt twice
-    "egui_id_Id_with",
     // Rect: bound manually
     "emath_rect_Rect_center",
     "emath_rect_Rect_set_center",
@@ -414,6 +419,8 @@ const IGNORE_FNS: &[&str] = &[
     "egui_atomics_atom_ext_AtomExt_atom_align",
     // Align2::new: bound manually as a client-side constructor
     "emath_align_Align2_new",
+    // Id::with: bound manually as `With(IdSalt)` over `with_salt`; the generated call would hash the salt twice
+    "egui_id_Id_with",
     // AtomKind::closure: takes an `impl FnOnce(&Ui, IntoSizedArgs) -> IntoSizedResult`. Rust
     // closures cannot cross the C# FFI boundary as a stored/later-invoked value (unlike the
     // synchronous, scope-bound `EguiCallback` pattern used elsewhere), so this will never be
@@ -2602,6 +2609,12 @@ impl BindingsGenerator {
                     BoundTypeKind::Reference { .. } | BoundTypeKind::Value => {
                         bound_ty.name.rs_name.to_string()
                     }
+                };
+
+                let ty_name = if STATIC_LIFETIME_TYS.contains(&ty_name.as_str()) {
+                    format!("{ty_name}<'static>")
+                } else {
+                    ty_name
                 };
 
                 format!("mut {name}_: {ty_name}")

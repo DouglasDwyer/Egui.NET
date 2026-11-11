@@ -20,6 +20,7 @@ pub type NumParser<'a> = Arc<dyn 'a + Fn(&str) -> Option<f64>>;
 /// Owned by [`crate::DragValue`], and by [`crate::Slider`] and [`crate::RangeSlider`]
 /// for the numbers they show beside the rail.
 #[derive(Clone)]
+#[cfg_attr(feature = "serde", derive(serde::Deserialize, serde::Serialize))]
 pub struct ValueFormat<'a> {
     /// Shown before the number, e.g. `"x: "`.
     pub prefix: Atoms,
@@ -34,9 +35,11 @@ pub struct ValueFormat<'a> {
     pub max_decimals: Option<usize>,
 
     /// Turns a value into text. Default: [`crate::style::NumberFormatter`].
+    #[cfg_attr(feature = "serde", serde(skip))]
     pub custom_formatter: Option<NumFormatter<'a>>,
 
     /// Turns text back into a value. Default: accepts plain decimal numbers.
+    #[cfg_attr(feature = "serde", serde(skip))]
     pub custom_parser: Option<NumParser<'a>>,
 
     /// Apply each keystroke while typing, rather than on enter.
