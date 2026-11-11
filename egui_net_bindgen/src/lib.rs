@@ -121,6 +121,7 @@ const BINDING_EXCLUDE_TYPE_DEFINITIONS: &[&str] = &[
     "DragPanButtons",
     "Duration",
     "Galley",
+    "Id",
     "Response",
     "Sense",
     "UiStack",
