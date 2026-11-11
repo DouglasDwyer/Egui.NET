@@ -5,7 +5,8 @@
       "Egui/Egui.csproj",
       "Egui.SourceGenerators/Egui.SourceGenerators.csproj",
       "Egui.Silk.NET/Egui.Silk.NET.csproj",
-      "Egui.Silk.NET.OpenGL/Egui.Silk.NET.OpenGL.csproj"
+      "Egui.Silk.NET.OpenGL/Egui.Silk.NET.OpenGL.csproj",
+      "Egui.Tests/Egui.Tests.csproj"
     ]
   }
 }

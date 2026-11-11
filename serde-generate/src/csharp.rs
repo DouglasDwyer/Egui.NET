@@ -806,7 +806,7 @@ return obj.ToImmutableArray();
 
             writeln!(
                 self.out,
-                "\ninternal {}void Serialize(Bincode.BincodeSerializer serializer) {{",
+                "\ninternal {}readonly void Serialize(Bincode.BincodeSerializer serializer) {{",
                 fn_mods
             )?;
             self.out.indent();
@@ -929,25 +929,76 @@ return obj.ToImmutableArray();
         writeln!(self.out, "}}")
     }
 
+    /// Emits a payload-carrying (or mixed) enum as a C# custom union type: a value type that
+    /// follows the basic union pattern and the non-boxing access pattern.
+    ///
+    /// A `default(T)` union is "uninitialized" (`_variantId == null`). If the Rust type has a
+    /// `Default` implementation, an uninitialized union behaves as that default value;
+    /// otherwise, reading it throws.
     fn output_enum_container(
         &mut self,
         name: &str,
         variants: &BTreeMap<u32, Named<VariantFormat>>,
     ) -> Result<()> {
+        let has_default = self.generator.config.enums_with_default.contains(name);
+        // Statement that handles an uninitialized union at the start of a member.
+        // `fallback` is a `return` expression used when the type has a default value.
+        let uninit = |fallback: &str| -> String {
+            if has_default {
+                format!("if (!_variantId.HasValue) return {fallback};")
+            } else {
+                "if (!_variantId.HasValue) throw UninitializedException();".to_string()
+            }
+        };
+
         writeln!(self.out)?;
         self.output_comment(name)?;
-        writeln!(self.out, "public partial record struct {0} {{", name)?;
+        writeln!(self.out, "[System.Runtime.CompilerServices.Union]")?;
+        writeln!(
+            self.out,
+            "public partial record struct {0} : System.Runtime.CompilerServices.IUnion {{",
+            name
+        )?;
         let reserved_names = variants
             .values()
             .map(|v| v.name.as_str())
             .collect::<Vec<_>>();
         self.enter_class(name, &reserved_names);
 
-        // Inner
-        writeln!(self.out, "/// <summary>Gets the inner variant object. This can be used in switch cases to destructure the enum.</summary>")?;
-        writeln!(self.out, "public object Inner {{ get {{")?;
+        // Storage: the serde variant index (null until initialized) and one field per variant.
+        writeln!(self.out, "private int? _variantId;")?;
+        for (id, variant) in variants {
+            writeln!(self.out, "\nprivate {} _variant{id};", variant.name)?;
+        }
+
+        // Union creation members (one single-parameter constructor per case type).
+        for (id, variant) in variants {
+            writeln!(
+                self.out,
+                "\npublic {name}({} value) {{\n    _variantId = {id};\n    _variant{id} = value;\n}}",
+                variant.name
+            )?;
+        }
+
+        // Uninitialized handling.
+        if has_default {
+            writeln!(
+                self.out,
+                "\nprivate static class DefaultHolder {{\n    internal static readonly {name} Value = new {name}();\n}}"
+            )?;
+        } else {
+            writeln!(
+                self.out,
+                "\nprivate static InvalidOperationException UninitializedException() => new InvalidOperationException(\"This {name} is uninitialized. Construct it from one of its variants.\");"
+            )?;
+        }
+
+        // Value
+        writeln!(self.out, "\n/// <summary>Gets the contents of this union, which is one of its case types. Pattern matching on the union is preferred, since it does not box.</summary>")?;
+        writeln!(self.out, "public readonly object? Value {{ get {{")?;
         self.out.indent();
-        writeln!(self.out, "switch (_variantId.GetValueOrDefault(-1)) {{")?;
+        writeln!(self.out, "{}", uninit("DefaultHolder.Value.Value"))?;
+        writeln!(self.out, "switch (_variantId.Value) {{")?;
         for (id, _) in variants {
             writeln!(self.out, "case {id}: return _variant{id};")?;
         }
@@ -959,24 +1010,48 @@ return obj.ToImmutableArray();
         self.out.unindent();
         writeln!(self.out, "}} }}")?;
 
-        writeln!(self.out, "private int? _variantId;")?;
-
-        for (id, variant) in variants {
-            writeln!(self.out, "\nprivate {} _variant{id};", variant.name)?;
+        // Non-boxing access pattern.
+        writeln!(
+            self.out,
+            "\n/// <summary>Gets whether this union has contents.</summary>"
+        )?;
+        if has_default {
+            writeln!(self.out, "public readonly bool HasValue => true;")?;
+        } else {
+            writeln!(
+                self.out,
+                "public readonly bool HasValue => _variantId.HasValue ? true : throw UninitializedException();"
+            )?;
         }
-
         for (id, variant) in variants {
             writeln!(
                 self.out,
-                "\npublic static implicit operator {name}({} value) {{",
+                "\n/// <summary>Gets the contents of this union if it is a <see cref=\"{0}\"/>.</summary>",
                 variant.name
             )?;
-            writeln!(self.out, "    {name} result = default;")?;
-            writeln!(self.out, "    result._variantId = {id};")?;
-            writeln!(self.out, "    result._variant{id} = value;")?;
-            writeln!(self.out, "    return result;")?;
+            writeln!(
+                self.out,
+                "public readonly bool TryGetValue(out {} value) {{",
+                variant.name
+            )?;
+            self.out.indent();
+            writeln!(
+                self.out,
+                "{}",
+                uninit("DefaultHolder.Value.TryGetValue(out value)")
+            )?;
+            writeln!(self.out, "value = _variant{id};")?;
+            writeln!(self.out, "return _variantId == {id};")?;
+            self.out.unindent();
             writeln!(self.out, "}}")?;
         }
+
+        // Obsolete accessor from before the type was a union.
+        writeln!(
+            self.out,
+            "\n[Obsolete(\"Use pattern matching or TryGetValue on the union instead.\")]"
+        )?;
+        writeln!(self.out, "public readonly object Inner => Value!;")?;
 
         // Serialize/Deserialize
         if self.generator.config.serialization {
@@ -984,14 +1059,17 @@ return obj.ToImmutableArray();
 
             write!(
                 self.out,
-                "\ninternal void Serialize(Bincode.BincodeSerializer serializer) {{"
+                "\ninternal readonly void Serialize(Bincode.BincodeSerializer serializer) {{"
             )?;
             self.out.indent();
-            writeln!(
-                self.out,
-                r#"
-switch (_variantId.GetValueOrDefault(-1)) {{"#,
-            )?;
+            let serialize_uninit = if has_default {
+                "if (!_variantId.HasValue) { DefaultHolder.Value.Serialize(serializer); return; }"
+                    .to_string()
+            } else {
+                uninit("")
+            };
+            writeln!(self.out, "\n{serialize_uninit}")?;
+            writeln!(self.out, "switch (_variantId.Value) {{")?;
             self.out.indent();
             for (index, _) in variants {
                 writeln!(
@@ -1001,7 +1079,7 @@ switch (_variantId.GetValueOrDefault(-1)) {{"#,
             }
             writeln!(
                 self.out,
-                r#"default: throw new Serde.DeserializationException("Uninitialized {} value");"#,
+                r#"default: throw new Serde.SerializationException("Unknown variant index for {}: " + _variantId.Value);"#,
                 name,
             )?;
             self.out.unindent();
@@ -1025,8 +1103,8 @@ switch (index) {{"#,
             for (index, variant) in variants {
                 writeln!(
                     self.out,
-                    "case {}: return {}.Load(deserializer);",
-                    index, variant.name,
+                    "case {}: return new {}({}.Load(deserializer));",
+                    index, name, variant.name,
                 )?;
             }
             writeln!(
@@ -1046,9 +1124,17 @@ switch (index) {{"#,
         }
 
         // HashCode
-        writeln!(self.out, "public override int GetHashCode() {{")?;
+        writeln!(self.out, "\npublic override readonly int GetHashCode() {{")?;
         self.out.indent();
-        writeln!(self.out, "switch (_variantId.GetValueOrDefault(-1)) {{")?;
+        if has_default {
+            writeln!(
+                self.out,
+                "if (!_variantId.HasValue) return DefaultHolder.Value.GetHashCode();"
+            )?;
+        } else {
+            writeln!(self.out, "if (!_variantId.HasValue) return 0;")?;
+        }
+        writeln!(self.out, "switch (_variantId.Value) {{")?;
         for (id, _) in variants {
             writeln!(self.out, "case {id}: return _variant{id}.GetHashCode();")?;
         }
@@ -1061,13 +1147,28 @@ switch (index) {{"#,
         writeln!(self.out, "}}")?;
 
         // Equals
-        writeln!(self.out, "public bool Equals({} other) {{", name)?;
+        writeln!(self.out, "\npublic readonly bool Equals({} other) {{", name)?;
         self.out.indent();
+        if has_default {
+            writeln!(
+                self.out,
+                "if (!_variantId.HasValue) return DefaultHolder.Value.Equals(other);"
+            )?;
+            writeln!(
+                self.out,
+                "if (!other._variantId.HasValue) return Equals(DefaultHolder.Value);"
+            )?;
+        } else {
+            writeln!(
+                self.out,
+                "if (!_variantId.HasValue || !other._variantId.HasValue) return _variantId.HasValue == other._variantId.HasValue;"
+            )?;
+        }
         writeln!(
             self.out,
             "if (_variantId != other._variantId) return false;"
         )?;
-        writeln!(self.out, "switch (_variantId.GetValueOrDefault(-1)) {{")?;
+        writeln!(self.out, "switch (_variantId.Value) {{")?;
         for id in variants.keys() {
             writeln!(
                 self.out,
@@ -1090,7 +1191,18 @@ switch (index) {{"#,
             "private readonly bool PrintMembers(StringBuilder builder) {{"
         )?;
         self.out.indent();
-        writeln!(self.out, "switch (_variantId.GetValueOrDefault(-1)) {{")?;
+        if has_default {
+            writeln!(
+                self.out,
+                "if (!_variantId.HasValue) return DefaultHolder.Value.PrintMembers(builder);"
+            )?;
+        } else {
+            writeln!(
+                self.out,
+                "if (!_variantId.HasValue) {{ builder.Append(\"<uninitialized>\"); return true; }}"
+            )?;
+        }
+        writeln!(self.out, "switch (_variantId.Value) {{")?;
         for (id, _) in variants {
             writeln!(
                 self.out,
@@ -1102,18 +1214,6 @@ switch (index) {{"#,
         self.out.unindent();
         writeln!(self.out, "}}\n")?;
 
-        /*// Clone
-                writeln!(
-                    self.out,
-                    "/// <summary>Creates a shallow clone of the object.</summary>"
-                )?;
-                writeln!(
-                    self.out,
-                    "public {0} Clone() => ({0})MemberwiseClone();\n",
-                    name
-                )?;
-                //writeln!(self.out, "object ICloneable.Clone() => Clone();\n")?;
-        */
         self.output_variants(name, variants)?;
         self.leave_class(&reserved_names);
         writeln!(self.out, "}}\n")

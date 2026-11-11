@@ -305,7 +305,7 @@ public unsafe class SilkGlIntegration : SilkIntegration
 
         foreach (var primitive in primitives)
         {
-            switch (primitive.Primitive.Inner)
+            switch (primitive.Primitive)
             {
                 case Primitive.Mesh meshPrimitive:
                     {
@@ -359,7 +359,7 @@ public unsafe class SilkGlIntegration : SilkIntegration
         _gl.BindTexture(GLEnum.Texture2D, _textures[id]);
         CheckGlErrors();
 
-        switch (delta.Image.Inner)
+        switch (delta.Image)
         {
             case ImageData.Color image:
                 {

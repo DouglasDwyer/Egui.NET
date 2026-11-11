@@ -20,10 +20,13 @@ jobs:
       - name: Install .NET
         uses: actions/setup-dotnet@v4
         with:
-          dotnet-version: '9.0.x'
+          dotnet-version: '11.0.x'
 
       - name: Build
         run: dotnet build Egui.NET.slnf /p:TreatWarningsAsErrors="true" "/p:NoWarn=CS1570%3BCS1572%3BCS1573%3BCS1574%3BCS0419%3BCS1711%3BCS1591"
+
+      - name: Test
+        run: dotnet test Egui.NET.slnf --no-build
 
   format:
     name: dotnet format
@@ -38,7 +41,7 @@ jobs:
       - name: Install .NET
         uses: actions/setup-dotnet@v4
         with:
-          dotnet-version: '9.0.x'
+          dotnet-version: '11.0.x'
 
       - name: Format
         run: dotnet format Egui.NET.slnf --verify-no-changes --severity error

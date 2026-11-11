@@ -22,14 +22,34 @@ public partial record struct SizedAtomLayout
     /// <summary>
     /// Iterates over the images among the sized atoms.
     /// </summary>
-    public readonly IEnumerable<Image> Images => SizedAtoms.Where(x => x.Kind.Inner is SizedAtomKind.Image)
-        .Select(x => ((SizedAtomKind.Image)x.Kind.Inner).Inner);
+    public readonly IEnumerable<Image> Images => ImagesOf(SizedAtoms);
 
     /// <summary>
     /// Iterates over the texts among the sized atoms.
     /// </summary>
-    public readonly IEnumerable<Galley> Texts => SizedAtoms.Where(x => x.Kind.Inner is SizedAtomKind.Text)
-        .Select(x => ((SizedAtomKind.Text)x.Kind.Inner).Value);
+    public readonly IEnumerable<Galley> Texts => TextsOf(SizedAtoms);
+
+    private static IEnumerable<Image> ImagesOf(ImmutableArray<SizedAtom> atoms)
+    {
+        foreach (var atom in atoms)
+        {
+            if (atom.Kind is SizedAtomKind.Image image)
+            {
+                yield return image.Inner;
+            }
+        }
+    }
+
+    private static IEnumerable<Galley> TextsOf(ImmutableArray<SizedAtom> atoms)
+    {
+        foreach (var atom in atoms)
+        {
+            if (atom.Kind is SizedAtomKind.Text text)
+            {
+                yield return text.Value;
+            }
+        }
+    }
 
     /// <summary>
     /// Iterates over the kinds of the sized atoms.
@@ -55,7 +75,7 @@ public partial record struct SizedAtomLayout
     {
         SizedAtoms = SizedAtoms.Select(x =>
         {
-            if (x.Kind.Inner is SizedAtomKind.Image image)
+            if (x.Kind is SizedAtomKind.Image image)
             {
                 x.Kind = new SizedAtomKind.Image
                 {

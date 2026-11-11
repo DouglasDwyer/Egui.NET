@@ -7,11 +7,31 @@ public partial record struct Atoms : IEnumerable<Atom>
 {
     public IEnumerable<AtomKind> Kinds => this.Select(x => x.Kind);
 
-    public IEnumerable<Image> Images => _value.Where(x => x.Kind.Inner is AtomKind.Image)
-        .Select(x => ((AtomKind.Image)x.Kind.Inner).Value);
+    public IEnumerable<Image> Images => ImagesOf(_value);
 
-    public IEnumerable<WidgetText> Texts => _value.Where(x => x.Kind.Inner is AtomKind.Text)
-        .Select(x => ((AtomKind.Text)x.Kind.Inner).Value);
+    public IEnumerable<WidgetText> Texts => TextsOf(_value);
+
+    private static IEnumerable<Image> ImagesOf(ImmutableArray<Atom> atoms)
+    {
+        foreach (var atom in atoms)
+        {
+            if (atom.Kind is AtomKind.Image image)
+            {
+                yield return image.Value;
+            }
+        }
+    }
+
+    private static IEnumerable<WidgetText> TextsOf(ImmutableArray<Atom> atoms)
+    {
+        foreach (var atom in atoms)
+        {
+            if (atom.Kind is AtomKind.Text text)
+            {
+                yield return text.Value;
+            }
+        }
+    }
 
     /// <summary>
     /// Concatenate and return the text contents.
@@ -56,7 +76,7 @@ public partial record struct Atoms : IEnumerable<Atom>
     {
         _value = _value.Select(x =>
         {
-            if (x.Kind.Inner is AtomKind.Image image)
+            if (x.Kind is AtomKind.Image image)
             {
                 x.Kind = new AtomKind.Image(f(image.Value));
             }
@@ -68,7 +88,7 @@ public partial record struct Atoms : IEnumerable<Atom>
     {
         _value = _value.Select(x =>
         {
-            if (x.Kind.Inner is AtomKind.Text text)
+            if (x.Kind is AtomKind.Text text)
             {
                 x.Kind = new AtomKind.Text(f(text.Value));
             }

@@ -107,7 +107,7 @@ To pull in a newer `egui` release: `git subtree pull --prefix=egui-rs <egui remo
 
 To build from source, the following dependencies are required:
 
-- [`.NET 9.0 SDK`](https://dotnet.microsoft.com/en-us/download/dotnet/9.0)
+- [`.NET 11.0 SDK`](https://dotnet.microsoft.com/en-us/download/dotnet/11.0)
 - [`Rust`](https://www.rust-lang.org/tools/install)
 - [`cross-rs`](https://github.com/cross-rs/cross) (for cross-compiling the Nuget package)
 - [`Docker`](https://www.docker.com/products/docker-desktop/) (for cross-compiling the Nuget package)

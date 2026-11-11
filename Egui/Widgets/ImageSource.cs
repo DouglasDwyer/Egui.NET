@@ -8,7 +8,7 @@ public partial record struct ImageSource
     /// </summary>
     public string? GetUri()
     {
-        switch (Inner)
+        switch (this)
         {
             case Bytes bytes:
                 return bytes.Uri;

@@ -1295,23 +1295,44 @@ impl BindingsGenerator {
         let _ = std::fs::remove_dir_all(path_to_clear);
         let _ = std::fs::create_dir_all(&self.output_path);
 
-        let config = CodeGeneratorConfig::new("Egui".to_string())
-            .with_serialization(true)
-            .with_c_style_enums(true)
-            .with_comments(self.gather_doc_comments())
-            .with_namespaces(self.namespaces.clone());
-        let generator = CodeGenerator::new(&config);
+        let comments = self.gather_doc_comments();
 
         self.gather_getters_setters();
         self.inject_tuple_struct_wrappers();
         self.emit_cs_fn_bindings();
+        let enums_with_default = self.enums_with_default();
         self.rename_types();
         self.rename_struct_fields();
         self.remove_excluded_serialized_tys();
 
+        let config = CodeGeneratorConfig::new("Egui".to_string())
+            .with_serialization(true)
+            .with_c_style_enums(true)
+            .with_comments(comments)
+            .with_namespaces(self.namespaces.clone())
+            .with_enums_with_default(enums_with_default);
+        let generator = CodeGenerator::new(&config);
+
         generator
             .write_source_files(self.output_path, &self.registry)
             .expect("Failed to write source files");
+    }
+
+    /// Gets the (C#) names of all serialized enums that have a public parameterless
+    /// constructor, which is bound to the Rust `Default` implementation.
+    ///
+    /// Uninitialized C# unions of these types fall back to that default value.
+    /// This must be called after [`Self::emit_cs_fn_bindings`] and before [`Self::rename_types`].
+    fn enums_with_default(&self) -> Vec<String> {
+        self.registry
+            .iter()
+            .filter(|(_, format)| matches!(format, ContainerFormat::Enum(_)))
+            .filter(|(name, _)| {
+                self.get_type_id(name)
+                    .is_some_and(|id| self.parameterless_constructor_types.contains(&id))
+            })
+            .map(|(name, _)| Self::new_name(name).unwrap_or(name.as_str()).to_string())
+            .collect()
     }
 
     /// Renames types in the [`TYPE_RENAMES`] list.
