@@ -36,24 +36,20 @@ public ref struct Slider<T> : IWidget where T : INumber<T>
 
         _inner.Start = double.CreateSaturating(start);
         _inner.End = double.CreateSaturating(end);
-        _inner.Spec = new SliderSpec
-        {
-            Logarithmic = false,
-            SmallestPositive = 1e-6,
-            LargestFinite = double.PositiveInfinity
-        };
+        _inner.Spec.Logarithmic = false;
+        _inner.Spec.SmallestPositive = 1e-6;
+        _inner.Spec.LargestFinite = double.PositiveInfinity;
         _inner.Clamping = SliderClamping.Always;
         _inner.SmartAim = true;
         _inner.ShowValue = true;
         _inner.Orientation = SliderOrientation.Horizontal;
-        _inner.Prefix = "";
-        _inner.Suffix = "";
         _inner.Text = "";
         _inner.Step = null;
         _inner.DragValueSpeed = null;
-        _inner.MinDecimals = 0;
+        _inner.Format.Prefix = new Atoms();
+        _inner.Format.Suffix = new Atoms();
+        _inner.Format.UpdateWhileEditing = true;
         _inner.TrailingFill = null;
-        _inner.UpdateWhileEditing = true;
 
         if (typeof(T) != typeof(float) && typeof(T) != typeof(double))
         {
@@ -75,27 +71,27 @@ public ref struct Slider<T> : IWidget where T : INumber<T>
     /// <summary>
     /// Show a prefix before the number, e.g. "x: "
     /// </summary>
-    public readonly Slider<T> Prefix(string prefix)
+    public readonly Slider<T> Prefix(Atoms prefix)
     {
         var result = this;
-        result._inner.Prefix = prefix;
+        result._inner.Format = result._inner.Format.WithPrefix(prefix);
         return result;
     }
 
     /// <summary>
     /// Add a suffix to the number, this can be e.g. a unit ("°" or " m")
     /// </summary>
-    public readonly Slider<T> Suffix(string suffix)
+    public readonly Slider<T> Suffix(Atoms suffix)
     {
         var result = this;
-        result._inner.Suffix = suffix;
+        result._inner.Format = result._inner.Format.WithSuffix(suffix);
         return result;
     }
 
     /// <summary>
     /// Show a text next to the slider (e.g. explaining what the slider controls).
     /// </summary>
-    public readonly Slider<T> Text(string text)
+    public readonly Slider<T> Text(WidgetText text)
     {
         var result = this;
         result._inner.Text = text;
@@ -159,10 +155,10 @@ public ref struct Slider<T> : IWidget where T : INumber<T>
     /// before the slider switches to <see cref="double.PositiveInfinity"/> , if that is the higher end.
     /// Default: <see cref="double.PositiveInfinity"/>.
     /// </summary>
-    public readonly Slider<T> LargestFinite(double smallestPositive)
+    public readonly Slider<T> LargestFinite(double largestFinite)
     {
         var result = this;
-        result._inner.Spec.SmallestPositive = smallestPositive;
+        result._inner.Spec.LargestFinite = largestFinite;
         return result;
     }
 
@@ -228,7 +224,7 @@ public ref struct Slider<T> : IWidget where T : INumber<T>
     public readonly Slider<T> MinDecimals(nuint minDecimals)
     {
         var result = this;
-        result._inner.MinDecimals = minDecimals;
+        result._inner.Format.MinDecimals = minDecimals;
         return result;
     }
 
@@ -242,14 +238,14 @@ public ref struct Slider<T> : IWidget where T : INumber<T>
     public readonly Slider<T> MaxDecimals(nuint maxDecimals)
     {
         var result = this;
-        result._inner.MaxDecimals = maxDecimals;
+        result._inner.Format.MaxDecimals = maxDecimals;
         return result;
     }
 
     public readonly Slider<T> MaxDecimalsOpt(nuint? maxDecimals)
     {
         var result = this;
-        result._inner.MaxDecimals = maxDecimals;
+        result._inner.Format.MaxDecimals = maxDecimals;
         return result;
     }
 
@@ -263,8 +259,8 @@ public ref struct Slider<T> : IWidget where T : INumber<T>
     public readonly Slider<T> FixedDecimals(nuint numDecimals)
     {
         var result = this;
-        result._inner.MinDecimals = numDecimals;
-        result._inner.MaxDecimals = numDecimals;
+        result._inner.Format.MinDecimals = numDecimals;
+        result._inner.Format.MaxDecimals = numDecimals;
         return result;
     }
 
@@ -297,6 +293,29 @@ public ref struct Slider<T> : IWidget where T : INumber<T>
     }
 
     /// <summary>
+    /// Replace how the number beside the rail is written and read back.<br/>
+    ///
+    /// This also discards any <see cref="Binary"/>, <see cref="Octal"/> or <see cref="Hexadecimal"/> set before.
+    /// </summary>
+    public readonly Slider<T> Format(ValueFormat format)
+    {
+        var result = this;
+        result._inner.Format = format;
+        result._inner.Parser = (byte)Parser.Default;
+        return result;
+    }
+
+    /// <summary>
+    /// Set how values are spread along the rail.
+    /// </summary>
+    public readonly Slider<T> Spec(SliderSpec spec)
+    {
+        var result = this;
+        result._inner.Spec = spec;
+        return result;
+    }
+
+    /// <summary>
     /// Helper: equivalent to <c>this.FixedDecimals(0).SmallestPositive(1).StepBy(1)</c>.
     /// If you use one of the integer constructors this is called for you,
     /// but if you want to have a slider for picking integer values in an <see cref="double"/>, use this.
@@ -315,7 +334,7 @@ public ref struct Slider<T> : IWidget where T : INumber<T>
     public readonly Slider<T> UpdateWhileEditing(bool updateWhileEditing)
     {
         var result = this;
-        result._inner.UpdateWhileEditing = updateWhileEditing;
+        result._inner.Format.UpdateWhileEditing = updateWhileEditing;
         return result;
     }
 
@@ -335,6 +354,7 @@ public ref struct Slider<T> : IWidget where T : INumber<T>
     /// </summary>
     public readonly Slider<T> Binary(nuint minWidth, bool twosComplement)
     {
+        ArgumentOutOfRangeException.ThrowIfZero(minWidth);
         var result = this;
         result._inner.MinWidth = minWidth;
         result._inner.TwosComplement = twosComplement;
@@ -358,6 +378,7 @@ public ref struct Slider<T> : IWidget where T : INumber<T>
     /// </summary>
     public readonly Slider<T> Octal(nuint minWidth, bool twosComplement)
     {
+        ArgumentOutOfRangeException.ThrowIfZero(minWidth);
         var result = this;
         result._inner.MinWidth = minWidth;
         result._inner.TwosComplement = twosComplement;
@@ -381,6 +402,7 @@ public ref struct Slider<T> : IWidget where T : INumber<T>
     /// </summary>
     public readonly Slider<T> Hexadecimal(nuint minWidth, bool twosComplement, bool upper)
     {
+        ArgumentOutOfRangeException.ThrowIfZero(minWidth);
         var result = this;
         result._inner.MinWidth = minWidth;
         result._inner.TwosComplement = twosComplement;
@@ -399,27 +421,6 @@ public ref struct Slider<T> : IWidget where T : INumber<T>
         return response;
     }
 
-    private struct SliderSpec
-    {
-        public bool Logarithmic;
-        public double SmallestPositive;
-        public double LargestFinite;
-
-
-        internal static void Serialize(Bincode.BincodeSerializer serializer, SliderSpec value) => value.Serialize(serializer);
-
-        internal void Serialize(Bincode.BincodeSerializer serializer)
-        {
-            serializer.increase_container_depth();
-            serializer.serialize_bool(Logarithmic);
-            serializer.serialize_f64(SmallestPositive);
-            serializer.serialize_f64(LargestFinite);
-            serializer.decrease_container_depth();
-        }
-
-        internal static SliderSpec Deserialize(Bincode.BincodeDeserializer deserializer) => throw new NotSupportedException();
-    }
-
     private partial struct SerializableSlider
     {
         public double Start;
@@ -429,16 +430,12 @@ public ref struct Slider<T> : IWidget where T : INumber<T>
         public bool SmartAim;
         public bool ShowValue;
         public SliderOrientation Orientation;
-        public string Prefix;
-        public string Suffix;
         public Egui.WidgetText Text;
         public double? Step;
         public double? DragValueSpeed;
-        public ulong MinDecimals;
-        public ulong? MaxDecimals;
+        public ValueFormat Format;
         public bool? TrailingFill;
         public Egui.HandleShape? HandleShape;
-        public bool UpdateWhileEditing;
         public ulong MinWidth;
         public bool TwosComplement;
         public bool Upper;
@@ -456,16 +453,12 @@ public ref struct Slider<T> : IWidget where T : INumber<T>
             serializer.serialize_bool(SmartAim);
             serializer.serialize_bool(ShowValue);
             Orientation.Serialize(serializer);
-            serializer.serialize_str(Prefix);
-            serializer.serialize_str(Suffix);
             Text.Serialize(serializer);
             Egui.TraitHelpers.serialize_option_f64(Step, serializer);
             Egui.TraitHelpers.serialize_option_f64(DragValueSpeed, serializer);
-            serializer.serialize_u64(MinDecimals);
-            Egui.TraitHelpers.serialize_option_u64(MaxDecimals, serializer);
+            Format.Serialize(serializer);
             Egui.TraitHelpers.serialize_option_bool(TrailingFill, serializer);
             serialize_option_HandleShape(HandleShape, serializer);
-            serializer.serialize_bool(UpdateWhileEditing);
             serializer.serialize_u64(MinWidth);
             serializer.serialize_bool(TwosComplement);
             serializer.serialize_bool(Upper);

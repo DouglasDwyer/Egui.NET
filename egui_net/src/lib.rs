@@ -1558,14 +1558,13 @@ pub struct SerializableDatePickerButton {
 #[derive(Clone, Serialize, Deserialize)]
 pub struct SerializableDragValue {
     speed: f64,
-    prefix: Atoms,
-    suffix: Atoms,
     start: f64,
     end: f64,
     clamp_existing_to_range: bool,
-    min_decimals: usize,
-    max_decimals: Option<usize>,
-    update_while_editing: bool,
+    format: ValueFormat<'static>,
+    classes: Classes,
+    min_size: Option<Vec2>,
+    clip_text: bool,
     min_width: usize,
     twos_complement: bool,
     upper: bool,
@@ -1577,13 +1576,15 @@ impl SerializableDragValue {
     pub fn to_drag_value<'a>(self, value: &'a mut f64) -> DragValue<'a> {
         let mut result = DragValue::new(value)
             .speed(self.speed)
-            .prefix(self.prefix)
-            .suffix(self.suffix)
             .range(self.start..=self.end)
             .clamp_existing_to_range(self.clamp_existing_to_range)
-            .min_decimals(self.min_decimals)
-            .max_decimals_opt(self.max_decimals)
-            .update_while_editing(self.update_while_editing);
+            .format(self.format)
+            .with_classes(self.classes)
+            .clip_text(self.clip_text);
+
+        if let Some(min_size) = self.min_size {
+            result = result.min_size(min_size);
+        }
 
         match self.parser {
             0 => result,
@@ -1604,16 +1605,12 @@ struct SerializableSlider {
     pub smart_aim: bool,
     pub show_value: bool,
     pub orientation: SliderOrientation,
-    pub prefix: String,
-    pub suffix: String,
     pub text: WidgetText,
     pub step: Option<f64>,
     pub drag_value_speed: Option<f64>,
-    pub min_decimals: usize,
-    pub max_decimals: Option<usize>,
+    pub format: ValueFormat<'static>,
     pub trailing_fill: Option<bool>,
     pub handle_shape: Option<HandleShape>,
-    pub update_while_editing: bool,
     pub min_width: usize,
     pub twos_complement: bool,
     pub upper: bool,
@@ -1629,12 +1626,8 @@ impl SerializableSlider {
             .smart_aim(self.smart_aim)
             .show_value(self.show_value)
             .orientation(self.orientation)
-            .prefix(self.prefix)
-            .suffix(self.suffix)
             .text(self.text)
-            .min_decimals(self.min_decimals)
-            .max_decimals_opt(self.max_decimals)
-            .update_while_editing(self.update_while_editing);
+            .format(self.format);
 
         if let Some(step) = self.step {
             result = result.step_by(step);
