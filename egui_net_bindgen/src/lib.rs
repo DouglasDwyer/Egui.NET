@@ -87,6 +87,7 @@ const BINDING_EXCLUDE_FNS: &[&str] = &[
     "epaint_text_font_data_FontData_from_static",
     "emath_align_Align2_new",
     "egui_id_Id_with",
+    "egui_id_salt_IdSalt_new",
     // Rect: bound manually
     "emath_rect_Rect_center",
     "emath_rect_Rect_set_center",
@@ -120,7 +121,6 @@ const BINDING_EXCLUDE_TYPE_DEFINITIONS: &[&str] = &[
     "DragPanButtons",
     "Duration",
     "Galley",
-    "Id",
     "Response",
     "Sense",
     "UiStack",
@@ -1719,10 +1719,9 @@ impl BindingsGenerator {
                         } else {
                             self.bound_ty_name(self_ty, inner_ty)?
                         }
-                    } else if path.contains("Hash")
-                        || path.contains("IdSource")
-                        || path.contains("AsIdSalt")
-                    {
+                    } else if path.contains("AsIdSalt") {
+                        BoundTypeName::cs_rs("IdSalt", "IdSalt")
+                    } else if path.contains("Hash") || path.contains("IdSource") {
                         BoundTypeName::cs_rs("Id", "Id")
                     } else if path.contains("IntoAtoms") {
                         BoundTypeName::cs_rs("Atoms", "Atoms")
