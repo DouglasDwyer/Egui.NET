@@ -165,6 +165,8 @@ impl SliderGeometry {
 // ----------------------------------------------------------------------------
 
 /// The editable numbers a slider shows beside its rail, one per handle.
+#[derive(Clone)]
+#[cfg_attr(feature = "serde", derive(serde::Deserialize, serde::Serialize))]
 pub struct DragValueSettings<'a> {
     /// Show them at all.
     pub show: bool,

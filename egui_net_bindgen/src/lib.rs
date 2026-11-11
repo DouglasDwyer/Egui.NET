@@ -43,7 +43,7 @@ use std::collections::*;
 use std::path::*;
 
 /// Types with a lifetime parameter that only ever holds skipped callbacks, so FFI signatures use `'static`.
-const STATIC_LIFETIME_TYS: &[&str] = &["ValueFormat"];
+const STATIC_LIFETIME_TYS: &[&str] = &["ValueFormat", "DragValueSettings"];
 
 /// Functions to exclude when automatically generating bindings.
 const BINDING_EXCLUDE_FNS: &[&str] = &[

@@ -41,14 +41,14 @@ public ref struct Slider<T> : IWidget where T : INumber<T>
         _inner.Spec.LargestFinite = double.PositiveInfinity;
         _inner.Clamping = SliderClamping.Always;
         _inner.SmartAim = true;
-        _inner.ShowValue = true;
+        _inner.DragValue.Show = true;
         _inner.Orientation = SliderOrientation.Horizontal;
         _inner.Text = "";
         _inner.Step = null;
-        _inner.DragValueSpeed = null;
-        _inner.Format.Prefix = new Atoms();
-        _inner.Format.Suffix = new Atoms();
-        _inner.Format.UpdateWhileEditing = true;
+        _inner.DragValue.Speed = null;
+        _inner.DragValue.Format.Prefix = new Atoms();
+        _inner.DragValue.Format.Suffix = new Atoms();
+        _inner.DragValue.Format.UpdateWhileEditing = true;
         _inner.TrailingFill = null;
 
         if (typeof(T) != typeof(float) && typeof(T) != typeof(double))
@@ -64,7 +64,7 @@ public ref struct Slider<T> : IWidget where T : INumber<T>
     public readonly Slider<T> ShowValue(bool showValue)
     {
         var result = this;
-        result._inner.ShowValue = showValue;
+        result._inner.DragValue.Show = showValue;
         return result;
     }
 
@@ -74,7 +74,7 @@ public ref struct Slider<T> : IWidget where T : INumber<T>
     public readonly Slider<T> Prefix(Atoms prefix)
     {
         var result = this;
-        result._inner.Format = result._inner.Format.WithPrefix(prefix);
+        result._inner.DragValue.Format = result._inner.DragValue.Format.WithPrefix(prefix);
         return result;
     }
 
@@ -84,7 +84,7 @@ public ref struct Slider<T> : IWidget where T : INumber<T>
     public readonly Slider<T> Suffix(Atoms suffix)
     {
         var result = this;
-        result._inner.Format = result._inner.Format.WithSuffix(suffix);
+        result._inner.DragValue.Format = result._inner.DragValue.Format.WithSuffix(suffix);
         return result;
     }
 
@@ -211,7 +211,7 @@ public ref struct Slider<T> : IWidget where T : INumber<T>
     public readonly Slider<T> DragValueSpeed(double dragValueSpeed)
     {
         var result = this;
-        result._inner.DragValueSpeed = dragValueSpeed;
+        result._inner.DragValue.Speed = dragValueSpeed;
         return result;
     }
 
@@ -224,7 +224,7 @@ public ref struct Slider<T> : IWidget where T : INumber<T>
     public readonly Slider<T> MinDecimals(nuint minDecimals)
     {
         var result = this;
-        result._inner.Format.MinDecimals = minDecimals;
+        result._inner.DragValue.Format.MinDecimals = minDecimals;
         return result;
     }
 
@@ -238,14 +238,14 @@ public ref struct Slider<T> : IWidget where T : INumber<T>
     public readonly Slider<T> MaxDecimals(nuint maxDecimals)
     {
         var result = this;
-        result._inner.Format.MaxDecimals = maxDecimals;
+        result._inner.DragValue.Format.MaxDecimals = maxDecimals;
         return result;
     }
 
     public readonly Slider<T> MaxDecimalsOpt(nuint? maxDecimals)
     {
         var result = this;
-        result._inner.Format.MaxDecimals = maxDecimals;
+        result._inner.DragValue.Format.MaxDecimals = maxDecimals;
         return result;
     }
 
@@ -259,8 +259,8 @@ public ref struct Slider<T> : IWidget where T : INumber<T>
     public readonly Slider<T> FixedDecimals(nuint numDecimals)
     {
         var result = this;
-        result._inner.Format.MinDecimals = numDecimals;
-        result._inner.Format.MaxDecimals = numDecimals;
+        result._inner.DragValue.Format.MinDecimals = numDecimals;
+        result._inner.DragValue.Format.MaxDecimals = numDecimals;
         return result;
     }
 
@@ -293,6 +293,19 @@ public ref struct Slider<T> : IWidget where T : INumber<T>
     }
 
     /// <summary>
+    /// Replace every setting for the number beside the rail.<br/>
+    ///
+    /// This also discards any <see cref="Binary"/>, <see cref="Octal"/> or <see cref="Hexadecimal"/> set before.
+    /// </summary>
+    public readonly Slider<T> DragValue(DragValueSettings dragValue)
+    {
+        var result = this;
+        result._inner.DragValue = dragValue;
+        result._inner.Parser = (byte)Parser.Default;
+        return result;
+    }
+
+    /// <summary>
     /// Replace how the number beside the rail is written and read back.<br/>
     ///
     /// This also discards any <see cref="Binary"/>, <see cref="Octal"/> or <see cref="Hexadecimal"/> set before.
@@ -300,7 +313,7 @@ public ref struct Slider<T> : IWidget where T : INumber<T>
     public readonly Slider<T> Format(ValueFormat format)
     {
         var result = this;
-        result._inner.Format = format;
+        result._inner.DragValue.Format = format;
         result._inner.Parser = (byte)Parser.Default;
         return result;
     }
@@ -334,7 +347,7 @@ public ref struct Slider<T> : IWidget where T : INumber<T>
     public readonly Slider<T> UpdateWhileEditing(bool updateWhileEditing)
     {
         var result = this;
-        result._inner.Format.UpdateWhileEditing = updateWhileEditing;
+        result._inner.DragValue.Format.UpdateWhileEditing = updateWhileEditing;
         return result;
     }
 
@@ -428,12 +441,10 @@ public ref struct Slider<T> : IWidget where T : INumber<T>
         public SliderSpec Spec;
         public SliderClamping Clamping;
         public bool SmartAim;
-        public bool ShowValue;
         public SliderOrientation Orientation;
         public Egui.WidgetText Text;
         public double? Step;
-        public double? DragValueSpeed;
-        public ValueFormat Format;
+        public DragValueSettings DragValue;
         public bool? TrailingFill;
         public Egui.HandleShape? HandleShape;
         public ulong MinWidth;
@@ -451,12 +462,10 @@ public ref struct Slider<T> : IWidget where T : INumber<T>
             Spec.Serialize(serializer);
             Clamping.Serialize(serializer);
             serializer.serialize_bool(SmartAim);
-            serializer.serialize_bool(ShowValue);
             Orientation.Serialize(serializer);
             Text.Serialize(serializer);
             Egui.TraitHelpers.serialize_option_f64(Step, serializer);
-            Egui.TraitHelpers.serialize_option_f64(DragValueSpeed, serializer);
-            Format.Serialize(serializer);
+            DragValue.Serialize(serializer);
             Egui.TraitHelpers.serialize_option_bool(TrailingFill, serializer);
             serialize_option_HandleShape(HandleShape, serializer);
             serializer.serialize_u64(MinWidth);

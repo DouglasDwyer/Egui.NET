@@ -1603,12 +1603,10 @@ struct SerializableSlider {
     pub spec: SliderSpec,
     pub clamping: SliderClamping,
     pub smart_aim: bool,
-    pub show_value: bool,
     pub orientation: SliderOrientation,
     pub text: WidgetText,
     pub step: Option<f64>,
-    pub drag_value_speed: Option<f64>,
-    pub format: ValueFormat<'static>,
+    pub drag_value: DragValueSettings<'static>,
     pub trailing_fill: Option<bool>,
     pub handle_shape: Option<HandleShape>,
     pub min_width: usize,
@@ -1624,16 +1622,12 @@ impl SerializableSlider {
             .spec(self.spec)
             .clamping(self.clamping)
             .smart_aim(self.smart_aim)
-            .show_value(self.show_value)
             .orientation(self.orientation)
             .text(self.text)
-            .format(self.format);
+            .drag_value(self.drag_value);
 
         if let Some(step) = self.step {
             result = result.step_by(step);
-        }
-        if let Some(speed) = self.drag_value_speed {
-            result = result.drag_value_speed(speed);
         }
         if let Some(handle_shape) = self.handle_shape {
             result = result.handle_shape(handle_shape);
