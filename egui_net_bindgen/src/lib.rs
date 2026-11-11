@@ -374,6 +374,9 @@ const IGNORE_FNS: &[&str] = &[
     "epaint_shapes_paint_callback_PaintCallbackInfo_viewport_in_pixels",
     "egui_containers_frame_Frame_show_dyn",
     "epaint_text_fonts_GalleyCache",
+    // Galley serde helpers added for the FFI layer; `pub` only because other crates call them
+    "epaint_text_text_layout_types_Galley_ffi_serialize_arc_handle",
+    "epaint_text_text_layout_types_Galley_ffi_deserialize_arc_handle",
     // AllocatedAtomLayout: bound manually
     "egui_atomics_atom_layout_AllocatedAtomLayout_iter_kinds",
     "egui_atomics_atom_layout_AllocatedAtomLayout_iter_kinds_mut",
