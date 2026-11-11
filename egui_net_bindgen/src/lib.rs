@@ -86,6 +86,7 @@ const BINDING_EXCLUDE_FNS: &[&str] = &[
     "egui_text_selection_accesskit_text_update_accesskit_for_text_widget",
     "epaint_text_font_data_FontData_from_static",
     "emath_align_Align2_new",
+    "egui_id_Id_with",
     // Rect: bound manually
     "emath_rect_Rect_center",
     "emath_rect_Rect_set_center",
