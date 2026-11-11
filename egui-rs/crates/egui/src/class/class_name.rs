@@ -152,7 +152,7 @@ impl serde::Serialize for ClassName {
     where
         S: serde::Serializer,
     {
-        serializer.serialize_str(self.as_str())
+        serializer.serialize_newtype_struct("ClassName", self.as_str())
     }
 }
 
@@ -162,7 +162,24 @@ impl<'de> serde::Deserialize<'de> for ClassName {
     where
         D: serde::Deserializer<'de>,
     {
-        let class = <alloc::string::String as serde::Deserialize>::deserialize(deserializer)?;
-        Ok(Self::new(class))
+        struct ClassNameVisitor;
+
+        impl<'de> serde::de::Visitor<'de> for ClassNameVisitor {
+            type Value = ClassName;
+
+            fn expecting(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
+                f.write_str("a class name")
+            }
+
+            fn visit_newtype_struct<D>(self, deserializer: D) -> Result<Self::Value, D::Error>
+            where
+                D: serde::Deserializer<'de>,
+            {
+                let class = <alloc::string::String as serde::Deserialize>::deserialize(deserializer)?;
+                Ok(ClassName::new(class))
+            }
+        }
+
+        deserializer.deserialize_newtype_struct("ClassName", ClassNameVisitor)
     }
 }
