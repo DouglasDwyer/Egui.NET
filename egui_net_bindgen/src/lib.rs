@@ -652,6 +652,9 @@ const IGNORE_FNS: &[&str] = &[
     "epaint_text_fonts_Fonts_with_glyph_rasterizer",
     "epaint_text_fonts_Fonts_with_missing_glyph_policy",
     "epaint_text_fonts_Fonts_with_pixels_per_point_for_viewport",
+    // ViewportKey: only a layout-cache key for the unreachable `Fonts` methods
+    "epaint_text_fonts_ViewportKey_default",
+    "epaint_text_fonts_ViewportKey_new",
     // `Fonts::options` forwards to the same `TextureAtlas::options` call already reachable
     // through `FontsView` (see `epaint_texture_atlas_TextureAtlas_options` below) - `Fonts`
     // itself is never reachable from any bound function (`Context::fonts`/`fonts_mut` only ever
