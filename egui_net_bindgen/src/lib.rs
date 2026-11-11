@@ -85,7 +85,9 @@ const BINDING_EXCLUDE_FNS: &[&str] = &[
     // Moved or new in egui 0.37: cannot be bound
     "egui_text_selection_accesskit_text_update_accesskit_for_text_widget",
     "epaint_text_font_data_FontData_from_static",
-    "emath_align_Align2_new",
+    "egui_id_salt_IdSalt_new",
+    // Id::with: bound manually as `With(IdSalt)` over `with_salt`; the generated call would hash the salt twice
+    "egui_id_Id_with",
     // Rect: bound manually
     "emath_rect_Rect_center",
     "emath_rect_Rect_set_center",
@@ -371,6 +373,9 @@ const IGNORE_FNS: &[&str] = &[
     "epaint_shapes_paint_callback_PaintCallbackInfo_viewport_in_pixels",
     "egui_containers_frame_Frame_show_dyn",
     "epaint_text_fonts_GalleyCache",
+    // Galley serde helpers added for the FFI layer; `pub` only because other crates call them
+    "epaint_text_text_layout_types_Galley_ffi_serialize_arc_handle",
+    "epaint_text_text_layout_types_Galley_ffi_deserialize_arc_handle",
     // AllocatedAtomLayout: bound manually
     "egui_atomics_atom_layout_AllocatedAtomLayout_iter_kinds",
     "egui_atomics_atom_layout_AllocatedAtomLayout_iter_kinds_mut",
@@ -389,6 +394,26 @@ const IGNORE_FNS: &[&str] = &[
     "egui_atomics_atom_layout_SizedAtomLayout_iter_texts",
     "egui_atomics_atom_layout_SizedAtomLayout_iter_texts_mut",
     "egui_atomics_atom_layout_SizedAtomLayout_map_images",
+    // SizedContainerAtom: manually bound (client-side, over the sized atoms)
+    "egui_atomics_container_atom_SizedContainerAtom_iter_kinds",
+    "egui_atomics_container_atom_SizedContainerAtom_iter_kinds_mut",
+    "egui_atomics_container_atom_SizedContainerAtom_map_kind",
+    "egui_atomics_container_atom_SizedContainerAtom_iter_images",
+    "egui_atomics_container_atom_SizedContainerAtom_iter_images_mut",
+    "egui_atomics_container_atom_SizedContainerAtom_iter_texts",
+    "egui_atomics_container_atom_SizedContainerAtom_iter_texts_mut",
+    "egui_atomics_container_atom_SizedContainerAtom_map_images",
+    // AtomExt: only sets fields, which are public on the C# `Atom`
+    "egui_atomics_atom_ext_AtomExt_atom_id",
+    "egui_atomics_atom_ext_AtomExt_atom_size",
+    "egui_atomics_atom_ext_AtomExt_atom_grow",
+    "egui_atomics_atom_ext_AtomExt_atom_shrink",
+    "egui_atomics_atom_ext_AtomExt_atom_max_size",
+    "egui_atomics_atom_ext_AtomExt_atom_max_width",
+    "egui_atomics_atom_ext_AtomExt_atom_max_height",
+    "egui_atomics_atom_ext_AtomExt_atom_align",
+    // Align2::new: bound manually as a client-side constructor
+    "emath_align_Align2_new",
     // AtomKind::closure: takes an `impl FnOnce(&Ui, IntoSizedArgs) -> IntoSizedResult`. Rust
     // closures cannot cross the C# FFI boundary as a stored/later-invoked value (unlike the
     // synchronous, scope-bound `EguiCallback` pattern used elsewhere), so this will never be
@@ -822,6 +847,7 @@ const IGNORE_FNS: &[&str] = &[
     "egui_extras_table_Table_body",
     "egui_extras_table_Table_ui_mut",
     // Tooltip: bound manually
+    "egui_containers_tooltip_Tooltip_accessible_name",
     "egui_containers_tooltip_Tooltip_always_open",
     "egui_containers_tooltip_Tooltip_at_pointer",
     "egui_containers_tooltip_Tooltip_for_disabled",
@@ -891,6 +917,9 @@ const IGNORE_FNS: &[&str] = &[
     "egui_containers_popup_Popup_style",
     "egui_containers_popup_Popup_width",
     "egui_containers_popup_Popup_open_memory",
+    "egui_containers_popup_Popup_anchor_widget",
+    "egui_containers_popup_Popup_accessible_name",
+    "egui_containers_popup_Popup_sizing_pass",
     "egui_containers_popup_Popup_new",
     "egui_containers_popup_Popup_menu",
     "egui_containers_popup_Popup_layout",
@@ -1718,10 +1747,9 @@ impl BindingsGenerator {
                         } else {
                             self.bound_ty_name(self_ty, inner_ty)?
                         }
-                    } else if path.contains("Hash")
-                        || path.contains("IdSource")
-                        || path.contains("AsIdSalt")
-                    {
+                    } else if path.contains("AsIdSalt") {
+                        BoundTypeName::cs_rs("IdSalt", "IdSalt")
+                    } else if path.contains("Hash") || path.contains("IdSource") {
                         BoundTypeName::cs_rs("Id", "Id")
                     } else if path.contains("IntoAtoms") {
                         BoundTypeName::cs_rs("Atoms", "Atoms")

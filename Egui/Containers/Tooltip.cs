@@ -103,6 +103,16 @@ public ref partial struct Tooltip
     }
 
     /// <summary>
+    /// Name the tooltip in the accessibility tree.
+    /// </summary>
+    public readonly Tooltip AccessibleName(string name)
+    {
+        var result = this;
+        result.Popup = result.Popup.AccessibleName(name);
+        return result;
+    }
+
+    /// <summary>
     /// Set the layout of the tooltip
     /// </summary>
     public readonly Tooltip Width(float width)

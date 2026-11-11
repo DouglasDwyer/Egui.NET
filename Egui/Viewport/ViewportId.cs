@@ -5,7 +5,7 @@ public partial record struct ViewportId
     /// <summary>
     /// The <see cref="ViewportId"/> of the root viewport.
     /// </summary>
-    public static readonly ViewportId Root = new ViewportId { _value = Id.Null };
+    public static readonly ViewportId Root = new ViewportId { _value = default };
 
     /// <summary>
     /// Creates a <see cref="ViewportId"/> by hashing the given source.

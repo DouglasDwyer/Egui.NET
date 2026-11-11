@@ -2,6 +2,18 @@ namespace Egui;
 
 public partial record struct CollapsingHeader
 {
+    /// <summary>
+    /// Shows a collapsing header with a custom header UI, which starts collapsed.
+    /// </summary>
+    public static void Custom(Ui ui, IdSalt idSalt, Action<Ui> addHeader, Action<Ui> addBody)
+    {
+        ui.AssertInitialized();
+        var ctx = ui.Ctx;
+        using var header = new EguiCallback.Pin(ui => addHeader(new Ui(ctx, ui)));
+        using var body = new EguiCallback.Pin(ui => addBody(new Ui(ctx, ui)));
+        EguiMarshal.Call(EguiFn.egui_containers_collapsing_header_CollapsingHeader_custom, ui.Ptr, idSalt, header.AsNative(), body.AsNative());
+    }
+
     public readonly CollapsingResponse Show(Ui ui, Action<Ui> addContents)
     {
         ui.AssertInitialized();

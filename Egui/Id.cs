@@ -32,45 +32,44 @@ namespace Egui;
 public partial record struct Id
 {
     /// <summary>
-    /// A special <see cref="Id"/> , in particular as a key to <see cref="Memory.Data"/> 
-    /// for when there is no particular widget to attach the data.
-    ///
-    /// The null <see cref="Id"/>  is still a valid id to use in all circumstances,
-    /// though obviously it will lead to a lot of collisions if you do use it!
+    /// The value of the null ID, which is also the ID of a default <see cref="Id"/>.
     /// </summary>
-    public static readonly Id Null = new Id { _value = ulong.MaxValue };
+    private const ulong NullValue = ulong.MaxValue;
+
+    /// <summary>
+    /// Generate a new <see cref="Id"/> by hashing a string. The ID is globally unique for that string.
+    /// </summary>
+    public static Id Unique(string source) => EguiMarshal.Call<string, Id>(EguiFn.egui_id_Id_unique, source);
+
+    /// <summary>
+    /// Whether this ID holds a value from egui. A default <see cref="Id"/> does not, and is the null ID.
+    /// </summary>
+    private bool _initialized;
 
     /// <summary>
     /// The underlying value of the ID.
     /// </summary>
     private ulong _value;
 
-    /// Generate a new <see cref="Id"/>  by hashing some source.
-    public Id(string source)
-    {
-        this = EguiMarshal.Call<string, Id>(EguiFn.egui_id_Id_unique, source);
-    }
+    private readonly ulong Value => _initialized ? _value : NullValue;
 
     /// <summary>
-    /// Generate a new <see cref="Id"/>  by hashing the parent <see cref="Id"/>  and the given argument.
+    /// Generate a new <see cref="Id"/>  by hashing the parent <see cref="Id"/>  and the given salt.
     /// </summary>
-    public readonly Id With(string child)
-    {
-        return EguiMarshal.Call<Id, string, Id>(EguiFn.egui_id_Id_with, this, child);
-    }
+    public Id With(IdSalt salt) => WithSalt(salt);
 
-    /// <summary>
-    /// Converts a string to an ID.
-    /// </summary>
-    /// <param name="source">The source to use.</param>
-    public static implicit operator Id(string source) => new Id(source);
+    /// <inheritdoc/>
+    public readonly bool Equals(Id other) => Value == other.Value;
+
+    /// <inheritdoc/>
+    public override readonly int GetHashCode() => Value.GetHashCode();
 
     internal static void Serialize(BincodeSerializer serializer, Id value) => value.Serialize(serializer);
 
-    internal void Serialize(BincodeSerializer serializer)
+    internal readonly void Serialize(BincodeSerializer serializer)
     {
         serializer.increase_container_depth();
-        serializer.serialize_u64(_value);
+        serializer.serialize_u64(Value);
         serializer.decrease_container_depth();
     }
 
@@ -78,18 +77,15 @@ public partial record struct Id
     {
         deserializer.increase_container_depth();
         Id obj = default;
+        obj._initialized = true;
         obj._value = deserializer.deserialize_u64();
         deserializer.decrease_container_depth();
         return obj;
     }
 
-    /// <summary>
-    /// Restricts the compiler-synthesized <see cref="ToString"/> to just the underlying ID
-    /// value, rather than every convenience property defined on this type.
-    /// </summary>
     private readonly bool PrintMembers(System.Text.StringBuilder builder)
     {
-        builder.Append("Value = ").Append(_value);
+        builder.Append("Value = ").Append(Value);
         return true;
     }
 }

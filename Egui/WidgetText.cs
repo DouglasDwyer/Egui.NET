@@ -1,7 +1,18 @@
+using System.Collections.Immutable;
+
 namespace Egui;
 
 public partial record struct WidgetText
 {
+    /// <summary>
+    /// Joins differently styled <see cref="Egui.RichText"/>s into one text, using the style of <paramref name="ui"/>.
+    /// </summary>
+    public static WidgetText Concat(Ui ui, IEnumerable<Egui.RichText> parts)
+    {
+        ui.AssertInitialized();
+        return EguiMarshal.Call<nuint, ImmutableArray<Egui.RichText>, WidgetText>(EguiFn.egui_widget_text_WidgetText_concat, ui.Ptr, parts.ToImmutableArray());
+    }
+
     public string RawText => EguiMarshal.Call<WidgetText, string>(EguiFn.egui_widget_text_WidgetText_text, this);
 
     /// <summary>
