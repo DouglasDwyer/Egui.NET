@@ -5,13 +5,13 @@ use emath::Vec2;
 #[derive(Clone, Debug)]
 #[cfg_attr(feature = "serde", derive(serde::Deserialize, serde::Serialize))]
 pub struct SizedAtom {
-    pub id: Option<crate::Id>,
+    pub id: Option<crate::IdSalt>,
 
     pub(crate) grow: bool,
 
     /// The size of the atom.
     ///
-    /// Used for placing this atom in [`crate::AtomLayout`], the cursor will advance by
+    /// Used for placing this atom in a [`crate::ContainerAtom`], the cursor will advance by
     /// size.x + gap.
     pub size: Vec2,
 
