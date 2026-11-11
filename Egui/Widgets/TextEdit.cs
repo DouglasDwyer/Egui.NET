@@ -283,6 +283,26 @@ public ref partial struct TextEdit : IWidget
     }
 
     /// <summary>
+    /// Set the alignment of the inner text.
+    /// </summary>
+    public readonly TextEdit Align(Align2 align)
+    {
+        var result = this;
+        result._inner.Align = align;
+        return result;
+    }
+
+    /// <summary>
+    /// Sets the classes for this text edit, which a styling engine can use to choose its style.
+    /// </summary>
+    public readonly TextEdit Classes(Classes classes)
+    {
+        var result = this;
+        result._inner.Classes = classes;
+        return result;
+    }
+
+    /// <summary>
     /// Set the horizontal align of the inner text.
     /// </summary>
     public readonly TextEdit HorizontalAlign(Align align)
