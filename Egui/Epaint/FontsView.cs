@@ -1,3 +1,6 @@
+using System.Collections.Immutable;
+using System.Text;
+
 namespace Egui.Epaint;
 
 /// <summary>
@@ -18,6 +21,15 @@ public ref partial struct FontsView
     {
         Ptr = ptr;
     }
+
+    /// <summary>
+    /// All characters the fonts of this family support, and the names of the fonts that have each.<br/>
+    ///
+    /// This does not consult the <c>GlyphRasterizer</c>s.
+    /// </summary>
+    public ImmutableDictionary<Rune, ImmutableArray<string>> Characters(Egui.FontFamily family)
+        => EguiMarshal.Call<nuint, Egui.FontFamily, ImmutableArray<(Rune, ImmutableArray<string>)>>(EguiFn.epaint_text_fonts_FontsView_characters, Ptr, family)
+            .ToImmutableDictionary(x => x.Item1, x => x.Item2);
 
     /// <summary>
     /// Will wrap text at the given width and line break at <c>\n</c>.<br/>

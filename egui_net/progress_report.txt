@@ -1,4 +1,4 @@
-2393 / 2578 (92%) bound
+2394 / 2578 (92%) bound
 egui_atomics_atom_Atom_paint
 egui_atomics_atom_ext_AtomExt_atom_max_height_font_size
 egui_atomics_atom_kind_AtomKind_paint
@@ -179,7 +179,6 @@ emath_fast_midpoint
 epaint_shapes_bezier_shape_CubicBezierShape_for_each_flattened_with_t
 epaint_shapes_bezier_shape_CubicBezierShape_split_range
 epaint_shapes_bezier_shape_QuadraticBezierShape_for_each_flattened_with_t
-epaint_text_fonts_FontsView_characters
 epaint_text_glyph_rasterizer_GlyphRasterizer_new
 epaint_text_glyph_rasterizer_GlyphRasterizer_with_priority
 epaint_text_index_ByteRange_as_usize
