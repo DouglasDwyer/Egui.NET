@@ -43,15 +43,18 @@ internal partial struct EguiCallback
         /// <returns>The native representation.</returns>
         public EguiCallback AsNative()
         {
+            void* data;
             unsafe
             {
                 // Safety: the pin is stack-resident and outlives the native call it is passed to.
-                return new EguiCallback
-                {
-                    func = _callbackFunc,
-                    data = Unsafe.AsPointer(ref _context)
-                };
+                data = Unsafe.AsPointer(ref _context);
             }
+
+            return new EguiCallback
+            {
+                func = _callbackFunc,
+                data = data
+            };
         }
 
         /// <inheritdoc/>
