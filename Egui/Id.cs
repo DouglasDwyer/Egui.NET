@@ -32,14 +32,14 @@ namespace Egui;
 public partial record struct Id
 {
     /// <summary>
-    /// A special <see cref="Id"/> , in particular as a key to <see cref="Memory.Data"/> 
-    /// for when there is no particular widget to attach the data.
-    ///
-    /// The null <see cref="Id"/>  is still a valid id to use in all circumstances,
-    /// though obviously it will lead to a lot of collisions if you do use it!
-    /// A default-initialized <see cref="Id"/> is the null ID.
+    /// The value of the null ID, which is also the ID of a default <see cref="Id"/>.
     /// </summary>
-    public static readonly Id Null = default;
+    private const ulong NullValue = ulong.MaxValue;
+
+    /// <summary>
+    /// Generate a new <see cref="Id"/> by hashing a string. The ID is globally unique for that string.
+    /// </summary>
+    public static Id Unique(string source) => EguiMarshal.Call<string, Id>(EguiFn.egui_id_Id_unique, source);
 
     /// <summary>
     /// Whether this ID holds a value from egui. A default <see cref="Id"/> does not, and is the null ID.
@@ -51,12 +51,12 @@ public partial record struct Id
     /// </summary>
     private ulong _value;
 
-    private readonly ulong Value => _initialized ? _value : ulong.MaxValue;
+    private readonly ulong Value => _initialized ? _value : NullValue;
 
     /// <summary>
     /// Generate a new <see cref="Id"/>  by hashing the parent <see cref="Id"/>  and the given salt.
     /// </summary>
-    public readonly Id With(IdSalt salt) => WithSalt(salt);
+    public Id With(IdSalt salt) => WithSalt(salt);
 
     /// <inheritdoc/>
     public readonly bool Equals(Id other) => Value == other.Value;

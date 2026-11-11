@@ -5,7 +5,7 @@ namespace Egui.Util;
 /// <summary>
 /// Stores values identified by an <see cref="Id"/> AND the <see cref="Type"/> of the value.<br/>
 /// In other words, it maps (Id, TypeId) to any value you want.
-/// You can store state using the key <see cref="Id.Null"/>. The state will then only be identified by its type.
+/// You can store state using the default <see cref="Id"/>, which is the null ID. The state will then only be identified by its type.
 /// </summary>
 public ref struct IdTypeMap
 {

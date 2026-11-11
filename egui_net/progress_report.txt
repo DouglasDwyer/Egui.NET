@@ -1,4 +1,4 @@
-2376 / 2677 (88%) bound
+2377 / 2677 (88%) bound
 egui_atomics_atom_Atom_paint
 egui_atomics_atom_ext_AtomExt_atom_align
 egui_atomics_atom_ext_AtomExt_atom_grow
@@ -98,7 +98,6 @@ egui_extras_svg_glyph_SvgGlyph_with_height
 egui_extras_syntax_highlighting_SyntectSettings_default
 egui_extras_syntax_highlighting_highlight_with
 egui_id_Id_accesskit_id
-egui_id_Id_unique
 egui_id_Id_with
 egui_input_state_InputState_accesskit_action_requests
 egui_input_state_InputState_consume_accesskit_action_requests

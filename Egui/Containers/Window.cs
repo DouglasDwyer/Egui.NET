@@ -47,7 +47,7 @@ public ref struct Window
     /// </summary>
     public Window(Atoms title)
     {
-        Area area = new Area(Egui.Id.Null.With(title.Text ?? string.Empty)).Kind(UiKind.Window);
+        Area area = new Area(Egui.Id.Unique(title.Text ?? string.Empty)).Kind(UiKind.Window);
         _title = title;
         _hasOpen = false;
         _area = area;

@@ -664,7 +664,7 @@ public class Program
             // ShowHeader: a custom header, followed by an indented body.
             ui.Strong("ShowHeader + Body");
             {
-                var state = CollapsingState.LoadWithDefaultOpen(ctx, Id.Null.With("collapsing_state_demo_header"), false);
+                var state = CollapsingState.LoadWithDefaultOpen(ctx, Id.Unique("collapsing_state_demo_header"), false);
                 var header = state.ShowHeader(ui, ui =>
                 {
                     ui.Label("Custom header (click the arrow)");
@@ -679,7 +679,7 @@ public class Program
             // ShowHeader + BodyUnindented: the body is not indented under the header.
             ui.Strong("ShowHeader + BodyUnindented");
             {
-                var state = CollapsingState.LoadWithDefaultOpen(ctx, Id.Null.With("collapsing_state_demo_header_unindented"), false);
+                var state = CollapsingState.LoadWithDefaultOpen(ctx, Id.Unique("collapsing_state_demo_header_unindented"), false);
                 var header = state.ShowHeader(ui, ui =>
                 {
                     ui.Label("Custom header, unindented body");
@@ -694,7 +694,7 @@ public class Program
             // ShowBodyIndented: toggled by our own button instead of the built-in arrow.
             ui.Strong("ShowBodyIndented");
             {
-                var state = CollapsingState.LoadWithDefaultOpen(ctx, Id.Null.With("collapsing_state_demo_indented"), false);
+                var state = CollapsingState.LoadWithDefaultOpen(ctx, Id.Unique("collapsing_state_demo_indented"), false);
                 var headerResponse = ui.Button("Toggle indented body");
                 if (headerResponse.Clicked)
                 {
@@ -711,7 +711,7 @@ public class Program
             // ShowBodyUnindented: as above, but returning a value from the body.
             ui.Strong("ShowBodyUnindented");
             {
-                var state = CollapsingState.LoadWithDefaultOpen(ctx, Id.Null.With("collapsing_state_demo_unindented"), false);
+                var state = CollapsingState.LoadWithDefaultOpen(ctx, Id.Unique("collapsing_state_demo_unindented"), false);
                 if (ui.Button("Toggle unindented body").Clicked)
                 {
                     state.Toggle(ui);
@@ -731,7 +731,7 @@ public class Program
             // ShowToggleButton: the arrow button on its own, with a custom icon painter.
             ui.Strong("ShowToggleButton (custom icon)");
             {
-                var state = CollapsingState.LoadWithDefaultOpen(ctx, Id.Null.With("collapsing_state_demo_toggle_button"), false);
+                var state = CollapsingState.LoadWithDefaultOpen(ctx, Id.Unique("collapsing_state_demo_toggle_button"), false);
                 var row = ui.Horizontal(ui =>
                 {
                     state.ShowToggleButton(ui, (ui, openness, response) =>
@@ -752,7 +752,7 @@ public class Program
             // ShowToggleButton again, with the default egui arrow icon.
             ui.Strong("ShowToggleButton (default icon)");
             {
-                var state = CollapsingState.LoadWithDefaultOpen(ctx, Id.Null.With("collapsing_state_demo_toggle_button_default"), true);
+                var state = CollapsingState.LoadWithDefaultOpen(ctx, Id.Unique("collapsing_state_demo_toggle_button_default"), true);
                 var row = ui.Horizontal(ui =>
                 {
                     state.ShowToggleButton(ui, (ui, openness, response) =>
