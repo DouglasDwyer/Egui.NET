@@ -414,9 +414,6 @@ const IGNORE_FNS: &[&str] = &[
     "egui_atomics_atom_ext_AtomExt_atom_align",
     // Align2::new: bound manually as a client-side constructor
     "emath_align_Align2_new",
-    // GuiRounding: bound manually as client-side `Egui.Emath.GuiRounding` for floats and doubles
-    "emath_gui_rounding_GuiRounding_round_ui",
-    "emath_gui_rounding_GuiRounding_round_to_pixels",
     // AtomKind::closure: takes an `impl FnOnce(&Ui, IntoSizedArgs) -> IntoSizedResult`. Rust
     // closures cannot cross the C# FFI boundary as a stored/later-invoked value (unlike the
     // synchronous, scope-bound `EguiCallback` pattern used elsewhere), so this will never be
