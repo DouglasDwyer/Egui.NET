@@ -1,4 +1,4 @@
-2371 / 2677 (88%) bound
+2374 / 2677 (88%) bound
 egui_atomics_atom_Atom_paint
 egui_atomics_atom_ext_AtomExt_atom_align
 egui_atomics_atom_ext_AtomExt_atom_grow
@@ -28,9 +28,6 @@ egui_class_classes_Classes_into_iter
 egui_class_classes_Classes_iter
 egui_class_has_classes_HasClasses_has_class
 egui_class_has_classes_HasClasses_set_class
-egui_containers_aligned_Aligned_id_salt
-egui_containers_aligned_Aligned_new
-egui_containers_aligned_Aligned_show
 egui_containers_collapsing_header_CollapsingHeader_custom
 egui_containers_combo_box_ComboBox_classes_mut
 egui_containers_menu_MenuState_from_id

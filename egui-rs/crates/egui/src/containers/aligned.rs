@@ -37,6 +37,7 @@ use crate::{AsIdSalt, Direction, IdSalt, InnerResponse, Ui, UiBuilder};
 /// ```
 #[must_use = "You should call .show()"]
 #[derive(Clone, Copy, Debug)]
+#[cfg_attr(feature = "serde", derive(serde::Deserialize, serde::Serialize))]
 pub struct Aligned {
     align2: Align2,
     id_salt: Option<IdSalt>,
