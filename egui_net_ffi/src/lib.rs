@@ -1,5 +1,6 @@
 //! Allows for efficiently communicating with a C#-side `egui` Context from [Egui.NET](https://github.com/DouglasDwyer/Egui.NET).
 
+use std::fmt::Debug;
 use std::ops::Deref;
 
 use egui::epaint::*;
@@ -8,10 +9,11 @@ use egui::*;
 use serde::*;
 
 /// Allows for passing `egui` data back and forth with C#.
+#[derive(Debug)]
 #[repr(C)]
 pub struct EguiFfi {
     /// The meshes from the most recent call to [`Context::tessellate`].
-    meshes: FfiVec<(Rect, FfiTextureId, FfiVec<u32>, FfiVec<Vertex>)>,
+    clipped_primitives: FfiVec<(Rect, FfiTextureId, FfiVec<u32>, FfiVec<Vertex>)>,
     /// The most recent [`FullOutput::pixels_per_point`].
     pixels_per_point: f32,
     /// The serialized bytes of the most recent [`FullOutput::platform_output`].
@@ -24,19 +26,19 @@ pub struct EguiFfi {
 
 impl EguiFfi {
     /// Gets the most recent output of [`Context::tessellate`].
-    pub fn meshes(&self) -> Vec<(Rect, Mesh)> {
-        self.meshes
+    pub fn clipped_primitives(&self) -> Vec<ClippedPrimitive> {
+        self.clipped_primitives
             .iter()
-            .map(|(clip_rect, texture_id, indices, vertices)| {
-                (
-                    *clip_rect,
-                    Mesh {
+            .map(
+                |(clip_rect, texture_id, indices, vertices)| ClippedPrimitive {
+                    clip_rect: *clip_rect,
+                    primitive: Primitive::Mesh(Mesh {
                         indices: indices.to_vec(),
                         texture_id: (*texture_id).into(),
                         vertices: vertices.to_vec(),
-                    },
-                )
-            })
+                    }),
+                },
+            )
             .collect()
     }
 
@@ -74,17 +76,29 @@ impl EguiFfi {
     }
 
     /// Sets the most recent output of [`Context::tessellate`].
-    pub fn set_meshes(&mut self, meshes: impl IntoIterator<Item = (Rect, Mesh)>) {
-        self.meshes = meshes
+    ///
+    /// [`Primitive::Callback`]s cannot be passed across the FFI boundary,
+    /// and so they are not stored: only [`Primitive::Mesh`] primitives are kept.
+    pub fn set_clipped_primitives(
+        &mut self,
+        clipped_primitives: impl IntoIterator<Item = ClippedPrimitive>,
+    ) {
+        self.clipped_primitives = clipped_primitives
             .into_iter()
-            .map(|(clip_rect, mesh)| {
-                (
-                    clip_rect,
-                    mesh.texture_id.into(),
-                    mesh.indices.into(),
-                    mesh.vertices.into(),
-                )
-            })
+            .filter_map(
+                |ClippedPrimitive {
+                     clip_rect,
+                     primitive,
+                 }| match primitive {
+                    Primitive::Mesh(mesh) => Some((
+                        clip_rect,
+                        mesh.texture_id.into(),
+                        mesh.indices.into(),
+                        mesh.vertices.into(),
+                    )),
+                    Primitive::Callback(_) => None,
+                },
+            )
             .collect::<Vec<_>>()
             .into()
     }
@@ -130,7 +144,7 @@ impl EguiFfi {
 impl Default for EguiFfi {
     fn default() -> Self {
         let mut result = Self {
-            meshes: Vec::new().into(),
+            clipped_primitives: Vec::new().into(),
             pixels_per_point: 1.0,
             platform_output: Vec::new().into(),
             raw_input: Vec::new().into(),
@@ -146,7 +160,7 @@ impl Default for EguiFfi {
 
 /// Holds the serializable members of [`PlatformOutput`], including `accesskit_update`
 /// (which is `#[serde(skip)]` on [`PlatformOutput`] itself; see its doc comment).
-#[derive(Clone, Serialize, Deserialize)]
+#[derive(Clone, Debug, Serialize, Deserialize)]
 struct PlatformOutput2 {
     /// The [`PlatformOutput::commands`] field.
     pub commands: Vec<OutputCommand>,
@@ -238,7 +252,6 @@ enum TextureIdKind {
 }
 
 /// A [`Vec`] that can be passed across FFI boundaries.
-#[derive(Debug)]
 #[repr(C)]
 struct FfiVec<T> {
     /// Pointer to the allocation.
@@ -277,6 +290,12 @@ impl<T> From<Vec<T>> for FfiVec<T> {
             capacity,
             on_free: Self::on_free,
         }
+    }
+}
+
+impl<T: Debug> Debug for FfiVec<T> {
+    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        f.debug_list().entries(self.iter()).finish()
     }
 }
 
