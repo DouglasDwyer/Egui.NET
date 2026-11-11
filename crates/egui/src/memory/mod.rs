@@ -1,5 +1,6 @@
 #![warn(missing_docs)] // Let's keep this file well-documented.` to memory.rs
 
+use alloc::sync::Arc;
 use core::num::NonZeroUsize;
 
 use ahash::{HashMap, HashSet};
@@ -173,7 +174,7 @@ pub enum FocusDirection {
 }
 
 impl FocusDirection {
-    fn is_cardinal(&self) -> bool {
+    pub(crate) fn is_cardinal(&self) -> bool {
         match self {
             Self::Up | Self::Right | Self::Down | Self::Left => true,
 
@@ -193,11 +194,11 @@ impl FocusDirection {
 pub struct Options {
     /// The default style for new [`Ui`](crate::Ui):s in dark mode.
     #[cfg_attr(feature = "serde", serde(skip))]
-    pub dark_style: std::sync::Arc<Style>,
+    pub dark_style: Arc<Style>,
 
     /// The default style for new [`Ui`](crate::Ui):s in light mode.
     #[cfg_attr(feature = "serde", serde(skip))]
-    pub light_style: std::sync::Arc<Style>,
+    pub light_style: Arc<Style>,
 
     /// Preference for selection between dark and light [`crate::Context::global_style`]
     /// as the active style used by all subsequent windows, panels, etc.
@@ -325,8 +326,8 @@ pub struct Options {
 impl Default for Options {
     fn default() -> Self {
         Self {
-            dark_style: std::sync::Arc::new(Theme::Dark.default_style()),
-            light_style: std::sync::Arc::new(Theme::Light.default_style()),
+            dark_style: Arc::new(Theme::Dark.default_style()),
+            light_style: Arc::new(Theme::Light.default_style()),
             theme_preference: Default::default(),
             fallback_theme: Theme::Dark,
             system_theme: None,
@@ -368,14 +369,14 @@ impl Options {
         }
     }
 
-    pub(crate) fn style(&self) -> &std::sync::Arc<Style> {
+    pub(crate) fn style(&self) -> &Arc<Style> {
         match self.theme() {
             Theme::Dark => &self.dark_style,
             Theme::Light => &self.light_style,
         }
     }
 
-    pub(crate) fn style_mut(&mut self) -> &mut std::sync::Arc<Style> {
+    pub(crate) fn style_mut(&mut self) -> &mut Arc<Style> {
         match self.theme() {
             Theme::Dark => &mut self.dark_style,
             Theme::Light => &mut self.light_style,
@@ -410,7 +411,7 @@ impl Options {
         use crate::Widget as _;
         use crate::containers::CollapsingHeader;
 
-        CollapsingHeader::new("⚙ Options")
+        CollapsingHeader::new("⚙️ Options")
             .default_open(false)
             .show(ui, |ui| {
                 ui.horizontal(|ui| {
@@ -441,18 +442,18 @@ impl Options {
         CollapsingHeader::new("🎑 Style")
             .default_open(true)
             .show(ui, |ui| {
-                theme_preference.radio_buttons(ui);
+                theme_preference.buttons(ui);
 
                 ui.checkbox(sync_window_theme, "Sync window theme with egui theme");
 
-                let style = std::sync::Arc::make_mut(match theme {
+                let style = Arc::make_mut(match theme {
                     Theme::Dark => dark_style,
                     Theme::Light => light_style,
                 });
                 style.ui(ui);
             });
 
-        CollapsingHeader::new("✒ Painting")
+        CollapsingHeader::new("✒️ Painting")
             .default_open(false)
             .show(ui, |ui| {
                 tessellation_options.ui(ui);
@@ -461,7 +462,7 @@ impl Options {
                 });
             });
 
-        CollapsingHeader::new("🖱 Input")
+        CollapsingHeader::new("🖱️ Input")
             .default_open(false)
             .show(ui, |ui| {
                 input_options.ui(ui);
@@ -515,8 +516,6 @@ pub(crate) struct Focus {
 
     /// The ID of a widget to give the focus to in the next frame.
     id_next_frame: Option<Id>,
-
-    id_requested_by_accesskit: Option<accesskit::NodeId>,
 
     /// If set, the next widget that is interested in focus will automatically get it.
     /// Probably because the user pressed Tab.
@@ -575,9 +574,9 @@ impl Focus {
         }
         let event_filter = self.focused_widget.map(|w| w.filter).unwrap_or_default();
 
-        self.id_requested_by_accesskit = None;
-
         self.focus_direction = FocusDirection::None;
+
+        let mut focus_requested_by_accesskit = None;
 
         for event in &new_input.events {
             if !event_filter.matches(event)
@@ -615,8 +614,21 @@ impl Focus {
             }) = event
                 && *target_tree == accesskit::TreeId::ROOT
             {
-                self.id_requested_by_accesskit = Some(*target_node);
+                focus_requested_by_accesskit = Some(*target_node);
             }
+        }
+
+        // Handle accesskit focus requests
+        let newly_focused = focus_requested_by_accesskit.and_then(|node_id| {
+            self.focus_widgets_cache
+                .keys()
+                .find(|id| id.accesskit_id() == node_id)
+                .copied()
+        });
+        if let Some(id) = newly_focused {
+            self.focused_widget = Some(FocusWidget::new(id));
+            self.give_to_next = false;
+            self.reset_focus();
         }
     }
 
@@ -645,13 +657,6 @@ impl Focus {
     }
 
     fn interested_in_focus(&mut self, id: Id) {
-        if self.id_requested_by_accesskit == Some(id.accesskit_id()) {
-            self.focused_widget = Some(FocusWidget::new(id));
-            self.id_requested_by_accesskit = None;
-            self.give_to_next = false;
-            self.reset_focus();
-        }
-
         // The rect is updated at the end of the frame.
         self.focus_widgets_cache
             .entry(id)
@@ -920,11 +925,27 @@ impl Memory {
         self.interrupt_ime();
     }
 
+    /// Defer focus until the next pass so an already rendered widget sees `gained_focus`.
+    pub(crate) fn request_focus_next_frame(&mut self, id: Id) {
+        self.focus_mut().id_next_frame = Some(id);
+        self.interrupt_ime();
+    }
+
     /// Surrender keyboard focus for a specific widget.
     /// See also [`crate::Response::surrender_focus`].
     #[inline(always)]
     pub fn surrender_focus(&mut self, id: Id) {
         let focus = self.focus_mut();
+        if focus.focused() == Some(id) {
+            focus.focused_widget = None;
+        }
+    }
+
+    /// Stop offering keyboard focus for a specific widget.
+    #[inline(always)]
+    pub fn ignore_focus(&mut self, id: Id) {
+        let focus = self.focus_mut();
+        focus.focus_widgets_cache.remove(&id);
         if focus.focused() == Some(id) {
             focus.focused_widget = None;
         }
@@ -976,6 +997,12 @@ impl Memory {
         self.focus_mut().interested_in_focus(id);
     }
 
+    /// The navigation request after applying the focused widget's event filter.
+    pub(crate) fn focus_direction(&self) -> FocusDirection {
+        self.focus()
+            .map_or(FocusDirection::None, |focus| focus.focus_direction)
+    }
+
     /// Limit focus to widgets on the given layer and above.
     /// If this is called multiple times per frame, the top layer wins.
     pub fn set_modal_layer(&mut self, layer_id: LayerId) {
@@ -1012,8 +1039,8 @@ impl Memory {
     }
 
     /// Obtain the previous rectangle of an area.
-    pub fn area_rect(&self, id: impl Into<Id>) -> Option<Rect> {
-        self.areas().get(id.into()).map(|state| state.rect())
+    pub fn area_rect(&self, id: Id) -> Option<Rect> {
+        self.areas().get(id).map(|state| state.rect())
     }
 
     pub(crate) fn interaction(&self) -> &InteractionState {
@@ -1233,7 +1260,20 @@ impl Areas {
         }
     }
 
-    pub(crate) fn set_state(&mut self, layer_id: LayerId, state: area::AreaState) {
+    /// Set the state of the area of the given layer for this pass.
+    ///
+    /// [`crate::Area`] does this for you. Call it yourself for a layer you show without an
+    /// [`crate::Area`] (e.g. with [`crate::UiBuilder::layer_id`]) that should still be found by
+    /// [`Self::layer_id_at`], so that it gets the hover and the scroll wheel over its rectangle
+    /// instead of the layers behind it.
+    ///
+    /// The rectangle is [`crate::AreaState::rect`], in the coordinates of the layer
+    /// (before any [`crate::Context::set_transform_layer`]).
+    /// If [`crate::AreaState::interactable`] is `false`, the pointer goes through the layer.
+    ///
+    /// Call this every pass the layer is shown.
+    /// Once you stop, the layer is still found for one more pass, like an [`crate::Area`] that is no longer shown.
+    pub fn set_state(&mut self, layer_id: LayerId, state: area::AreaState) {
         self.visible_areas_current_frame.insert(layer_id);
         self.areas.insert(layer_id.id, state);
         if !self.order.contains(&layer_id) {
@@ -1402,18 +1442,19 @@ impl Areas {
 
 // ----------------------------------------------------------------------------
 
-#[test]
-fn memory_impl_send_sync() {
-    fn assert_send_sync<T: Send + Sync>() {}
+// Compile-time check that `Memory` is `Send + Sync` on every target.
+// Deliberately not a `#[test]`: tests never run on wasm, but `cargo check` does.
+const _: () = {
+    const fn assert_send_sync<T: Send + Sync>() {}
     assert_send_sync::<Memory>();
-}
+};
 
 // Regression test for https://github.com/emilk/egui/issues/2142.
 #[test]
 fn lost_focus_fires_after_mid_frame_focus_transfer() {
     use crate::data::input::RawInput;
-    let a = Id::new("A");
-    let b = Id::new("B");
+    let a = Id::unique("A");
+    let b = Id::unique("B");
     let mut focus = Focus::default();
     let raw = RawInput::default();
 
@@ -1459,13 +1500,13 @@ fn lost_focus_fires_after_mid_frame_focus_transfer() {
 #[test]
 fn order_map_total_ordering() {
     let mut layers = [
-        LayerId::new(Order::Tooltip, Id::new("a")),
-        LayerId::new(Order::Background, Id::new("b")),
-        LayerId::new(Order::Background, Id::new("c")),
-        LayerId::new(Order::Tooltip, Id::new("d")),
-        LayerId::new(Order::Background, Id::new("e")),
-        LayerId::new(Order::Background, Id::new("f")),
-        LayerId::new(Order::Tooltip, Id::new("g")),
+        LayerId::new(Order::Tooltip, Id::unique("a")),
+        LayerId::new(Order::Background, Id::unique("b")),
+        LayerId::new(Order::Background, Id::unique("c")),
+        LayerId::new(Order::Tooltip, Id::unique("d")),
+        LayerId::new(Order::Background, Id::unique("e")),
+        LayerId::new(Order::Background, Id::unique("f")),
+        LayerId::new(Order::Tooltip, Id::unique("g")),
     ];
     let mut areas = Areas::default();
 
@@ -1498,4 +1539,46 @@ fn order_map_total_ordering() {
             );
         }
     }
+}
+
+#[test]
+fn set_state_makes_layer_hit_testable() {
+    let ctx = crate::Context::default();
+    let layer_id = LayerId::new(Order::Foreground, Id::unique("layer"));
+    let rect = Rect::from_min_size(crate::pos2(10.0, 20.0), vec2(100.0, 50.0));
+    let outside = crate::pos2(200.0, 200.0);
+
+    let run_pass = |register: bool| {
+        let mut found = (None, None);
+        let output = ctx.run_ui(Default::default(), |ui| {
+            if register {
+                ui.memory_mut(|mem| {
+                    mem.areas_mut().set_state(
+                        layer_id,
+                        area::AreaState {
+                            pivot_pos: Some(rect.min),
+                            size: Some(rect.size()),
+                            ..Default::default()
+                        },
+                    );
+                });
+            }
+            found = (
+                ui.ctx().layer_id_at(rect.center()),
+                ui.ctx().layer_id_at(outside),
+            );
+        });
+        output.drop_without_applying_deltas();
+        found
+    };
+
+    let (inside, outside) = run_pass(true);
+    assert_eq!(inside, Some(layer_id), "found over its rect");
+    assert_ne!(outside, Some(layer_id), "not found outside of its rect");
+
+    let (inside, _) = run_pass(false);
+    assert_eq!(inside, Some(layer_id), "still found the pass after");
+
+    let (inside, _) = run_pass(false);
+    assert_ne!(inside, Some(layer_id), "gone once no longer registered");
 }
