@@ -8,7 +8,6 @@ use std::ops::RangeInclusive;
 
 use egui::Align2;
 use egui::Color32;
-use egui::Id;
 use egui::PopupAnchor;
 use egui::Pos2;
 use egui::Shape;
@@ -22,6 +21,7 @@ use crate::axis::PlotTransform;
 use crate::bounds::PlotBounds;
 use crate::bounds::PlotPoint;
 use crate::cursor::Cursor;
+use crate::item_id::ItemId;
 pub use crate::items::arrows::Arrows;
 pub use crate::items::bar_chart::Bar;
 pub use crate::items::bar_chart::BarChart;
@@ -62,7 +62,7 @@ mod text;
 #[cfg_attr(feature = "serde", derive(serde::Deserialize, serde::Serialize))]
 pub struct PlotItemBase {
     name: String,
-    id: Id,
+    id: ItemId,
     highlight: bool,
     allow_hover: bool,
 }
@@ -70,7 +70,7 @@ pub struct PlotItemBase {
 impl PlotItemBase {
     /// Create a new plot item base with the given name.
     pub fn new(name: String) -> Self {
-        let id = Id::new(&name);
+        let id = ItemId::new(&name);
         Self {
             name,
             id,
@@ -142,8 +142,10 @@ pub trait PlotItem {
     /// Returns a mutable reference to the base data of the plot item.
     fn base_mut(&mut self) -> &mut PlotItemBase;
 
-    /// Returns the ID of the plot item.
-    fn id(&self) -> Id {
+    /// Returns the [`ItemId`] of the plot item.
+    ///
+    /// This only identifies the item within its plot.
+    fn id(&self) -> ItemId {
         self.base().id
     }
 
