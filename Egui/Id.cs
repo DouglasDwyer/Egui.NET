@@ -37,19 +37,55 @@ public partial record struct Id
     ///
     /// The null <see cref="Id"/>  is still a valid id to use in all circumstances,
     /// though obviously it will lead to a lot of collisions if you do use it!
+    /// A default-initialized <see cref="Id"/> is the null ID.
     /// </summary>
-    public static readonly Id Null = default(Id) with { _value = ulong.MaxValue };
+    public static readonly Id Null = default;
 
     /// <summary>
-    /// Generate a new <see cref="Id"/>  by hashing some source.
+    /// Whether this ID holds a value from egui. A default <see cref="Id"/> does not, and is the null ID.
     /// </summary>
-    public Id(string source)
-    {
-        this = EguiMarshal.Call<string, Id>(EguiFn.egui_id_Id_unique, source);
-    }
+    private bool _initialized;
+
+    /// <summary>
+    /// The underlying value of the ID.
+    /// </summary>
+    private ulong _value;
+
+    private readonly ulong Value => _initialized ? _value : ulong.MaxValue;
 
     /// <summary>
     /// Generate a new <see cref="Id"/>  by hashing the parent <see cref="Id"/>  and the given salt.
     /// </summary>
     public readonly Id With(IdSalt salt) => WithSalt(salt);
+
+    /// <inheritdoc/>
+    public readonly bool Equals(Id other) => Value == other.Value;
+
+    /// <inheritdoc/>
+    public override readonly int GetHashCode() => Value.GetHashCode();
+
+    internal static void Serialize(BincodeSerializer serializer, Id value) => value.Serialize(serializer);
+
+    internal readonly void Serialize(BincodeSerializer serializer)
+    {
+        serializer.increase_container_depth();
+        serializer.serialize_u64(Value);
+        serializer.decrease_container_depth();
+    }
+
+    internal static Id Deserialize(BincodeDeserializer deserializer)
+    {
+        deserializer.increase_container_depth();
+        Id obj = default;
+        obj._initialized = true;
+        obj._value = deserializer.deserialize_u64();
+        deserializer.decrease_container_depth();
+        return obj;
+    }
+
+    private readonly bool PrintMembers(System.Text.StringBuilder builder)
+    {
+        builder.Append("Value = ").Append(Value);
+        return true;
+    }
 }
