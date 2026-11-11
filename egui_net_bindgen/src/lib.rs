@@ -424,6 +424,16 @@ const IGNORE_FNS: &[&str] = &[
     "epaint_text_font_data_FontData_from_blob",
     "epaint_text_font_data_FontData_from_owned",
     "epaint_text_font_data_FontData_from_static",
+    // ClassName and Classes: bound manually as client-side string and collection logic
+    "egui_class_class_name_ClassName_as_str",
+    "egui_class_class_name_ClassName_from_static",
+    "egui_class_class_name_ClassName_new",
+    "egui_class_classes_Classes_as_slice",
+    "egui_class_classes_Classes_classes_mut",
+    "egui_class_classes_Classes_into_iter",
+    "egui_class_classes_Classes_iter",
+    "egui_class_has_classes_HasClasses_has_class",
+    "egui_class_has_classes_HasClasses_set_class",
     // AtomKind::closure: takes an `impl FnOnce(&Ui, IntoSizedArgs) -> IntoSizedResult`. Rust
     // closures cannot cross the C# FFI boundary as a stored/later-invoked value (unlike the
     // synchronous, scope-bound `EguiCallback` pattern used elsewhere), so this will never be
