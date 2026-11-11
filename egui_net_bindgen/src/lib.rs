@@ -391,6 +391,24 @@ const IGNORE_FNS: &[&str] = &[
     "egui_atomics_atom_layout_SizedAtomLayout_iter_texts",
     "egui_atomics_atom_layout_SizedAtomLayout_iter_texts_mut",
     "egui_atomics_atom_layout_SizedAtomLayout_map_images",
+    // SizedContainerAtom: manually bound (client-side, over the sized atoms)
+    "egui_atomics_container_atom_SizedContainerAtom_iter_kinds",
+    "egui_atomics_container_atom_SizedContainerAtom_iter_kinds_mut",
+    "egui_atomics_container_atom_SizedContainerAtom_map_kind",
+    "egui_atomics_container_atom_SizedContainerAtom_iter_images",
+    "egui_atomics_container_atom_SizedContainerAtom_iter_images_mut",
+    "egui_atomics_container_atom_SizedContainerAtom_iter_texts",
+    "egui_atomics_container_atom_SizedContainerAtom_iter_texts_mut",
+    "egui_atomics_container_atom_SizedContainerAtom_map_images",
+    // AtomExt: only sets fields, which are public on the C# `Atom`
+    "egui_atomics_atom_ext_AtomExt_atom_id",
+    "egui_atomics_atom_ext_AtomExt_atom_size",
+    "egui_atomics_atom_ext_AtomExt_atom_grow",
+    "egui_atomics_atom_ext_AtomExt_atom_shrink",
+    "egui_atomics_atom_ext_AtomExt_atom_max_size",
+    "egui_atomics_atom_ext_AtomExt_atom_max_width",
+    "egui_atomics_atom_ext_AtomExt_atom_max_height",
+    "egui_atomics_atom_ext_AtomExt_atom_align",
     // AtomKind::closure: takes an `impl FnOnce(&Ui, IntoSizedArgs) -> IntoSizedResult`. Rust
     // closures cannot cross the C# FFI boundary as a stored/later-invoked value (unlike the
     // synchronous, scope-bound `EguiCallback` pattern used elsewhere), so this will never be
