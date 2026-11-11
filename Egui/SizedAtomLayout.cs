@@ -22,34 +22,14 @@ public partial record struct SizedAtomLayout
     /// <summary>
     /// Iterates over the images among the sized atoms.
     /// </summary>
-    public readonly IEnumerable<Image> Images => ImagesOf(SizedAtoms);
+    public readonly IEnumerable<Image> Images => SizedAtoms.Where(x => x.Kind is SizedAtomKind.Image)
+        .Select(x => x.Kind.TryGetValue(out SizedAtomKind.Image image) ? image.Inner : default);
 
     /// <summary>
     /// Iterates over the texts among the sized atoms.
     /// </summary>
-    public readonly IEnumerable<Galley> Texts => TextsOf(SizedAtoms);
-
-    private static IEnumerable<Image> ImagesOf(ImmutableArray<SizedAtom> atoms)
-    {
-        foreach (var atom in atoms)
-        {
-            if (atom.Kind is SizedAtomKind.Image image)
-            {
-                yield return image.Inner;
-            }
-        }
-    }
-
-    private static IEnumerable<Galley> TextsOf(ImmutableArray<SizedAtom> atoms)
-    {
-        foreach (var atom in atoms)
-        {
-            if (atom.Kind is SizedAtomKind.Text text)
-            {
-                yield return text.Value;
-            }
-        }
-    }
+    public readonly IEnumerable<Galley> Texts => SizedAtoms.Where(x => x.Kind is SizedAtomKind.Text)
+        .Select(x => x.Kind.TryGetValue(out SizedAtomKind.Text text) ? text.Value : default!);
 
     /// <summary>
     /// Iterates over the kinds of the sized atoms.

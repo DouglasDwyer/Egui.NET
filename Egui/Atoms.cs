@@ -7,31 +7,11 @@ public partial record struct Atoms : IEnumerable<Atom>
 {
     public IEnumerable<AtomKind> Kinds => this.Select(x => x.Kind);
 
-    public IEnumerable<Image> Images => ImagesOf(_value);
+    public IEnumerable<Image> Images => _value.Where(x => x.Kind is AtomKind.Image)
+        .Select(x => x.Kind.TryGetValue(out AtomKind.Image image) ? image.Value : default);
 
-    public IEnumerable<WidgetText> Texts => TextsOf(_value);
-
-    private static IEnumerable<Image> ImagesOf(ImmutableArray<Atom> atoms)
-    {
-        foreach (var atom in atoms)
-        {
-            if (atom.Kind is AtomKind.Image image)
-            {
-                yield return image.Value;
-            }
-        }
-    }
-
-    private static IEnumerable<WidgetText> TextsOf(ImmutableArray<Atom> atoms)
-    {
-        foreach (var atom in atoms)
-        {
-            if (atom.Kind is AtomKind.Text text)
-            {
-                yield return text.Value;
-            }
-        }
-    }
+    public IEnumerable<WidgetText> Texts => _value.Where(x => x.Kind is AtomKind.Text)
+        .Select(x => x.Kind.TryGetValue(out AtomKind.Text text) ? text.Value : default);
 
     /// <summary>
     /// Concatenate and return the text contents.

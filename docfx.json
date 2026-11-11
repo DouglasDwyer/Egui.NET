@@ -24,8 +24,7 @@
           "**/*.{md,yml}"
         ],
         "exclude": [
-          "_site/**",
-          "docs/plans/**"
+          "_site/**"
         ]
       }
     ],

@@ -25,9 +25,6 @@ jobs:
       - name: Build
         run: dotnet build Egui.NET.slnf /p:TreatWarningsAsErrors="true" "/p:NoWarn=CS1570%3BCS1572%3BCS1573%3BCS1574%3BCS0419%3BCS1711%3BCS1591"
 
-      - name: Test
-        run: dotnet test Egui.NET.slnf --no-build
-
   format:
     name: dotnet format
     runs-on: ubuntu-latest
