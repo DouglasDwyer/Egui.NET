@@ -388,6 +388,30 @@ public ref partial struct Ui
     }
 
     /// <summary>
+    /// Names the input widgets added by <paramref name="addContents"/> for screen readers.
+    /// This is for widgets that cannot be named where they are built.
+    /// </summary>
+    public readonly void NameInputs(string name, Action<Ui> addContents)
+    {
+        AssertInitialized();
+        var ctx = Ctx;
+        using var callback = new EguiCallback.Pin(ui => addContents(new Ui(ctx, ui)));
+        EguiMarshal.Call(EguiFn.egui_ui_Ui_name_inputs, Ptr, name, callback.AsNative());
+    }
+
+    /// <summary>
+    /// Names the input widgets added by <paramref name="addContents"/> after the label with the given ID.
+    /// This is for rows whose label is painted apart from their value widgets.
+    /// </summary>
+    public readonly void LabelInputsBy(Id labelId, Action<Ui> addContents)
+    {
+        AssertInitialized();
+        var ctx = Ctx;
+        using var callback = new EguiCallback.Pin(ui => addContents(new Ui(ctx, ui)));
+        EguiMarshal.Call(EguiFn.egui_ui_Ui_label_inputs_by, Ptr, labelId, callback.AsNative());
+    }
+
+    /// <summary>
     /// Put into a <see cref="Frame.Group"/> , visually grouping the contents together
     /// </summary>
     public readonly InnerResponse Group(Action<Ui> addContents)
