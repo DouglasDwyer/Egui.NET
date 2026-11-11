@@ -87,7 +87,7 @@ public ref partial struct TextEdit : IWidget
     /// <summary>
     /// A source for the unique <c>Id</c>, e.g. <c>.idSalt("secondTextEditField")</c> or <c>.idSalt(loopIndex)</c>.
     /// </summary>
-    public readonly TextEdit IdSource(Id idSalt)
+    public readonly TextEdit IdSource(IdSalt idSalt)
     {
         return IdSalt(idSalt);
     }
@@ -95,10 +95,10 @@ public ref partial struct TextEdit : IWidget
     /// <summary>
     /// Use if you want to set an explicit <c>Id</c> for this widget.
     /// </summary>
-    public readonly TextEdit IdSalt(Id idSalt)
+    public readonly TextEdit IdSalt(IdSalt idSalt)
     {
         var result = this;
-        result._inner.IdSalt = new IdSalt(idSalt);
+        result._inner.IdSalt = idSalt;
         return result;
     }
 
@@ -457,8 +457,8 @@ public ref partial struct TextEdit : IWidget
         public Egui.FontSelection FontSelection;
         public Egui.Color32? TextColor;
         public bool Password;
-        public Egui.Frame? Frame;
-        public Egui.Margin? Margin;
+        public Frame? Frame;
+        public Margin? Margin;
         public bool Multiline;
         public bool Interactive;
         public float? DesiredWidth;
@@ -466,12 +466,12 @@ public ref partial struct TextEdit : IWidget
         public Egui.EventFilter EventFilter;
         public bool CursorAtEnd;
         public Egui.EVec2 MinSize;
-        public Egui.Align2? Align;
+        public Align2? Align;
         public bool ClipText;
         public ulong CharLimit;
         public Egui.KeyboardShortcut? ReturnKey;
         public Egui.Color32? BackgroundColor;
-        public Egui.Classes Classes;
+        public Classes Classes;
 
         internal static void Serialize(Bincode.BincodeSerializer serializer, TextEditInner value) => value.Serialize(serializer);
 
@@ -487,7 +487,7 @@ public ref partial struct TextEdit : IWidget
             Egui.TraitHelpers.serialize_option_Color32(TextColor, serializer);
             serializer.serialize_bool(Password);
             Egui.TraitHelpers.serialize_option_Frame(Frame, serializer);
-            Egui.TraitHelpers.serialize_option_Margin(Margin, serializer);
+            TraitHelpers.serialize_option_Margin(Margin, serializer);
             serializer.serialize_bool(Multiline);
             serializer.serialize_bool(Interactive);
             Egui.TraitHelpers.serialize_option_f32(DesiredWidth, serializer);
@@ -495,7 +495,7 @@ public ref partial struct TextEdit : IWidget
             EventFilter.Serialize(serializer);
             serializer.serialize_bool(CursorAtEnd);
             MinSize.Serialize(serializer);
-            Egui.TraitHelpers.serialize_option_Align2(Align, serializer);
+            TraitHelpers.serialize_option_Align2(Align, serializer);
             serializer.serialize_bool(ClipText);
             serializer.serialize_u64(CharLimit);
             serialize_option_KeyboardShortcut(ReturnKey, serializer);
@@ -517,7 +517,7 @@ public ref partial struct TextEdit : IWidget
             obj.TextColor = Egui.TraitHelpers.deserialize_option_Color32(deserializer);
             obj.Password = deserializer.deserialize_bool();
             obj.Frame = Egui.TraitHelpers.deserialize_option_Frame(deserializer);
-            obj.Margin = Egui.TraitHelpers.deserialize_option_Margin(deserializer);
+            obj.Margin = TraitHelpers.deserialize_option_Margin(deserializer);
             obj.Multiline = deserializer.deserialize_bool();
             obj.Interactive = deserializer.deserialize_bool();
             obj.DesiredWidth = Egui.TraitHelpers.deserialize_option_f32(deserializer);
@@ -525,12 +525,12 @@ public ref partial struct TextEdit : IWidget
             obj.EventFilter = Egui.EventFilter.Deserialize(deserializer);
             obj.CursorAtEnd = deserializer.deserialize_bool();
             obj.MinSize = Egui.EVec2.Deserialize(deserializer);
-            obj.Align = Egui.TraitHelpers.deserialize_option_Align2(deserializer);
+            obj.Align = TraitHelpers.deserialize_option_Align2(deserializer);
             obj.ClipText = deserializer.deserialize_bool();
             obj.CharLimit = deserializer.deserialize_u64();
             obj.ReturnKey = deserialize_option_KeyboardShortcut(deserializer);
             obj.BackgroundColor = Egui.TraitHelpers.deserialize_option_Color32(deserializer);
-            obj.Classes = Egui.Classes.Deserialize(deserializer);
+            obj.Classes = Classes.Deserialize(deserializer);
             deserializer.decrease_container_depth();
             return obj;
         }

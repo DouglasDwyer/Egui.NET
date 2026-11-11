@@ -561,21 +561,21 @@ public ref partial struct Popup
     private struct SerializablePopup
     {
         public Egui.Id Id;
-        public Egui.PopupAnchor Anchor;
+        public PopupAnchor Anchor;
         public Egui.RectAlign RectAlign;
         public ImmutableArray<Egui.RectAlign>? AlternativeAligns;
         public Egui.LayerId LayerId;
         public byte OpenKind;
         public SetOpenCommand? OpenCommand;
-        public Egui.PopupCloseBehavior CloseBehavior;
+        public PopupCloseBehavior CloseBehavior;
         public Egui.UiStackInfo? Info;
-        public Egui.PopupKind Kind;
+        public PopupKind Kind;
         public float Gap;
         public float? Width;
         public Egui.Sense Sense;
         public bool Interactable;
         public Egui.Layout Layout;
-        public Egui.Frame? Frame;
+        public Frame? Frame;
         public Egui.Style? Style;
         public bool MenuStyle;
 

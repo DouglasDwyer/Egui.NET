@@ -779,15 +779,15 @@ public ref partial struct Ui
     }
 
     /// <summary>
-    /// Create a child Ui with an explicit <see cref="Id"/>.
+    /// Create a child Ui with an explicit <see cref="IdSalt"/>.
     /// </summary>
-    public readonly InnerResponse PushId(Id idSalt, Action<Ui> addContents)
+    public readonly InnerResponse PushId(IdSalt idSalt, Action<Ui> addContents)
     {
         return ScopeBuilder(new UiBuilder().IdSalt(idSalt), addContents);
     }
 
     /// <inheritdoc cref="PushId"/>
-    public readonly InnerResponse<R> PushId<R>(Id idSalt, Func<Ui, R> addContents)
+    public readonly InnerResponse<R> PushId<R>(IdSalt idSalt, Func<Ui, R> addContents)
     {
         return ScopeBuilder(new UiBuilder().IdSalt(idSalt), addContents);
     }
@@ -879,12 +879,12 @@ public ref partial struct Ui
     ///
     /// The <paramref name="idSalt"/> here be anything at all.
     /// </summary>
-    public readonly InnerResponse Indent(Id idSalt, Action<Ui> addContents)
+    public readonly InnerResponse Indent(IdSalt idSalt, Action<Ui> addContents)
     {
         AssertInitialized();
         var ctx = Ctx;
         using var callback = new EguiCallback.Pin(ui => addContents(new Ui(ctx, ui)));
-        var response = EguiMarshal.Call<nuint, Id, EguiCallback, Response>(EguiFn.egui_ui_Ui_indent, Ptr, idSalt, callback.AsNative());
+        var response = EguiMarshal.Call<nuint, IdSalt, EguiCallback, Response>(EguiFn.egui_ui_Ui_indent, Ptr, idSalt, callback.AsNative());
         return new InnerResponse
         {
             Response = response
@@ -892,13 +892,13 @@ public ref partial struct Ui
     }
 
     /// <inheritdoc cref="Indent"/>
-    public readonly InnerResponse<R> Indent<R>(Id idSalt, Func<Ui, R> addContents)
+    public readonly InnerResponse<R> Indent<R>(IdSalt idSalt, Func<Ui, R> addContents)
     {
         AssertInitialized();
         R result = default!;
         var ctx = Ctx;
         using var callback = new EguiCallback.Pin(ui => result = addContents(new Ui(ctx, ui)));
-        var response = EguiMarshal.Call<nuint, Id, EguiCallback, Response>(EguiFn.egui_ui_Ui_indent, Ptr, idSalt, callback.AsNative());
+        var response = EguiMarshal.Call<nuint, IdSalt, EguiCallback, Response>(EguiFn.egui_ui_Ui_indent, Ptr, idSalt, callback.AsNative());
         return new InnerResponse<R>
         {
             Inner = result,

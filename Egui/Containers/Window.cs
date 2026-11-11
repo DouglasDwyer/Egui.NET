@@ -47,7 +47,7 @@ public ref struct Window
     /// </summary>
     public Window(Atoms title)
     {
-        Area area = new Area(title.Text ?? string.Empty).Kind(UiKind.Window);
+        Area area = new Area(new Id(title.Text ?? string.Empty)).Kind(UiKind.Window);
         _title = title;
         _hasOpen = false;
         _area = area;
@@ -598,17 +598,17 @@ public ref struct Window
     private struct WindowInner
     {
         private Egui.Atoms _title;
-        private Egui.Area _area;
-        private Egui.Frame? _frame;
-        private Egui.Frame? _titleFrame;
-        private Egui.Resize _resize;
-        private Egui.ScrollArea _scroll;
+        private Area _area;
+        private Frame? _frame;
+        private Frame? _titleFrame;
+        private Resize _resize;
+        private ScrollArea _scroll;
         private bool _collapsible;
         private bool _defaultOpen;
         private bool _withTitleBar;
         private bool _fadeOut;
         private bool _autoSized;
-        private Egui.WindowDrag _dragArea;
+        private WindowDrag _dragArea;
 
         public WindowInner(Window window)
         {
@@ -682,17 +682,17 @@ public ref struct Window
             deserializer.increase_container_depth();
             WindowInner obj = default;
             obj._title = Egui.Atoms.Deserialize(deserializer);
-            obj._area = Egui.Area.Deserialize(deserializer);
+            obj._area = Area.Deserialize(deserializer);
             obj._frame = Egui.TraitHelpers.deserialize_option_Frame(deserializer);
             obj._titleFrame = Egui.TraitHelpers.deserialize_option_Frame(deserializer);
             obj._resize = Egui.Resize.Deserialize(deserializer);
-            obj._scroll = Egui.ScrollArea.Deserialize(deserializer);
+            obj._scroll = ScrollArea.Deserialize(deserializer);
             obj._collapsible = deserializer.deserialize_bool();
             obj._defaultOpen = deserializer.deserialize_bool();
             obj._withTitleBar = deserializer.deserialize_bool();
             obj._fadeOut = deserializer.deserialize_bool();
             obj._autoSized = deserializer.deserialize_bool();
-            obj._dragArea = Egui.WindowDragSerdeExtensions.Deserialize(deserializer);
+            obj._dragArea = WindowDragSerdeExtensions.Deserialize(deserializer);
 
             deserializer.decrease_container_depth();
             return obj;

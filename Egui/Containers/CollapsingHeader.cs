@@ -5,7 +5,7 @@ public partial record struct CollapsingHeader
     /// <summary>
     /// Shows a collapsing header with a custom header UI, which starts collapsed.
     /// </summary>
-    public static void Custom(Ui ui, Id idSalt, Action<Ui> addHeader, Action<Ui> addBody)
+    public static void Custom(Ui ui, IdSalt idSalt, Action<Ui> addHeader, Action<Ui> addBody)
     {
         ui.AssertInitialized();
         var ctx = ui.Ctx;
