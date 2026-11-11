@@ -1,4 +1,4 @@
-2394 / 2593 (92%) bound
+2394 / 2592 (92%) bound
 egui_atomics_atom_Atom_paint
 egui_atomics_atom_ext_AtomExt_atom_max_height_font_size
 egui_atomics_atom_kind_AtomKind_paint
@@ -138,7 +138,6 @@ egui_plot_label_default_label_formatter
 egui_plot_overlays_coordinates_CoordinatesFormatter_default
 egui_plot_overlays_coordinates_CoordinatesFormatter_new
 egui_plot_overlays_coordinates_CoordinatesFormatter_with_decimals
-egui_plot_overlays_legend_Legend_hidden_items
 egui_plot_plot_PlotUi_add_item
 egui_plot_plot_Plot_coordinates_formatter
 egui_plot_plot_Plot_label_formatter

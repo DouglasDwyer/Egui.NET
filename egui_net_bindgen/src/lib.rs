@@ -837,6 +837,8 @@ const IGNORE_FNS: &[&str] = &[
     "egui_widgets_range_slider_RangeSlider_text_color",
     "egui_widgets_range_slider_RangeSlider_update_while_editing",
     "egui_widgets_range_slider_RangeSlider_vertical",
+    // Legend::hidden_items: bound manually by setting the field client-side
+    "egui_plot_overlays_legend_Legend_hidden_items",
     // Slider: bound manually
     "egui_widgets_slider_Slider_binary",
     "egui_widgets_slider_Slider_drag_value",
