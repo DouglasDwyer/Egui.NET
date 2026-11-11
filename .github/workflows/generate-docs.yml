@@ -24,7 +24,7 @@ jobs:
       - name: Install C#
         uses: actions/setup-dotnet@v4
         with:
-          dotnet-version: '9.0.x'
+          dotnet-version: '11.0.x'
       
       - name: Install docfx
         run: dotnet tool update -g docfx

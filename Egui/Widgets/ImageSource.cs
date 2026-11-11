@@ -6,16 +6,10 @@ public partial record struct ImageSource
     /// Get the <c>uri</c> that this image was constructed from.<br/>
     /// This will return <c>null</c> for <see cref="Texture"/>. 
     /// </summary>
-    public string? GetUri()
+    public string? GetUri() => this switch
     {
-        switch (Inner)
-        {
-            case Bytes bytes:
-                return bytes.Uri;
-            case Uri uri:
-                return uri.Value;
-            default:
-                return null;
-        }
-    }
+        Bytes bytes => bytes.Uri,
+        Uri uri => uri.Value,
+        Texture => null,
+    };
 }

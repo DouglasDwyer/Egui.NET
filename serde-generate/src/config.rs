@@ -13,6 +13,7 @@ pub struct CodeGeneratorConfig {
     pub comments: DocComments,
     pub custom_code: CustomCode,
     pub c_style_enums: bool,
+    pub enums_with_default: BTreeSet<String>,
     pub package_manifest: bool,
     pub namespaces: BTreeMap<String, String>,
 }
@@ -69,6 +70,7 @@ impl CodeGeneratorConfig {
             comments: BTreeMap::new(),
             custom_code: BTreeMap::new(),
             c_style_enums: false,
+            enums_with_default: BTreeSet::new(),
             package_manifest: true,
             namespaces: BTreeMap::new(),
         }
@@ -127,6 +129,13 @@ impl CodeGeneratorConfig {
     /// native enum type in supported languages.
     pub fn with_c_style_enums(mut self, c_style_enums: bool) -> Self {
         self.c_style_enums = c_style_enums;
+        self
+    }
+
+    /// Names of enums with a public parameterless constructor producing a default value.
+    /// In C#, uninitialized unions of these types fall back to it; others throw when read.
+    pub fn with_enums_with_default(mut self, names: impl IntoIterator<Item = String>) -> Self {
+        self.enums_with_default = names.into_iter().collect();
         self
     }
 

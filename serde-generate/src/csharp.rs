@@ -806,7 +806,7 @@ return obj.ToImmutableArray();
 
             writeln!(
                 self.out,
-                "\ninternal {}void Serialize(Bincode.BincodeSerializer serializer) {{",
+                "\ninternal {}readonly void Serialize(Bincode.BincodeSerializer serializer) {{",
                 fn_mods
             )?;
             self.out.indent();
@@ -929,25 +929,75 @@ return obj.ToImmutableArray();
         writeln!(self.out, "}}")
     }
 
+    /// Emits an enum with payload variants as a C# custom union struct with non-boxing access.
+    /// An uninitialized union (`_variantId == null`) acts as the type's default if it has one, and throws otherwise.
     fn output_enum_container(
         &mut self,
         name: &str,
         variants: &BTreeMap<u32, Named<VariantFormat>>,
     ) -> Result<()> {
+        let has_default = self.generator.config.enums_with_default.contains(name);
+        let default_field = if variants.values().any(|v| v.name == "Default") {
+            "DefaultValue"
+        } else {
+            "Default"
+        };
+        let uninit = |default_stmt: &str| -> String {
+            if has_default {
+                format!("if (!_variantId.HasValue) {default_stmt}")
+            } else {
+                "if (!_variantId.HasValue) throw UninitializedException();".to_string()
+            }
+        };
+
         writeln!(self.out)?;
         self.output_comment(name)?;
-        writeln!(self.out, "public partial record struct {0} {{", name)?;
+        writeln!(self.out, "[System.Runtime.CompilerServices.Union]")?;
+        writeln!(
+            self.out,
+            "public partial record struct {0} : System.Runtime.CompilerServices.IUnion {{",
+            name
+        )?;
         let reserved_names = variants
             .values()
             .map(|v| v.name.as_str())
             .collect::<Vec<_>>();
         self.enter_class(name, &reserved_names);
 
-        // Inner
-        writeln!(self.out, "/// <summary>Gets the inner variant object. This can be used in switch cases to destructure the enum.</summary>")?;
-        writeln!(self.out, "public object Inner {{ get {{")?;
+        writeln!(self.out, "private int? _variantId;")?;
+        for (id, variant) in variants {
+            writeln!(self.out, "\nprivate {} _variant{id};", variant.name)?;
+        }
+
+        for (id, variant) in variants {
+            writeln!(
+                self.out,
+                "\npublic {name}({} value) {{\n    _variantId = {id};\n    _variant{id} = value;\n}}",
+                variant.name
+            )?;
+        }
+
+        if has_default {
+            writeln!(
+                self.out,
+                "\nprivate static readonly {name} {default_field} = new {name}();"
+            )?;
+        } else {
+            writeln!(
+                self.out,
+                "\nprivate static InvalidOperationException UninitializedException() => new InvalidOperationException(\"This {name} is uninitialized. Construct it from one of its variants.\");"
+            )?;
+        }
+
+        writeln!(self.out, "\n/// <summary>Gets the contents of this union, boxed. Prefer pattern matching or TryGetValue.</summary>")?;
+        writeln!(self.out, "public readonly object? Value {{ get {{")?;
         self.out.indent();
-        writeln!(self.out, "switch (_variantId.GetValueOrDefault(-1)) {{")?;
+        writeln!(
+            self.out,
+            "{}",
+            uninit(&format!("return {default_field}.Value;"))
+        )?;
+        writeln!(self.out, "switch (_variantId.Value) {{")?;
         for (id, _) in variants {
             writeln!(self.out, "case {id}: return _variant{id};")?;
         }
@@ -959,22 +1009,38 @@ return obj.ToImmutableArray();
         self.out.unindent();
         writeln!(self.out, "}} }}")?;
 
-        writeln!(self.out, "private int? _variantId;")?;
-
-        for (id, variant) in variants {
-            writeln!(self.out, "\nprivate {} _variant{id};", variant.name)?;
+        writeln!(
+            self.out,
+            "\n/// <summary>Gets whether this union has contents.</summary>"
+        )?;
+        if has_default {
+            writeln!(self.out, "public readonly bool HasValue => true;")?;
+        } else {
+            writeln!(
+                self.out,
+                "public readonly bool HasValue => _variantId.HasValue ? true : throw UninitializedException();"
+            )?;
         }
-
         for (id, variant) in variants {
             writeln!(
                 self.out,
-                "\npublic static implicit operator {name}({} value) {{",
+                "\n/// <summary>Gets the contents of this union if it is a <see cref=\"{0}\"/>.</summary>",
                 variant.name
             )?;
-            writeln!(self.out, "    {name} result = default;")?;
-            writeln!(self.out, "    result._variantId = {id};")?;
-            writeln!(self.out, "    result._variant{id} = value;")?;
-            writeln!(self.out, "    return result;")?;
+            writeln!(
+                self.out,
+                "public readonly bool TryGetValue(out {} value) {{",
+                variant.name
+            )?;
+            self.out.indent();
+            writeln!(
+                self.out,
+                "{}",
+                uninit(&format!("return {default_field}.TryGetValue(out value);"))
+            )?;
+            writeln!(self.out, "value = _variant{id};")?;
+            writeln!(self.out, "return _variantId == {id};")?;
+            self.out.unindent();
             writeln!(self.out, "}}")?;
         }
 
@@ -984,14 +1050,17 @@ return obj.ToImmutableArray();
 
             write!(
                 self.out,
-                "\ninternal void Serialize(Bincode.BincodeSerializer serializer) {{"
+                "\ninternal readonly void Serialize(Bincode.BincodeSerializer serializer) {{"
             )?;
             self.out.indent();
             writeln!(
                 self.out,
-                r#"
-switch (_variantId.GetValueOrDefault(-1)) {{"#,
+                "\n{}",
+                uninit(&format!(
+                    "{{ {default_field}.Serialize(serializer); return; }}"
+                ))
             )?;
+            writeln!(self.out, "switch (_variantId.Value) {{")?;
             self.out.indent();
             for (index, _) in variants {
                 writeln!(
@@ -1001,7 +1070,7 @@ switch (_variantId.GetValueOrDefault(-1)) {{"#,
             }
             writeln!(
                 self.out,
-                r#"default: throw new Serde.DeserializationException("Uninitialized {} value");"#,
+                r#"default: throw new Serde.SerializationException("Unknown variant index for {}: " + _variantId.Value);"#,
                 name,
             )?;
             self.out.unindent();
@@ -1025,8 +1094,8 @@ switch (index) {{"#,
             for (index, variant) in variants {
                 writeln!(
                     self.out,
-                    "case {}: return {}.Load(deserializer);",
-                    index, variant.name,
+                    "case {}: return new {}({}.Load(deserializer));",
+                    index, name, variant.name,
                 )?;
             }
             writeln!(
@@ -1046,9 +1115,17 @@ switch (index) {{"#,
         }
 
         // HashCode
-        writeln!(self.out, "public override int GetHashCode() {{")?;
+        writeln!(self.out, "\npublic override readonly int GetHashCode() {{")?;
         self.out.indent();
-        writeln!(self.out, "switch (_variantId.GetValueOrDefault(-1)) {{")?;
+        if has_default {
+            writeln!(
+                self.out,
+                "if (!_variantId.HasValue) return {default_field}.GetHashCode();"
+            )?;
+        } else {
+            writeln!(self.out, "if (!_variantId.HasValue) return 0;")?;
+        }
+        writeln!(self.out, "switch (_variantId.Value) {{")?;
         for (id, _) in variants {
             writeln!(self.out, "case {id}: return _variant{id}.GetHashCode();")?;
         }
@@ -1061,13 +1138,28 @@ switch (index) {{"#,
         writeln!(self.out, "}}")?;
 
         // Equals
-        writeln!(self.out, "public bool Equals({} other) {{", name)?;
+        writeln!(self.out, "\npublic readonly bool Equals({} other) {{", name)?;
         self.out.indent();
+        if has_default {
+            writeln!(
+                self.out,
+                "if (!_variantId.HasValue) return {default_field}.Equals(other);"
+            )?;
+            writeln!(
+                self.out,
+                "if (!other._variantId.HasValue) return Equals({default_field});"
+            )?;
+        } else {
+            writeln!(
+                self.out,
+                "if (!_variantId.HasValue || !other._variantId.HasValue) return _variantId.HasValue == other._variantId.HasValue;"
+            )?;
+        }
         writeln!(
             self.out,
             "if (_variantId != other._variantId) return false;"
         )?;
-        writeln!(self.out, "switch (_variantId.GetValueOrDefault(-1)) {{")?;
+        writeln!(self.out, "switch (_variantId.Value) {{")?;
         for id in variants.keys() {
             writeln!(
                 self.out,
@@ -1090,7 +1182,18 @@ switch (index) {{"#,
             "private readonly bool PrintMembers(StringBuilder builder) {{"
         )?;
         self.out.indent();
-        writeln!(self.out, "switch (_variantId.GetValueOrDefault(-1)) {{")?;
+        if has_default {
+            writeln!(
+                self.out,
+                "if (!_variantId.HasValue) return {default_field}.PrintMembers(builder);"
+            )?;
+        } else {
+            writeln!(
+                self.out,
+                "if (!_variantId.HasValue) {{ builder.Append(\"<uninitialized>\"); return true; }}"
+            )?;
+        }
+        writeln!(self.out, "switch (_variantId.Value) {{")?;
         for (id, _) in variants {
             writeln!(
                 self.out,
@@ -1102,18 +1205,6 @@ switch (index) {{"#,
         self.out.unindent();
         writeln!(self.out, "}}\n")?;
 
-        /*// Clone
-                writeln!(
-                    self.out,
-                    "/// <summary>Creates a shallow clone of the object.</summary>"
-                )?;
-                writeln!(
-                    self.out,
-                    "public {0} Clone() => ({0})MemberwiseClone();\n",
-                    name
-                )?;
-                //writeln!(self.out, "object ICloneable.Clone() => Clone();\n")?;
-        */
         self.output_variants(name, variants)?;
         self.leave_class(&reserved_names);
         writeln!(self.out, "}}\n")

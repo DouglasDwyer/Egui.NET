@@ -7,11 +7,11 @@ public partial record struct Atoms : IEnumerable<Atom>
 {
     public IEnumerable<AtomKind> Kinds => this.Select(x => x.Kind);
 
-    public IEnumerable<Image> Images => _value.Where(x => x.Kind.Inner is AtomKind.Image)
-        .Select(x => ((AtomKind.Image)x.Kind.Inner).Value);
+    public IEnumerable<Image> Images => _value.Where(x => x.Kind is AtomKind.Image)
+        .Select(x => x.Kind.TryGetValue(out AtomKind.Image image) ? image.Value : default);
 
-    public IEnumerable<WidgetText> Texts => _value.Where(x => x.Kind.Inner is AtomKind.Text)
-        .Select(x => ((AtomKind.Text)x.Kind.Inner).Value);
+    public IEnumerable<WidgetText> Texts => _value.Where(x => x.Kind is AtomKind.Text)
+        .Select(x => x.Kind.TryGetValue(out AtomKind.Text text) ? text.Value : default);
 
     /// <summary>
     /// Concatenate and return the text contents.
@@ -56,7 +56,7 @@ public partial record struct Atoms : IEnumerable<Atom>
     {
         _value = _value.Select(x =>
         {
-            if (x.Kind.Inner is AtomKind.Image image)
+            if (x.Kind is AtomKind.Image image)
             {
                 x.Kind = new AtomKind.Image(f(image.Value));
             }
@@ -68,7 +68,7 @@ public partial record struct Atoms : IEnumerable<Atom>
     {
         _value = _value.Select(x =>
         {
-            if (x.Kind.Inner is AtomKind.Text text)
+            if (x.Kind is AtomKind.Text text)
             {
                 x.Kind = new AtomKind.Text(f(text.Value));
             }

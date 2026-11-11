@@ -21,7 +21,7 @@ jobs:
       - name: Install .NET
         uses: actions/setup-dotnet@v4
         with:
-          dotnet-version: '9.0.x'
+          dotnet-version: '11.0.x'
 
       # Install from git rather than the last crates.io release, since the
       # release predates `workspace.metadata.cross` support in Cargo.toml.
