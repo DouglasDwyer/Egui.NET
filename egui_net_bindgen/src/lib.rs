@@ -85,7 +85,6 @@ const BINDING_EXCLUDE_FNS: &[&str] = &[
     // Moved or new in egui 0.37: cannot be bound
     "egui_text_selection_accesskit_text_update_accesskit_for_text_widget",
     "epaint_text_font_data_FontData_from_static",
-    "emath_align_Align2_new",
     "egui_id_salt_IdSalt_new",
     // Id::with: bound manually as `With(IdSalt)` over `with_salt`; the generated call would hash the salt twice
     "egui_id_Id_with",
@@ -413,6 +412,8 @@ const IGNORE_FNS: &[&str] = &[
     "egui_atomics_atom_ext_AtomExt_atom_max_width",
     "egui_atomics_atom_ext_AtomExt_atom_max_height",
     "egui_atomics_atom_ext_AtomExt_atom_align",
+    // Align2::new: bound manually as a client-side constructor
+    "emath_align_Align2_new",
     // AtomKind::closure: takes an `impl FnOnce(&Ui, IntoSizedArgs) -> IntoSizedResult`. Rust
     // closures cannot cross the C# FFI boundary as a stored/later-invoked value (unlike the
     // synchronous, scope-bound `EguiCallback` pattern used elsewhere), so this will never be

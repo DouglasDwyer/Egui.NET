@@ -1,4 +1,4 @@
-2377 / 2655 (89%) bound
+2377 / 2654 (89%) bound
 egui_atomics_atom_Atom_paint
 egui_atomics_atom_ext_AtomExt_atom_max_height_font_size
 egui_atomics_atom_kind_AtomKind_paint
@@ -247,7 +247,6 @@ egui_widgets_value_format_ValueFormat_prefix
 egui_widgets_value_format_ValueFormat_round
 egui_widgets_value_format_ValueFormat_suffix
 egui_widgets_value_format_ValueFormat_update_while_editing
-emath_align_Align2_new
 emath_fast_midpoint
 emath_gui_rounding_GuiRounding_round_to_pixels
 emath_gui_rounding_GuiRounding_round_ui
