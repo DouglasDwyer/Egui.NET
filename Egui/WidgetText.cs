@@ -13,6 +13,17 @@ public partial record struct WidgetText
         return EguiMarshal.Call<nuint, ImmutableArray<Egui.RichText>, WidgetText>(EguiFn.egui_widget_text_WidgetText_concat, ui.Ptr, parts.ToImmutableArray());
     }
 
+    /// <summary>
+    /// Same as <see cref="Concat"/>, but with an explicit <see cref="Style"/> and vertical text alignment.<br/>
+    ///
+    /// <paramref name="valign"/> is how each piece is aligned against the others,
+    /// and is usually <see cref="Ui.TextValign"/>.
+    /// </summary>
+    public static WidgetText ConcatWithValign(Style style, Align valign, IEnumerable<Egui.RichText> parts)
+    {
+        return EguiMarshal.Call<Style, Align, ImmutableArray<Egui.RichText>, WidgetText>(EguiFn.egui_widget_text_WidgetText_concat_with_valign, style, valign, parts.ToImmutableArray());
+    }
+
     public string RawText => EguiMarshal.Call<WidgetText, string>(EguiFn.egui_widget_text_WidgetText_text, this);
 
     /// <summary>
