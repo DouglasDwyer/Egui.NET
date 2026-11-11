@@ -1,246 +1,62 @@
-# Plan: represent Rust enums as C# custom union types
+# C# unions for Rust enums
 
-Status: implemented on `feat/csharp-unions` (see section 0).
+Enums with at least one payload variant (35 types, including mixed unit and payload enums) are emitted as C# 15 custom union types. Fieldless enums stay C# `enum`s.
 
-## 0. Decisions and implementation status
-
-This section supersedes the rest of the document where they disagree. The sections below are the original proposal.
-
-Decisions:
-
-- **D1: fieldless enums stay C# `enum`s.** Only enums with at least one payload variant (35 types, including mixed unit and payload enums) are unions. Sections 3.2, the `Align` migration rows and the `EnumStyle` idea in section 4 no longer apply.
-- **D2: initialization is tracked per value.** `default(T)` is an *uninitialized* union (`_variantId == null`).
-  - If the Rust type has a `Default` (the bindgen already binds a public parameterless constructor to it), an uninitialized union behaves as that default value. It is created lazily, once, through the existing constructor.
-  - Otherwise `new T()` is a compile error (the existing `[Obsolete(error: true)]` constructor) and reading an uninitialized union throws `InvalidOperationException`. Equality, `GetHashCode` and `ToString` still work on it.
-- **D3: `net11.0`, no polyfill.** `Egui`, `Egui.Silk.NET`, `Egui.Silk.NET.OpenGL`, the example and the new test project target `net11.0`.
-- **D4: `record struct`.** Verified to work with `[Union]`.
-- The tag field keeps the name `_variantId` (`int?`), and the per-variant fields keep the name `_variantN`, so hand-written code such as `PopupAnchor.cs` is unchanged.
-- **D5: `Inner` stays as an `[Obsolete]` shim** returning `Value`.
-
-Implemented on branch `feat/csharp-unions`:
-
-- `serde-generate/src/csharp.rs`: `output_enum_container` now emits a custom union. `output_cstyle_enum` is unchanged. Case and struct `Serialize` methods are `readonly`.
-- `serde-generate/src/config.rs`: new `enums_with_default` option.
-- `egui_net_bindgen/src/lib.rs`: computes `enums_with_default` from the types that got a bound parameterless constructor, and builds the generator config after the bindings are emitted.
-- 11 enums have a Rust default and so fall back to it: `AtomKind`, `ColorMode`, `FontColorTransferFunction`, `FontFamily`, `FontSelection`, `HintingTarget`, `PlotPoints`, `SizeHint`, `SizedAtomKind`, `TextureId`, `WidgetText`. The other 24 throw when uninitialized.
-- Hand-written C# moved to pattern matching: `Atoms.cs`, `SizedAtomLayout.cs`, `ImageSource.cs`, `SilkGlIntegration.cs`.
-- New `Egui.Tests` project with 8 tests, covering conversion, pattern matching, equality, default fallback (including through a Rust call), and the throwing behavior. It is in `Egui.NET.slnf` and CI runs it.
-- CI and `README.md` now use the .NET 11 SDK.
-- Verified with the GA SDK `11.0.100`: the solution builds with warnings as errors, the tests pass, and `dotnet format --verify-no-changes` is clean. The `SilkOpenGl` example compiles but was not run, because it needs a display.
-
-## 1. Goal
-
-Egui.NET should expose every `egui` `enum` as a C# 15 **custom union type** that:
-
-- is a **value type** (`struct`),
-- follows the *basic union pattern* (`[Union]`, one single-parameter public constructor per case type, `object? Value`),
-- implements the **non-boxing access pattern** (`HasValue` and one `TryGetValue(out Case)` per case type),
-- is produced **by the bindings generator**, so no enum is written by hand.
-
-The union docs we are following:
-
-- <https://learn.microsoft.com/en-us/dotnet/csharp/language-reference/builtin-types/union#custom-union-types>
-- <https://learn.microsoft.com/en-us/dotnet/csharp/language-reference/builtin-types/union#non-boxing-access-pattern>
-
-Non-goals:
-
-- Changing the wire format. Enums still cross the FFI as bincode: a `u32` variant index followed by the payload.
-- Changing how structs, handles or functions are bound.
-- Optimising union memory layout (see section 9).
-
-## 2. What exists today
-
-Enum code is produced by two paths in `serde-generate/src/csharp.rs`, selected in `output_container` (line ~1252):
-
-| Kind | Count in `target/bindings` | Emitted as | Where |
-| --- | --- | --- | --- |
-| Enum with at least one payload variant (including mixed unit and payload) | 35 | `partial record struct` with `int? _variantId`, one `_variantN` field per variant, and a nested `partial record struct` per variant | `output_enum_container` (line ~932) |
-| Fieldless enum | 52 | a real C# `enum`, plus an internal `{Name}SerdeExtensions` class for Serialize/Deserialize | `output_cstyle_enum` (line ~1122), enabled by `.with_c_style_enums(true)` in `egui_net_bindgen/src/lib.rs:1300` |
-
-Things the current design does that matter for the migration:
-
-- Every payload enum already has **separate storage per variant**, so `TextureId` is not boxed, but it has **no non-boxing accessor**. The only read path is `public object Inner`, which boxes a struct and forces `x.Inner is Foo.Bar b` / `(Foo.Bar)x.Inner` casts.
-- Implicit conversions from each variant struct to the enum are generated by hand (`public static implicit operator TextureId(Managed value)`), and hand-written partials add more (`WidgetText`, `ImageSource`, `AtomKind`, `Shape`).
-- `default(T)` has `_variantId == null`, which makes `Inner` and `Serialize` throw.
-- Fieldless enums bind their Rust methods as **extension methods** on the C# enum. `is_primitive_enum` (`egui_net_bindgen/src/lib.rs:2978`) and `DeclaringType::PrimitiveEnum` produce `{Name}Extensions` static classes (lines ~1913-1935, 2342, 2906).
-- `Egui/EguiMarshal.cs` (`SerializerCache<T>`, lines ~271-310) has two `IsEnum` branches for C# enums. Everything else is found by reflecting the internal static `Serialize(BincodeSerializer, T)` and `Deserialize(BincodeDeserializer)` methods (the final `else` branch), which is the contract any new union type has to keep.
-- Hand-written code that touches enum internals:
-  - `.Inner`: `Egui/Atoms.cs`, `Egui/SizedAtomLayout.cs`, `Egui.Silk.NET.OpenGL/SilkGlIntegration.cs:308`.
-  - `_variantId` / `_variantN`: `Egui/Containers/PopupAnchor.cs`.
-  - At least 60 uses of fieldless enum values such as `Align.Center` in `Egui/`, `Egui.Silk.NET*` and `examples/` (counted for a dozen common enum names only, so the real number is higher).
-
-## 3. Target shape
-
-### 3.1 Payload enum (`TextureId`)
+## Generated shape
 
 ```csharp
-[Union]                                   // System.Runtime.CompilerServices
-public partial record struct TextureId : IUnion
+[System.Runtime.CompilerServices.Union]
+public partial record struct TextureId : System.Runtime.CompilerServices.IUnion
 {
-    private byte _tag;                    // the serde variant index
+    private int? _variantId;
     private Managed _variant0;
     private User _variant1;
 
-    // Basic union pattern: one public single-parameter constructor per case type.
-    public TextureId(Managed value) { _tag = 0; _variant0 = value; }
-    public TextureId(User value)    { _tag = 1; _variant1 = value; }
+    public TextureId(Managed value) { _variantId = 0; _variant0 = value; }
+    public TextureId(User value) { _variantId = 1; _variant1 = value; }
 
-    public readonly object? Value => _tag switch
-    {
-        0 => _variant0,                   // boxes: only used by the compiler as a fallback
-        1 => _variant1,
-        _ => throw new InvalidOperationException("Unknown TextureId variant"),
-    };
+    public readonly object? Value { get; }
+    public readonly bool HasValue { get; }
+    public readonly bool TryGetValue(out Managed value);
+    public readonly bool TryGetValue(out User value);
 
-    // Non-boxing access pattern.
-    public readonly bool HasValue => true;
-    public readonly bool TryGetValue(out Managed value) { value = _variant0; return _tag == 0; }
-    public readonly bool TryGetValue(out User value)    { value = _variant1; return _tag == 1; }
-
-    // Serialize / Deserialize / Equals / GetHashCode / PrintMembers: as today, switching on _tag.
-
-    public partial record struct Managed { public ulong Value; /* unchanged */ }
-    public partial record struct User    { public ulong Value; /* unchanged */ }
+    public partial record struct Managed { public ulong Value; }
+    public partial record struct User { public ulong Value; }
 }
 ```
 
-What this buys callers, with no boxing because the compiler calls `TryGetValue` for type patterns and `HasValue` for `null` patterns:
+- The unions are `record struct`s following the basic union pattern and the non-boxing access pattern. Type patterns call `TryGetValue` and `null` patterns call `HasValue`, so neither boxes.
+- Each variant keeps its own field, as before. `_variantId` is the serde variant index, so gaps in the indices are preserved. The bincode wire format is unchanged.
+- Case types are the nested `partial record struct`s, with the same names and public fields as before. Union conversions replace the generated implicit operators.
+- `Inner` remains as an `[Obsolete]` shim returning `Value`.
 
-```csharp
-string Describe(TextureId id) => id switch
-{
-    TextureId.Managed m => $"managed {m.Value}",
-    TextureId.User u    => $"user {u.Value}",
-};                                        // exhaustive: adding a variant makes this a compiler warning
-TextureId id = new TextureId.User { Value = 7 };   // union conversion, replaces our generated implicit operators
-```
+## Initialization
 
-Design points:
+`default(T)` is an uninitialized union (`_variantId == null`).
 
-1. **Keep `partial record struct`.** The existing hand-written partials (`WidgetText.cs`, `AtomKind.cs`, `Shape.cs`, `ImageSource.cs`, `PopupAnchor.cs`) and the bindgen's own `partial record struct {Name}` emitters (`egui_net_bindgen/src/lib.rs:1946`) all declare `record struct`. Keeping it means none of them need to change kind. We already hand-write `Equals`, `GetHashCode` and `PrintMembers`, so the record-synthesised versions do not apply. **Spike item:** confirm the C# 15 compiler accepts `[Union]` on a `record struct`. If not, switch to a plain `partial struct` and edit those declarations.
-2. **`_tag` is the serde variant index**, not a dense ordinal, because `serde-reflection` indices can have gaps (for example `Event` has `AccessKitActionRequest` removed from the registry by `egui_net_bindgen`, and `Primitive::Callback` is `#[serde(skip)]`). The generated `switch` statements use the real indices, exactly as they do today.
-3. **`HasValue` is always `true`** (see decision D2). It is still emitted, because without it `x is null` falls back to `Value` and boxes.
-4. **Case types stay nested `partial record struct`s** with the same names and public mutable fields as today. Existing `new Event.Key { ... }` initialisers and `AtomKind.Text` pattern names keep working.
-5. **Case-type constructors**: use `in` for payloads that are large structs (for example `Shape` cases) to avoid a copy per implicit conversion. The pattern allows by-value or `in`.
-6. **`IUnion`** only requires the public `Value` property, which the basic pattern needs anyway, so no explicit interface implementation is needed.
+- **Rust type has a `Default`:** the bindgen already binds a public parameterless constructor to it. An uninitialized union behaves as that value, created once through the constructor in a private `DefaultHolder`. Currently `AtomKind`, `ColorMode`, `FontColorTransferFunction`, `FontFamily`, `FontSelection`, `HintingTarget`, `PlotPoints`, `SizeHint`, `SizedAtomKind`, `TextureId` and `WidgetText`.
+- **Otherwise:** `new T()` is a compile error (the existing `[Obsolete(error: true)]` constructor). Reading an uninitialized union (`Value`, `HasValue`, `TryGetValue`, serialization) throws `InvalidOperationException`. Equality, `GetHashCode` and `ToString` still work.
 
-### 3.2 Fieldless enum (`Align`)
+## Where the changes are
 
-All 52 fieldless enums get the same treatment, with empty case types:
-
-```csharp
-[Union]
-public partial record struct Align : IUnion
-{
-    private byte _tag;                    // 1 byte of storage; default(Align) is variant 0, the same as `default` of a C# enum
-    public Align(Min value)    { _tag = 0; }
-    public Align(Center value) { _tag = 1; }
-    public Align(Max value)    { _tag = 2; }
-
-    public readonly object? Value => _tag switch { 0 => default(Min), 1 => default(Center), _ => default(Max) };
-    public readonly bool HasValue => true;
-    public readonly bool TryGetValue(out Min value)    { value = default; return _tag == 0; }
-    public readonly bool TryGetValue(out Center value) { value = default; return _tag == 1; }
-    public readonly bool TryGetValue(out Max value)    { value = default; return _tag == 2; }
-
-    public partial record struct Min { }
-    public partial record struct Center { }
-    public partial record struct Max { }
-}
-```
-
-This is the biggest source-compatibility cost of the whole plan, because **`Align.Center` stops being a value**. It is a nested type, and C# does not allow a static member with the same name as a nested type (CS0102). Callers write `new Align.Center()` (or rely on the union conversion from a case value). See decision D1.
-
-### 3.3 Mixed enums (`ImageFit`)
-
-`Original`, `Fraction(...)`, `Exact(...)`: unit variants are empty case types, payload variants are as in 3.1. Same emitter, no special case.
-
-## 4. Generator changes: `serde-generate/src/csharp.rs`
-
-This crate is a vendored fork of `serde-generate`, already modified (record structs, bulk string writes), so changing it is expected.
-
-1. **Replace both enum emitters with one `output_union`.**
-   - Delete `output_cstyle_enum` and its `{Name}SerdeExtensions` class.
-   - Rewrite `output_enum_container` to emit the shape in section 3: tag byte, case fields, constructors, `Value`, `HasValue`, `TryGetValue` per case, `Serialize`/`Deserialize`/encoding helpers, `Equals`/`GetHashCode`/`PrintMembers`, and the nested case types via the existing `output_variants`.
-   - Remove the generated implicit operators. Union conversions replace them.
-2. **Uniform (de)serialisation lookup.** `quote_deserialize` (line ~434) and `output_serialization_helper` special-case names in `cstyle_enum_names` (lines ~51-110) so they call `{Name}SerdeExtensions`. With no C# enums left, delete `cstyle_enum_names`; all enums use `{Name}.Deserialize(...)` and `value.Serialize(...)`, like structs.
-3. **Config.** Replace the boolean `c_style_enums` in `serde-generate/src/config.rs` with an explicit mode, so the fork can still emit old-style output for other languages and so decision D1 is a one-line switch:
-   ```rust
-   pub enum EnumStyle { CStyleWhenFieldless /* old */, Union /* all enums */, UnionExceptFieldless }
-   ```
-   Egui.NET selects `EnumStyle::Union`.
-4. **Name-collision guard.** Nested case type names must not equal the union's own members (`Value`, `HasValue`, `TryGetValue`, `Serialize`, `Deserialize`, `Equals`, ...) or the enclosing type's name. A scan of the current generated enums finds no collision, but the generator should check and fail loudly (or append `_`) rather than emit uncompilable C#.
-5. **Deserialisation bounds.** The old C# enum path used `Enum.IsDefined` to reject unknown indices. The union path rejects them in the `switch` default case, as payload enums already do.
-6. **Keep `Inner` for one release** as `[Obsolete] public object Inner => Value`, behind a generator option, so downstream code gets a deprecation warning and not an immediate error. Remove it in the following release.
-
-## 5. Bindings generator changes: `egui_net_bindgen`
-
-1. Replace `.with_c_style_enums(true)` (`src/lib.rs:1300`) with the new `EnumStyle::Union`.
-2. **Fold "primitive enum" binding into the struct path.** `is_primitive_enum` and `DeclaringType::PrimitiveEnum` exist only because C# enums cannot have methods. Unions can, so:
-   - Stop emitting `public static partial class {Name}Extensions` (lines ~1913-1935); emit the same `public partial record struct {Name}` block used for other types.
-   - Instance functions become instance methods whose `this` is passed to `EguiMarshal.Call` like any other struct. Static functions such as `Default` stay static.
-   - Revisit every `is_primitive_enum` call site: 1853 (deleted constructor), 2342 (getter/setter pairing), 2906 (`default` filter).
-3. **Deleted parameterless constructor.** `emit_cs_deleted_constructor` (line ~1845) currently skips primitive enums and emits a throwing `T()` for the others. With decision D2 (valid `default`) it should skip **all** enums.
-4. **Renaming.** `rename_struct_fields` already renames a struct variant's field when it equals the variant name (to `Inner`). Check that case against the new union members (`Value`, `HasValue`). The `From{Variant}` rename for functions that collide with a variant name (line ~2028) still applies, and now applies to fieldless enums too, which it already did through the registry.
-5. The `Event` fix-ups in `src/lib.rs` (~3176, dropping `AccessKitActionRequest`, renaming `key`) run on the registry before generation, so they need no change.
-
-## 6. Hand-written C# changes
-
-| File | Change |
+| Area | Change |
 | --- | --- |
-| `Egui/EguiMarshal.cs` | Remove the two `IsEnum` branches in `SerializerCache<T>`, or keep them only if any hand-written C# enum is still marshalled. Unions are found by the existing reflection branch. |
-| `Egui/Containers/PopupAnchor.cs` | Rewrite the `_variantId`/`_variantN` switch as a type-pattern `switch` over the cases. |
-| `Egui/Atoms.cs`, `Egui/SizedAtomLayout.cs` | `x.Kind.Inner is AtomKind.Text` becomes `x.Kind.TryGetValue(out AtomKind.Text t)` (or `x.Kind is AtomKind.Text t`). |
-| `Egui.Silk.NET.OpenGL/SilkGlIntegration.cs` | `switch (primitive.Primitive.Inner)` becomes `switch (primitive.Primitive)` with `Primitive.Mesh` / `Primitive.Callback` arms. |
-| `WidgetText.cs`, `ImageSource.cs`, `AtomKind.cs`, `Shape.cs` | Keep the conversions that are not plain case conversions (`string` to `WidgetText`). Delete any that duplicate a case conversion. |
-| 60+ fieldless-enum value uses in `Egui/`, `Egui.Silk.NET*`, `examples/SilkOpenGl` | `Align.Center` becomes `new Align.Center()`; `a == Align.Center` becomes `a is Align.Center`; `case Align.Center:` keeps working as a type pattern. Mechanical; the compiler lists every site. |
-| `Egui.SourceGenerators/AotRootGenerator.cs` | No change expected. Re-check the comment that mentions "generated struct/enum". |
+| `serde-generate/src/csharp.rs` | `output_enum_container` emits the union. `output_cstyle_enum` is unchanged. |
+| `serde-generate/src/config.rs` | New `enums_with_default` option. |
+| `egui_net_bindgen/src/lib.rs` | Computes `enums_with_default` from the types with a bound parameterless constructor. |
+| `Egui/Atoms.cs`, `Egui/SizedAtomLayout.cs`, `Egui/Widgets/ImageSource.cs`, `Egui.Silk.NET.OpenGL/SilkGlIntegration.cs` | `.Inner` replaced by pattern matching. |
+| `Egui.Tests` | Tests for conversion, pattern matching, equality, the default fallback (including through a Rust call), and the throwing behavior. |
+| csprojs, CI, `README.md` | Target `net11.0` and the .NET 11 SDK. |
 
-## 7. Toolchain and compatibility
-
-- **Compiler and runtime.** Custom unions need the C# 15 compiler and the `UnionAttribute` / `IUnion` types, which the .NET 11 runtime ships. `Egui` targets `net9.0` and this machine only has SDK `10.0.403`, so **nothing in this plan could be compiled here**; all C# 15 behaviour above is taken from the docs page, not from experiment.
-- **Polyfill.** For `net9.0` (and anyone on `net10.0`), `Egui` would define internal copies of `System.Runtime.CompilerServices.UnionAttribute` and `IUnion`, as is done for `IsExternalInit` (`Egui.SourceGenerators/IsExternalInit.cs`). **Spike item:** confirm the compiler accepts a polyfilled attribute in the declaring assembly *and* recognises such a type when it is consumed from another assembly (the Silk integrations, user projects). If it does not, the multi-target option is `net11.0` only.
-- **Consumers.** Using `switch` exhaustiveness and union conversions requires a C# 15 compiler. Older compilers still see a struct with constructors and `TryGetValue` methods and can call them, but lose pattern matching and conversions. This is an API break either way, so bump the version accordingly (the package is at `0.10.5`).
-- `<LangVersion>preview</LangVersion>` is likely needed until C# 15 is released in the SDKs we build with.
-
-## 8. Phasing
-
-0. **Spike (about a day).** Install the .NET 11 SDK. Hand-write `TextureId`, `Align` and `ImageFit` as in section 3 in a scratch project. Answer: does `[Union]` work on a `record struct`; does a polyfilled `UnionAttribute` work across assemblies; are switches exhaustive without a `null` arm; does a type pattern call `TryGetValue` (check IL) and not box. Fix the shapes in section 3 if any answer is no.
-1. **Generator** (`serde-generate`): `output_union`, config change, delete the C#-enum path. Add snapshot tests of the emitted C# for one payload enum, one fieldless enum and one mixed enum.
-2. **Bindgen**: switch the config, fold the primitive-enum binding path into structs, adjust the constructor and rename logic.
-3. **Hand-written C#**: fix the files in section 6, then the examples. Build the whole solution.
-4. **Docs and release**: update `README.md` / `index.md` snippets that show enum use, add a migration table (below), bump the version.
-
-## 9. Verification
-
-- Regenerate (`dotnet build Egui/Egui.csproj` runs the cargo build, and the bindings land in `target/bindings`) and diff the new output against the current one. For every enum the set of variant indices, payload field order and field types in `Serialize`/`Deserialize` must be unchanged. A scripted comparison of those lines is enough to prove the wire format is untouched.
-- Add a small test project that, for a sample covering fieldless, payload and mixed enums (for example `Align`, `TextureId`, `ImageFit`, `Event.Key`): round-trips each variant through its bincode `Serialize`/`Deserialize`; checks `default(T)`; checks equality and `GetHashCode`; checks that `switch` on every case type is exhaustive (compile-time) and that `TryGetValue` matches `Value`. Prefer a round trip through a real Rust call (an existing function that returns its argument, or a tiny test-only export) over C#-only tests, so the Rust side confirms the bytes.
-- Run `examples/SilkOpenGl` end to end, since it exercises `Event`, `Primitive`, `Align`, `CursorIcon` and many fieldless enums.
-- Check that `Egui.csproj` still builds with `IsAotCompatible`, and that the AOT root generator still resolves serializers for types that contain unions.
-
-## 10. Migration table for users
+## Migration
 
 | Before | After |
 | --- | --- |
-| `x.Kind.Inner is AtomKind.Text` | `x.Kind is AtomKind.Text` |
-| `((AtomKind.Text)x.Kind.Inner).Value` | `x.Kind.TryGetValue(out AtomKind.Text t) ? t.Value : ...` |
-| `switch (p.Inner) { case Primitive.Mesh m: ... }` | `switch (p) { case Primitive.Mesh m: ... }` |
-| `Align a = Align.Center;` | `Align a = new Align.Center();` |
-| `if (a == Align.Center)` | `if (a is Align.Center)` |
-| `case Align.Center:` | unchanged (type pattern) |
-| `(int)a`, `Enum.GetValues<Align>()`, `a < b` | removed; use pattern matching |
-| `Enum.IsDefined`, `[Flags]`-style arithmetic | not applicable (bitflags are not enums in these bindings) |
+| `x.Inner is Foo.Bar` | `x is Foo.Bar` |
+| `((Foo.Bar)x.Inner).Value` | `x.TryGetValue(out Foo.Bar bar)` |
+| `switch (x.Inner) { case Foo.Bar b: ... }` | `switch (x) { case Foo.Bar b: ... }` |
 
-## 11. Decisions that need a human
+## Possible follow-ups
 
-- **D1. Fieldless enums as unions (the request says all enums).** The cost is that `Align.Center` is no longer an expression, which touches ~60 call sites and every user's code, and gives up `==`, `<` and `(int)` casts. The benefit is one uniform representation and `is`/`switch` everywhere. The recommendation is to follow the request and convert all, but the generator keeps `EnumStyle::UnionExceptFieldless` so this can be reversed in one line if the API feels too heavy. A possible middle path, if the ergonomics hurt, is a per-enum static `Instance` on each case type (for example `Align.Center.Instance`), which still cannot reuse the case-type name.
-- **D2. What `default(T)` means.** Recommendation: variant 0 with a default payload, so `HasValue` is always `true` and `Value` is never null. This matches what `default` of a C# enum does today, so existing fieldless-enum fields keep working. The alternative, a "no value" state (`HasValue == false`, serialisation throws), matches the current payload-enum behaviour but forces `null` arms in every switch.
-- **D3. `record struct` or plain `struct`.** Depends on the spike result in phase 0.
-- **D4. Minimum framework.** Polyfill on `net9.0`, or require `net11.0`. Depends on the spike result and on how many users are still on older SDKs.
-- **D5. `Inner` shim.** One obsolete release, or remove immediately.
-
-## 12. Known gaps in this plan
-
-- C# 15 behaviour (exhaustiveness without `null` arms, polyfill acceptance, `record struct` unions) is unverified until the spike.
-- Struct size is unchanged by this plan: payload enums keep one field per case, so `ViewportCommand` (36 variants) and `Event` (17) stay large. A later optimisation could overlap unmanaged payloads or box rare large cases. It is out of scope here.
-- `docfx.json` publishes every `**/*.md`, so this file will appear on the docs site unless `docs/plans/**` is added to the `exclude` list.
+- Overlap unmanaged payloads, or box rare large cases. Large unions such as `ViewportCommand` (36 variants) and `Event` (17) are as large as before.
+- Pass large case types by `in` in the union constructors.

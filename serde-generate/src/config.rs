@@ -132,9 +132,8 @@ impl CodeGeneratorConfig {
         self
     }
 
-    /// Names of enums that have a meaningful default value and a public parameterless
-    /// constructor producing it. In C#, an uninitialized union of one of these types
-    /// falls back to that value; any other uninitialized union throws when it is read.
+    /// Names of enums with a public parameterless constructor producing a default value.
+    /// In C#, uninitialized unions of these types fall back to it; others throw when read.
     pub fn with_enums_with_default(mut self, names: impl IntoIterator<Item = String>) -> Self {
         self.enums_with_default = names.into_iter().collect();
         self

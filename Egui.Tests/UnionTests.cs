@@ -106,6 +106,6 @@ public class UnionTests
     {
         Shape uninitialized = default;
 
-        Assert.ThrowsAny<Exception>(() => { _ = uninitialized.VisualBoundingRect; });
+        Assert.Throws<InvalidOperationException>(() => { _ = uninitialized.VisualBoundingRect; });
     }
 }

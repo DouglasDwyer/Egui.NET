@@ -1318,11 +1318,8 @@ impl BindingsGenerator {
             .expect("Failed to write source files");
     }
 
-    /// Gets the (C#) names of all serialized enums that have a public parameterless
-    /// constructor, which is bound to the Rust `Default` implementation.
-    ///
-    /// Uninitialized C# unions of these types fall back to that default value.
-    /// This must be called after [`Self::emit_cs_fn_bindings`] and before [`Self::rename_types`].
+    /// Gets the C# names of serialized enums with a bound parameterless constructor.
+    /// Must run after [`Self::emit_cs_fn_bindings`] and before [`Self::rename_types`].
     fn enums_with_default(&self) -> Vec<String> {
         self.registry
             .iter()

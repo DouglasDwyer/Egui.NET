@@ -929,23 +929,17 @@ return obj.ToImmutableArray();
         writeln!(self.out, "}}")
     }
 
-    /// Emits a payload-carrying (or mixed) enum as a C# custom union type: a value type that
-    /// follows the basic union pattern and the non-boxing access pattern.
-    ///
-    /// A `default(T)` union is "uninitialized" (`_variantId == null`). If the Rust type has a
-    /// `Default` implementation, an uninitialized union behaves as that default value;
-    /// otherwise, reading it throws.
+    /// Emits an enum with payload variants as a C# custom union struct with non-boxing access.
+    /// An uninitialized union (`_variantId == null`) acts as the type's default if it has one, and throws otherwise.
     fn output_enum_container(
         &mut self,
         name: &str,
         variants: &BTreeMap<u32, Named<VariantFormat>>,
     ) -> Result<()> {
         let has_default = self.generator.config.enums_with_default.contains(name);
-        // Statement that handles an uninitialized union at the start of a member.
-        // `fallback` is a `return` expression used when the type has a default value.
-        let uninit = |fallback: &str| -> String {
+        let uninit = |default_stmt: &str| -> String {
             if has_default {
-                format!("if (!_variantId.HasValue) return {fallback};")
+                format!("if (!_variantId.HasValue) {default_stmt}")
             } else {
                 "if (!_variantId.HasValue) throw UninitializedException();".to_string()
             }
@@ -965,13 +959,11 @@ return obj.ToImmutableArray();
             .collect::<Vec<_>>();
         self.enter_class(name, &reserved_names);
 
-        // Storage: the serde variant index (null until initialized) and one field per variant.
         writeln!(self.out, "private int? _variantId;")?;
         for (id, variant) in variants {
             writeln!(self.out, "\nprivate {} _variant{id};", variant.name)?;
         }
 
-        // Union creation members (one single-parameter constructor per case type).
         for (id, variant) in variants {
             writeln!(
                 self.out,
@@ -980,7 +972,6 @@ return obj.ToImmutableArray();
             )?;
         }
 
-        // Uninitialized handling.
         if has_default {
             writeln!(
                 self.out,
@@ -993,11 +984,10 @@ return obj.ToImmutableArray();
             )?;
         }
 
-        // Value
-        writeln!(self.out, "\n/// <summary>Gets the contents of this union, which is one of its case types. Pattern matching on the union is preferred, since it does not box.</summary>")?;
+        writeln!(self.out, "\n/// <summary>Gets the contents of this union, boxed. Prefer pattern matching or TryGetValue.</summary>")?;
         writeln!(self.out, "public readonly object? Value {{ get {{")?;
         self.out.indent();
-        writeln!(self.out, "{}", uninit("DefaultHolder.Value.Value"))?;
+        writeln!(self.out, "{}", uninit("return DefaultHolder.Value.Value;"))?;
         writeln!(self.out, "switch (_variantId.Value) {{")?;
         for (id, _) in variants {
             writeln!(self.out, "case {id}: return _variant{id};")?;
@@ -1010,7 +1000,6 @@ return obj.ToImmutableArray();
         self.out.unindent();
         writeln!(self.out, "}} }}")?;
 
-        // Non-boxing access pattern.
         writeln!(
             self.out,
             "\n/// <summary>Gets whether this union has contents.</summary>"
@@ -1038,7 +1027,7 @@ return obj.ToImmutableArray();
             writeln!(
                 self.out,
                 "{}",
-                uninit("DefaultHolder.Value.TryGetValue(out value)")
+                uninit("return DefaultHolder.Value.TryGetValue(out value);")
             )?;
             writeln!(self.out, "value = _variant{id};")?;
             writeln!(self.out, "return _variantId == {id};")?;
@@ -1046,7 +1035,6 @@ return obj.ToImmutableArray();
             writeln!(self.out, "}}")?;
         }
 
-        // Obsolete accessor from before the type was a union.
         writeln!(
             self.out,
             "\n[Obsolete(\"Use pattern matching or TryGetValue on the union instead.\")]"
@@ -1062,13 +1050,11 @@ return obj.ToImmutableArray();
                 "\ninternal readonly void Serialize(Bincode.BincodeSerializer serializer) {{"
             )?;
             self.out.indent();
-            let serialize_uninit = if has_default {
-                "if (!_variantId.HasValue) { DefaultHolder.Value.Serialize(serializer); return; }"
-                    .to_string()
-            } else {
-                uninit("")
-            };
-            writeln!(self.out, "\n{serialize_uninit}")?;
+            writeln!(
+                self.out,
+                "\n{}",
+                uninit("{ DefaultHolder.Value.Serialize(serializer); return; }")
+            )?;
             writeln!(self.out, "switch (_variantId.Value) {{")?;
             self.out.indent();
             for (index, _) in variants {
