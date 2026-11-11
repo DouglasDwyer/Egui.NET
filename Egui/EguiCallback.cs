@@ -43,18 +43,15 @@ internal partial struct EguiCallback
         /// <returns>The native representation.</returns>
         public EguiCallback AsNative()
         {
-            void* data;
             unsafe
             {
                 // Safety: the pin is stack-resident and outlives the native call it is passed to.
-                data = Unsafe.AsPointer(ref _context);
+                return new EguiCallback
+                {
+                    func = _callbackFunc,
+                    data = Unsafe.AsPointer(ref _context)
+                };
             }
-
-            return new EguiCallback
-            {
-                func = _callbackFunc,
-                data = data
-            };
         }
 
         /// <inheritdoc/>
@@ -123,8 +120,13 @@ internal partial struct EguiCallback
     internal static void Serialize(BincodeSerializer serializer, EguiCallback obj)
     {
         serializer.increase_container_depth();
-        serializer.serialize_u64((ulong)obj.func);
-        serializer.serialize_u64((ulong)obj.data);
+        unsafe
+        {
+            // Safety: the pointers are only converted to integers, not dereferenced.
+            serializer.serialize_u64((ulong)obj.func);
+            serializer.serialize_u64((ulong)obj.data);
+        }
+
         serializer.decrease_container_depth();
     }
 
@@ -137,8 +139,13 @@ internal partial struct EguiCallback
     {
         deserializer.increase_container_depth();
         EguiCallback obj = default;
-        obj.func = (delegate* unmanaged[Cdecl]<void*, void*, void>)deserializer.deserialize_u64();
-        obj.data = (void*)deserializer.deserialize_u64();
+        unsafe
+        {
+            // Safety: the pointers are only stored, not dereferenced.
+            obj.func = (delegate* unmanaged[Cdecl]<void*, void*, void>)deserializer.deserialize_u64();
+            obj.data = (void*)deserializer.deserialize_u64();
+        }
+
         deserializer.decrease_container_depth();
         return obj;
     }

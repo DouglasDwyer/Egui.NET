@@ -52,6 +52,7 @@ fn main() {
         .csharp_namespace("Egui")
         .csharp_class_name("EguiBindings")
         .csharp_class_accessibility("internal")
+        .csharp_updated_memory_safety_rules(true)
         .csharp_dll_name("egui_net")
         .always_included_types([
             "EguiAnimatedUi",
@@ -76,10 +77,7 @@ fn main() {
         .generate_csharp_file(&output_file)
         .expect("Failed to generate C# bindings");
 
-    let file_contents = read_to_string(&output_file)
-        .expect("Failed to read bindings file.")
-        .replace(" unsafe partial ", " partial ")
-        .replace("internal static extern ", "internal static unsafe extern ");
+    let file_contents = read_to_string(&output_file).expect("Failed to read bindings file.");
     write(output_file, file_contents).expect("Failed to generate renamed C# bindings");
 }
 
