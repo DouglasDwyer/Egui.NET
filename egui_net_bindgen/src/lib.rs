@@ -42,6 +42,9 @@ use std::borrow::*;
 use std::collections::*;
 use std::path::*;
 
+/// Types with a lifetime parameter that only ever holds skipped callbacks, so FFI signatures use `'static`.
+const STATIC_LIFETIME_TYS: &[&str] = &["ValueFormat", "DragValueSettings"];
+
 /// Functions to exclude when automatically generating bindings.
 const BINDING_EXCLUDE_FNS: &[&str] = &[
     // These functions return references which need to be converted to values
@@ -80,14 +83,15 @@ const BINDING_EXCLUDE_FNS: &[&str] = &[
     "egui_plot_plot_Plot_allow_drag",
     "egui_plot_plot_Plot_allow_scroll",
     "egui_plot_plot_Plot_allow_axis_zoom_drag",
+    // ValueFormat: the callbacks are not serialized, so a format built by these would silently lose them
+    "egui_widgets_value_format_ValueFormat_binary",
+    "egui_widgets_value_format_ValueFormat_octal",
+    "egui_widgets_value_format_ValueFormat_hexadecimal",
     // Popup: bound manually
     "egui_containers_popup_Popup_open_id",
     // Moved or new in egui 0.37: cannot be bound
     "egui_text_selection_accesskit_text_update_accesskit_for_text_widget",
-    "epaint_text_font_data_FontData_from_static",
     "egui_id_salt_IdSalt_new",
-    // Id::with: bound manually as `With(IdSalt)` over `with_salt`; the generated call would hash the salt twice
-    "egui_id_Id_with",
     // Rect: bound manually
     "emath_rect_Rect_center",
     "emath_rect_Rect_set_center",
@@ -414,6 +418,12 @@ const IGNORE_FNS: &[&str] = &[
     "egui_atomics_atom_ext_AtomExt_atom_align",
     // Align2::new: bound manually as a client-side constructor
     "emath_align_Align2_new",
+    // Id::with: bound manually as `With(IdSalt)` over `with_salt`; the generated call would hash the salt twice
+    "egui_id_Id_with",
+    // FontData::from_blob, from_owned and from_static: bound manually by setting the font field client-side
+    "epaint_text_font_data_FontData_from_blob",
+    "epaint_text_font_data_FontData_from_owned",
+    "epaint_text_font_data_FontData_from_static",
     // AtomKind::closure: takes an `impl FnOnce(&Ui, IntoSizedArgs) -> IntoSizedResult`. Rust
     // closures cannot cross the C# FFI boundary as a stored/later-invoked value (unlike the
     // synchronous, scope-bound `EguiCallback` pattern used elsewhere), so this will never be
@@ -468,6 +478,10 @@ const IGNORE_FNS: &[&str] = &[
     "egui_extras_datepicker_button_DatePickerButton_year_scroll_to",
     // DragValue: bound manually
     "egui_widgets_drag_value_DragValue_binary",
+    "egui_widgets_drag_value_DragValue_classes_mut",
+    "egui_widgets_drag_value_DragValue_clip_text",
+    "egui_widgets_drag_value_DragValue_format",
+    "egui_widgets_drag_value_DragValue_min_size",
     "egui_widgets_drag_value_DragValue_clamp_existing_to_range",
     "egui_widgets_drag_value_DragValue_custom_formatter",
     "egui_widgets_drag_value_DragValue_custom_parser",
@@ -614,6 +628,20 @@ const IGNORE_FNS: &[&str] = &[
     "epaint_text_fonts_Fonts_max_texture_side",
     "epaint_text_fonts_Fonts_num_galleys_in_cache",
     "epaint_text_fonts_Fonts_with_pixels_per_point",
+    // Fonts: newly added in egui 0.37, and likewise never reachable from a bound function
+    "epaint_text_fonts_Fonts_add_glyph_rasterizer",
+    "epaint_text_fonts_Fonts_discovered_fonts",
+    "epaint_text_fonts_Fonts_layout_uncached",
+    "epaint_text_fonts_Fonts_layout_uncached_for_viewport",
+    "epaint_text_fonts_Fonts_missing_glyph_policy",
+    "epaint_text_fonts_Fonts_retain_galley_caches",
+    "epaint_text_fonts_Fonts_set_glyph_rasterizers",
+    "epaint_text_fonts_Fonts_set_missing_glyph_policy",
+    "epaint_text_fonts_Fonts_used_since_begin_pass",
+    "epaint_text_fonts_Fonts_with_font_providers",
+    "epaint_text_fonts_Fonts_with_glyph_rasterizer",
+    "epaint_text_fonts_Fonts_with_missing_glyph_policy",
+    "epaint_text_fonts_Fonts_with_pixels_per_point_for_viewport",
     // `Fonts::options` forwards to the same `TextureAtlas::options` call already reachable
     // through `FontsView` (see `epaint_texture_atlas_TextureAtlas_options` below) - `Fonts`
     // itself is never reachable from any bound function (`Context::fonts`/`fonts_mut` only ever
@@ -779,8 +807,46 @@ const IGNORE_FNS: &[&str] = &[
     "egui_sense_Sense_symmetric_difference",
     "egui_sense_Sense_toggle",
     "egui_sense_Sense_union",
+    // RangeSlider: bound manually
+    "egui_widgets_range_slider_RangeSlider_binary",
+    "egui_widgets_range_slider_RangeSlider_clamping",
+    "egui_widgets_range_slider_RangeSlider_custom_formatter",
+    "egui_widgets_range_slider_RangeSlider_custom_parser",
+    "egui_widgets_range_slider_RangeSlider_drag_value",
+    "egui_widgets_range_slider_RangeSlider_drag_value_speed",
+    "egui_widgets_range_slider_RangeSlider_fixed_decimals",
+    "egui_widgets_range_slider_RangeSlider_format",
+    "egui_widgets_range_slider_RangeSlider_from_get_set",
+    "egui_widgets_range_slider_RangeSlider_handle_shape",
+    "egui_widgets_range_slider_RangeSlider_hexadecimal",
+    "egui_widgets_range_slider_RangeSlider_integer",
+    "egui_widgets_range_slider_RangeSlider_largest_finite",
+    "egui_widgets_range_slider_RangeSlider_logarithmic",
+    "egui_widgets_range_slider_RangeSlider_max_decimals",
+    "egui_widgets_range_slider_RangeSlider_max_decimals_opt",
+    "egui_widgets_range_slider_RangeSlider_min_decimals",
+    "egui_widgets_range_slider_RangeSlider_min_separation",
+    "egui_widgets_range_slider_RangeSlider_new",
+    "egui_widgets_range_slider_RangeSlider_octal",
+    "egui_widgets_range_slider_RangeSlider_orientation",
+    "egui_widgets_range_slider_RangeSlider_prefix",
+    "egui_widgets_range_slider_RangeSlider_show_value",
+    "egui_widgets_range_slider_RangeSlider_smallest_positive",
+    "egui_widgets_range_slider_RangeSlider_smart_aim",
+    "egui_widgets_range_slider_RangeSlider_spec",
+    "egui_widgets_range_slider_RangeSlider_step_by",
+    "egui_widgets_range_slider_RangeSlider_suffix",
+    "egui_widgets_range_slider_RangeSlider_text",
+    "egui_widgets_range_slider_RangeSlider_text_color",
+    "egui_widgets_range_slider_RangeSlider_update_while_editing",
+    "egui_widgets_range_slider_RangeSlider_vertical",
+    // Legend::hidden_items: bound manually by setting the field client-side
+    "egui_plot_overlays_legend_Legend_hidden_items",
     // Slider: bound manually
     "egui_widgets_slider_Slider_binary",
+    "egui_widgets_slider_Slider_drag_value",
+    "egui_widgets_slider_Slider_format",
+    "egui_widgets_slider_Slider_spec",
     "egui_widgets_slider_Slider_clamping",
     "egui_widgets_slider_Slider_custom_formatter",
     "egui_widgets_slider_Slider_custom_parser",
@@ -948,6 +1014,7 @@ const IGNORE_FNS: &[&str] = &[
     "epaint_tessellator_Tessellator_tessellate_line",
     "epaint_tessellator_Tessellator_tessellate_line_segment",
     "epaint_tessellator_Tessellator_tessellate_mesh",
+    "epaint_tessellator_Tessellator_tessellate_band",
     "epaint_tessellator_Tessellator_tessellate_path",
     "epaint_tessellator_Tessellator_tessellate_quadratic_bezier",
     "epaint_tessellator_Tessellator_tessellate_rect",
@@ -2604,6 +2671,12 @@ impl BindingsGenerator {
                     }
                 };
 
+                let ty_name = if STATIC_LIFETIME_TYS.contains(&ty_name.as_str()) {
+                    format!("{ty_name}<'static>")
+                } else {
+                    ty_name
+                };
+
                 format!("mut {name}_: {ty_name}")
             })
             .collect::<Vec<_>>()
@@ -2966,7 +3039,8 @@ impl BindingsGenerator {
                 } else {
                     self.krate.paths.contains_key(id)
                 }
-                && matches!(item.inner, ItemEnum::Function(_))
+                // Trait method declarations have no body to call. They only reach `paths` when a doc link names them.
+                && matches!(&item.inner, ItemEnum::Function(f) if f.has_body)
                 && {
                     let variant_name = self.fn_enum_variant_name(*id);
                     variant_name.starts_with("e")

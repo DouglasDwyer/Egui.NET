@@ -158,6 +158,40 @@ public sealed partial class Context : EguiObject
     }
 
     /// <summary>
+    /// Run the ui code for one frame, without being handed the root <see cref="Ui"/>.<br/>
+    ///
+    /// This is the same as <see cref="Run"/>, except <paramref name="runPass"/> is given the <see cref="Context"/>.
+    /// Use <see cref="RootUi(Action{Ui})"/> to access the root <see cref="Ui"/> from anywhere during the pass,
+    /// e.g. to add a <see cref="Panel"/> to it. Prefer <see cref="Run"/> when you can.
+    /// </summary>
+    public FullOutput RunPass(RawInput input, Action<Context> runPass)
+    {
+        using var callback = new EguiCallback.Pin(_ => runPass(this));
+        return EguiMarshal.Call<nuint, RawInput, EguiCallback, FullOutput>(EguiFn.egui_context_Context_run_pass, Ptr, input, callback.AsNative());
+    }
+
+    /// <summary>
+    /// Access the root <see cref="Ui"/> of the current pass, which covers the entire viewport rect.<br/>
+    ///
+    /// Panels added this way share the root <see cref="Ui"/>, so they stack correctly.
+    /// It is created on demand, so this also works with <see cref="BeginPass"/> and <see cref="EndPass"/>.
+    /// This must not be called from within the callback of <see cref="Run"/> or from another call to <c>RootUi</c>.
+    /// </summary>
+    public void RootUi(Action<Ui> addContents)
+    {
+        using var callback = new EguiCallback.Pin(ui => addContents(new Ui(this, ui)));
+        EguiMarshal.Call(EguiFn.egui_context_Context_root_ui, Ptr, callback.AsNative());
+    }
+
+    /// <inheritdoc cref="RootUi(Action{Ui})"/>
+    public R RootUi<R>(Func<Ui, R> addContents)
+    {
+        R result = default!;
+        RootUi((Action<Ui>)(ui => { result = addContents(ui); }));
+        return result;
+    }
+
+    /// <summary>
     /// Like <see cref="Run(RawInput, Action{Ui})"/>, but reads input and
     /// writes output to an <see cref="EguiFfi"/> object.
     /// This may be used to pass data directly to a Rust-native integration
