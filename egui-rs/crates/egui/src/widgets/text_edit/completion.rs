@@ -14,6 +14,7 @@ use super::{TextEditOutput, TextEditState};
 
 /// One item in a [`CompletionPopup`].
 #[derive(Clone)]
+#[cfg_attr(feature = "serde", derive(serde::Deserialize, serde::Serialize))]
 pub struct Suggestion {
     /// The text that replaces the current word when this suggestion is accepted.
     pub insert: String,
