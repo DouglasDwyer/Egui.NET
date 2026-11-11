@@ -4,7 +4,7 @@ namespace Egui;
 /// Facilitates communication between <c>egui</c> and natively-loaded
 /// Rust libraries.
 /// </summary>
-public unsafe sealed class EguiFfi : EguiObject
+public sealed class EguiFfi : EguiObject
 {
     /// <summary>
     /// Gets a pointer to the underlying object. This pointer can be used

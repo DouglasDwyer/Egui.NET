@@ -9,7 +9,7 @@ namespace Egui.Silk.NET;
 /// <summary>
 /// Handles user input and rendering for <c>Egui</c> atop an OpenGL window.
 /// </summary>
-public unsafe class SilkGlIntegration : SilkIntegration
+public class SilkGlIntegration : SilkIntegration
 {
     /// <summary>
     /// The fragment shader to use when drawing <c>Egui</c> meshes.
@@ -316,20 +316,32 @@ public unsafe class SilkGlIntegration : SilkIntegration
                         var texture = _textures[mesh.TextureId];
                         _gl.BindBuffer(GLEnum.ArrayBuffer, _vbo);
 
-                        fixed (Vertex* vertices = mesh.Vertices.AsSpan())
+                        unsafe
                         {
-                            _gl.BufferData(GLEnum.ArrayBuffer, (nuint)(mesh.Vertices.Length * sizeof(Vertex)), vertices, BufferUsageARB.StreamDraw);
+                            // Safety: the pointer addresses `Vertices.Length` pinned vertices, which GL copies before returning.
+                            fixed (Vertex* vertices = mesh.Vertices.AsSpan())
+                            {
+                                _gl.BufferData(GLEnum.ArrayBuffer, (nuint)(mesh.Vertices.Length * sizeof(Vertex)), vertices, BufferUsageARB.StreamDraw);
+                            }
                         }
 
                         _gl.BindBuffer(GLEnum.ElementArrayBuffer, _eao);
 
-                        fixed (uint* indices = mesh.Indices.AsSpan())
+                        unsafe
                         {
-                            _gl.BufferData(GLEnum.ElementArrayBuffer, (nuint)(mesh.Indices.Length * sizeof(uint)), indices, BufferUsageARB.StreamDraw);
+                            // Safety: the pointer addresses `Indices.Length` pinned indices, which GL copies before returning.
+                            fixed (uint* indices = mesh.Indices.AsSpan())
+                            {
+                                _gl.BufferData(GLEnum.ElementArrayBuffer, (nuint)(mesh.Indices.Length * sizeof(uint)), indices, BufferUsageARB.StreamDraw);
+                            }
                         }
 
                         _gl.BindTexture(GLEnum.Texture2D, texture);
-                        _gl.DrawElements(GLEnum.Triangles, (uint)mesh.Indices.Length, GLEnum.UnsignedInt, null);
+                        unsafe
+                        {
+                            // Safety: a null pointer draws from the bound element buffer, which holds `Indices.Length` indices.
+                            _gl.DrawElements(GLEnum.Triangles, (uint)mesh.Indices.Length, GLEnum.UnsignedInt, null);
+                        }
                         break;
                     }
             }
@@ -374,17 +386,21 @@ public unsafe class SilkGlIntegration : SilkIntegration
                     _gl.PixelStore(GLEnum.UnpackAlignment, 1);
                     CheckGlErrors();
 
-                    fixed (Color32* data = image.Value.Pixels.ToArray())
+                    unsafe
                     {
-                        if (delta.Pos is null)
+                        // Safety: the pixel data is pinned and holds `Size[0] * Size[1]` RGBA pixels, which GL copies before returning.
+                        fixed (Color32* data = image.Value.Pixels.ToArray())
                         {
-                            _gl.TexImage2D(GLEnum.Texture2D, 0, (int)GLEnum.Rgba8, (uint)image.Value.Size[0], (uint)image.Value.Size[1], 0, GLEnum.Rgba, GLEnum.UnsignedByte,
-                                data);
-                        }
-                        else
-                        {
-                            _gl.TexSubImage2D(GLEnum.Texture2D, 0, (int)delta.Pos.Value[0], (int)delta.Pos.Value[1], (uint)image.Value.Size[0], (uint)image.Value.Size[1], GLEnum.Rgba, GLEnum.UnsignedByte,
-                                data);
+                            if (delta.Pos is null)
+                            {
+                                _gl.TexImage2D(GLEnum.Texture2D, 0, (int)GLEnum.Rgba8, (uint)image.Value.Size[0], (uint)image.Value.Size[1], 0, GLEnum.Rgba, GLEnum.UnsignedByte,
+                                    data);
+                            }
+                            else
+                            {
+                                _gl.TexSubImage2D(GLEnum.Texture2D, 0, (int)delta.Pos.Value[0], (int)delta.Pos.Value[1], (uint)image.Value.Size[0], (uint)image.Value.Size[1], GLEnum.Rgba, GLEnum.UnsignedByte,
+                                    data);
+                            }
                         }
                     }
                     CheckGlErrors();

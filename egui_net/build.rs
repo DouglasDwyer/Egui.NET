@@ -76,7 +76,10 @@ fn main() {
         .generate_csharp_file(&output_file)
         .expect("Failed to generate C# bindings");
 
-    let file_contents = read_to_string(&output_file).expect("Failed to read bindings file.");
+    let file_contents = read_to_string(&output_file)
+        .expect("Failed to read bindings file.")
+        .replace(" unsafe partial ", " partial ")
+        .replace("internal static extern ", "internal static unsafe extern ");
     write(output_file, file_contents).expect("Failed to generate renamed C# bindings");
 }
 

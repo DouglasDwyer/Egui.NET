@@ -7,7 +7,11 @@
     {
         static EguiBindings()
         {
-            egui_init();
+            unsafe
+            {
+                // Safety: initializing the library has no preconditions.
+                egui_init();
+            }
         }
     }
 }

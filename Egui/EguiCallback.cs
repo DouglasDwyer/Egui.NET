@@ -8,14 +8,14 @@ namespace Egui;
 /// <summary>
 /// A callback that may be passed to unmanaged code.
 /// </summary>
-internal unsafe partial struct EguiCallback
+internal partial struct EguiCallback
 {
     /// <summary>
     /// Facilitates sending a callback to unmanaged code without incurring a
     /// <see cref="GCHandle"/> allocation: the callback and its exception state live inline in
     /// this stack-resident struct, and <see cref="AsNative"/> takes their address directly.
     /// </summary>
-    public unsafe struct Pin : IDisposable
+    public struct Pin : IDisposable
     {
         /// <summary>
         /// The function pointer to invoke from unmanaged code.
@@ -41,11 +41,18 @@ internal unsafe partial struct EguiCallback
         /// Gets the native object representing the callback.
         /// </summary>
         /// <returns>The native representation.</returns>
-        public EguiCallback AsNative() => new EguiCallback
+        public EguiCallback AsNative()
         {
-            func = _callbackFunc,
-            data = Unsafe.AsPointer(ref _context)
-        };
+            unsafe
+            {
+                // Safety: the pin is stack-resident and outlives the native call it is passed to.
+                return new EguiCallback
+                {
+                    func = _callbackFunc,
+                    data = Unsafe.AsPointer(ref _context)
+                };
+            }
+        }
 
         /// <inheritdoc/>
         void IDisposable.Dispose()
@@ -71,15 +78,19 @@ internal unsafe partial struct EguiCallback
         [UnmanagedCallersOnly(CallConvs = [typeof(CallConvCdecl)])]
         private static void InvokeCallback(void* argument, void* data)
         {
-            ref var context = ref Unsafe.AsRef<Context>(data);
-            try
+            unsafe
             {
-                context.F((nuint)argument);
-            }
-            catch (Exception e)
-            {
-                context.Exceptions ??= new List<ExceptionDispatchInfo>();
-                context.Exceptions.Add(ExceptionDispatchInfo.Capture(e));
+                // Safety: `data` is the context pointer from `AsNative`, which is alive for the duration of the call.
+                ref var context = ref Unsafe.AsRef<Context>(data);
+                try
+                {
+                    context.F((nuint)argument);
+                }
+                catch (Exception e)
+                {
+                    context.Exceptions ??= new List<ExceptionDispatchInfo>();
+                    context.Exceptions.Add(ExceptionDispatchInfo.Capture(e));
+                }
             }
         }
 

@@ -3,6 +3,8 @@
     <TargetFramework>net11.0</TargetFramework>
     <ImplicitUsings>enable</ImplicitUsings>
     <Nullable>enable</Nullable>
+    <LangVersion>preview</LangVersion>
+    <Features>$(Features);updated-memory-safety-rules</Features>
 
     <PackageId>Egui.Silk.NET</PackageId>
     <Title>Egui.Silk.NET</Title>

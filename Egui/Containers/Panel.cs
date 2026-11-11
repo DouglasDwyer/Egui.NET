@@ -85,13 +85,19 @@ public partial record struct Panel
     /// Show either a collapsed or expanded panel, with a nice slide animation between.<br/>
     /// <paramref name="addContents"/> receives <c>expanded = true</c> whenever the expanded panel is rendered (including mid-animation), and <c>false</c> for the collapsed view.
     /// </summary>
-    public unsafe static InnerResponse ShowSwitched(Ui ui, ref bool isExpanded, Panel collapsedPanel, Panel expandedPanel, Action<Ui, bool> addContents)
+    public static InnerResponse ShowSwitched(Ui ui, ref bool isExpanded, Panel collapsedPanel, Panel expandedPanel, Action<Ui, bool> addContents)
     {
         ui.AssertInitialized();
         var ctx = ui.Ctx;
         using var callback = new EguiCallback.Pin(data =>
         {
-            EguiSwitchedUi switchedUi = *(EguiSwitchedUi*)data;
+            EguiSwitchedUi switchedUi;
+            unsafe
+            {
+                // Safety: egui passes a valid pointer to the switched UI for the duration of the callback.
+                switchedUi = *(EguiSwitchedUi*)data;
+            }
+
             addContents(new Ui(ctx, switchedUi.ui), switchedUi.expanded);
         });
 
@@ -104,14 +110,20 @@ public partial record struct Panel
     }
 
     /// <inheritdoc cref="ShowSwitched"/>
-    public unsafe static InnerResponse<R> ShowSwitched<R>(Ui ui, ref bool isExpanded, Panel collapsedPanel, Panel expandedPanel, Func<Ui, bool, R> addContents)
+    public static InnerResponse<R> ShowSwitched<R>(Ui ui, ref bool isExpanded, Panel collapsedPanel, Panel expandedPanel, Func<Ui, bool, R> addContents)
     {
         ui.AssertInitialized();
         var ctx = ui.Ctx;
         R result = default!;
         using var callback = new EguiCallback.Pin(data =>
         {
-            EguiSwitchedUi switchedUi = *(EguiSwitchedUi*)data;
+            EguiSwitchedUi switchedUi;
+            unsafe
+            {
+                // Safety: egui passes a valid pointer to the switched UI for the duration of the callback.
+                switchedUi = *(EguiSwitchedUi*)data;
+            }
+
             result = addContents(new Ui(ctx, switchedUi.ui), switchedUi.expanded);
         });
 

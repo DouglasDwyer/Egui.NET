@@ -146,17 +146,21 @@ internal static class EguiMarshal
     /// Sends the serialized arguments in <paramref name="state"/> to Rust and
     /// stores the result in its buffer.
     /// </summary>
-    private unsafe static void Invoke(EguiFn func, FfiCallState state)
+    private static void Invoke(EguiFn func, FfiCallState state)
     {
         var bytes = state.Serializer.get_bytes();
         bool success;
-        fixed (byte* bytePtr = bytes)
+        unsafe
         {
-            success = EguiBindings.egui_invoke(func, new EguiSliceU8
+            // Safety: `bytes` stays pinned for the call, and the buffer handle is live and owned by `state`.
+            fixed (byte* bytePtr = bytes)
             {
-                ptr = bytePtr,
-                len = (nuint)bytes.Length
-            }, state.Buffer.Handle);
+                success = EguiBindings.egui_invoke(func, new EguiSliceU8
+                {
+                    ptr = bytePtr,
+                    len = (nuint)bytes.Length
+                }, state.Buffer.Handle);
+            }
         }
 
         state.ResultStream.Initialize(state.Buffer.AsReadOnlySpan());
@@ -175,7 +179,11 @@ internal static class EguiMarshal
     {
         if (!state.Success)
         {
-            throw new EguiException(new string(MemoryMarshal.Cast<byte, char>(state.Buffer.AsReadOnlySpan())));
+            unsafe
+            {
+                // Safety: any bit pattern is a valid char, and the cast span stays within the buffer.
+                throw new EguiException(new string(MemoryMarshal.Cast<byte, char>(state.Buffer.AsReadOnlySpan())));
+            }
         }
     }
 
@@ -253,6 +261,19 @@ internal static class EguiMarshal
         public static readonly Func<BincodeDeserializer, T> Deserialize;
 
         /// <summary>
+        /// Reinterprets a value as another type of the same size.
+        /// </summary>
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        private static TTo BitCast<TFrom, TTo>(TFrom value)
+        {
+            unsafe
+            {
+                // Safety: callers only convert between `T` and the primitive or enum type that was matched against it.
+                return Unsafe.BitCast<TFrom, TTo>(value);
+            }
+        }
+
+        /// <summary>
         /// Initializes the serialization methods.
         /// </summary>
         /// <remarks>
@@ -274,7 +295,7 @@ internal static class EguiMarshal
                 Serialize = (serializer, value) =>
                 {
                     serializer.increase_container_depth();
-                    serializer.serialize_variant_index(Unsafe.BitCast<T, int>(value));
+                    serializer.serialize_variant_index(BitCast<T, int>(value));
                     serializer.decrease_container_depth();
                 };
                 Deserialize = deserializer =>
@@ -287,7 +308,7 @@ internal static class EguiMarshal
                     }
 
                     deserializer.decrease_container_depth();
-                    return Unsafe.BitCast<int, T>(index);
+                    return BitCast<int, T>(index);
                 };
             }
             else if (typeof(T).IsEnum)
@@ -320,83 +341,83 @@ internal static class EguiMarshal
             }
             else if (typeof(T) == typeof(bool))
             {
-                Serialize = (serializer, value) => serializer.serialize_bool(Unsafe.BitCast<T, bool>(value));
-                Deserialize = deserializer => Unsafe.BitCast<bool, T>(deserializer.deserialize_bool());
+                Serialize = (serializer, value) => serializer.serialize_bool(BitCast<T, bool>(value));
+                Deserialize = deserializer => BitCast<bool, T>(deserializer.deserialize_bool());
             }
             else if (typeof(T) == typeof(Rune))
             {
-                Serialize = (serializer, value) => serializer.serialize_rune(Unsafe.BitCast<T, Rune>(value));
-                Deserialize = deserializer => Unsafe.BitCast<Rune, T>(deserializer.deserialize_rune());
+                Serialize = (serializer, value) => serializer.serialize_rune(BitCast<T, Rune>(value));
+                Deserialize = deserializer => BitCast<Rune, T>(deserializer.deserialize_rune());
             }
             else if (typeof(T) == typeof(byte))
             {
-                Serialize = (serializer, value) => serializer.serialize_u8(Unsafe.BitCast<T, byte>(value));
-                Deserialize = deserializer => Unsafe.BitCast<byte, T>(deserializer.deserialize_u8());
+                Serialize = (serializer, value) => serializer.serialize_u8(BitCast<T, byte>(value));
+                Deserialize = deserializer => BitCast<byte, T>(deserializer.deserialize_u8());
             }
             else if (typeof(T) == typeof(ushort))
             {
-                Serialize = (serializer, value) => serializer.serialize_u16(Unsafe.BitCast<T, ushort>(value));
-                Deserialize = deserializer => Unsafe.BitCast<ushort, T>(deserializer.deserialize_u16());
+                Serialize = (serializer, value) => serializer.serialize_u16(BitCast<T, ushort>(value));
+                Deserialize = deserializer => BitCast<ushort, T>(deserializer.deserialize_u16());
             }
             else if (typeof(T) == typeof(uint))
             {
-                Serialize = (serializer, value) => serializer.serialize_u32(Unsafe.BitCast<T, uint>(value));
-                Deserialize = deserializer => Unsafe.BitCast<uint, T>(deserializer.deserialize_u32());
+                Serialize = (serializer, value) => serializer.serialize_u32(BitCast<T, uint>(value));
+                Deserialize = deserializer => BitCast<uint, T>(deserializer.deserialize_u32());
             }
             else if (typeof(T) == typeof(ulong))
             {
-                Serialize = (serializer, value) => serializer.serialize_u64(Unsafe.BitCast<T, ulong>(value));
-                Deserialize = deserializer => Unsafe.BitCast<ulong, T>(deserializer.deserialize_u64());
+                Serialize = (serializer, value) => serializer.serialize_u64(BitCast<T, ulong>(value));
+                Deserialize = deserializer => BitCast<ulong, T>(deserializer.deserialize_u64());
             }
             else if (typeof(T) == typeof(nuint))
             {
-                Serialize = (serializer, value) => serializer.serialize_u64(Unsafe.BitCast<T, nuint>(value));
-                Deserialize = deserializer => Unsafe.BitCast<nuint, T>((nuint)deserializer.deserialize_u64());
+                Serialize = (serializer, value) => serializer.serialize_u64(BitCast<T, nuint>(value));
+                Deserialize = deserializer => BitCast<nuint, T>((nuint)deserializer.deserialize_u64());
             }
             else if (typeof(T) == typeof(UInt128))
             {
-                Serialize = (serializer, value) => serializer.serialize_u128(Unsafe.BitCast<T, UInt128>(value));
-                Deserialize = deserializer => Unsafe.BitCast<UInt128, T>(deserializer.deserialize_u128());
+                Serialize = (serializer, value) => serializer.serialize_u128(BitCast<T, UInt128>(value));
+                Deserialize = deserializer => BitCast<UInt128, T>(deserializer.deserialize_u128());
             }
             else if (typeof(T) == typeof(sbyte))
             {
-                Serialize = (serializer, value) => serializer.serialize_i8(Unsafe.BitCast<T, sbyte>(value));
-                Deserialize = deserializer => Unsafe.BitCast<sbyte, T>(deserializer.deserialize_i8());
+                Serialize = (serializer, value) => serializer.serialize_i8(BitCast<T, sbyte>(value));
+                Deserialize = deserializer => BitCast<sbyte, T>(deserializer.deserialize_i8());
             }
             else if (typeof(T) == typeof(short))
             {
-                Serialize = (serializer, value) => serializer.serialize_i16(Unsafe.BitCast<T, short>(value));
-                Deserialize = deserializer => Unsafe.BitCast<short, T>(deserializer.deserialize_i16());
+                Serialize = (serializer, value) => serializer.serialize_i16(BitCast<T, short>(value));
+                Deserialize = deserializer => BitCast<short, T>(deserializer.deserialize_i16());
             }
             else if (typeof(T) == typeof(int))
             {
-                Serialize = (serializer, value) => serializer.serialize_i32(Unsafe.BitCast<T, int>(value));
-                Deserialize = deserializer => Unsafe.BitCast<int, T>(deserializer.deserialize_i32());
+                Serialize = (serializer, value) => serializer.serialize_i32(BitCast<T, int>(value));
+                Deserialize = deserializer => BitCast<int, T>(deserializer.deserialize_i32());
             }
             else if (typeof(T) == typeof(long))
             {
-                Serialize = (serializer, value) => serializer.serialize_i64(Unsafe.BitCast<T, long>(value));
-                Deserialize = deserializer => Unsafe.BitCast<long, T>(deserializer.deserialize_i64());
+                Serialize = (serializer, value) => serializer.serialize_i64(BitCast<T, long>(value));
+                Deserialize = deserializer => BitCast<long, T>(deserializer.deserialize_i64());
             }
             else if (typeof(T) == typeof(nint))
             {
-                Serialize = (serializer, value) => serializer.serialize_i64(Unsafe.BitCast<T, nint>(value));
-                Deserialize = deserializer => Unsafe.BitCast<nint, T>((nint)deserializer.deserialize_i64());
+                Serialize = (serializer, value) => serializer.serialize_i64(BitCast<T, nint>(value));
+                Deserialize = deserializer => BitCast<nint, T>((nint)deserializer.deserialize_i64());
             }
             else if (typeof(T) == typeof(Int128))
             {
-                Serialize = (serializer, value) => serializer.serialize_i128(Unsafe.BitCast<T, Int128>(value));
-                Deserialize = deserializer => Unsafe.BitCast<Int128, T>(deserializer.deserialize_i128());
+                Serialize = (serializer, value) => serializer.serialize_i128(BitCast<T, Int128>(value));
+                Deserialize = deserializer => BitCast<Int128, T>(deserializer.deserialize_i128());
             }
             else if (typeof(T) == typeof(float))
             {
-                Serialize = (serializer, value) => serializer.serialize_f32(Unsafe.BitCast<T, float>(value));
-                Deserialize = deserializer => Unsafe.BitCast<float, T>(deserializer.deserialize_f32());
+                Serialize = (serializer, value) => serializer.serialize_f32(BitCast<T, float>(value));
+                Deserialize = deserializer => BitCast<float, T>(deserializer.deserialize_f32());
             }
             else if (typeof(T) == typeof(double))
             {
-                Serialize = (serializer, value) => serializer.serialize_f64(Unsafe.BitCast<T, double>(value));
-                Deserialize = deserializer => Unsafe.BitCast<double, T>(deserializer.deserialize_f64());
+                Serialize = (serializer, value) => serializer.serialize_f64(BitCast<T, double>(value));
+                Deserialize = deserializer => BitCast<double, T>(deserializer.deserialize_f64());
             }
             else if (typeof(T).IsGenericType && SerializerPrototypes.TryGetValue(typeof(T).GetGenericTypeDefinition(), out var methods))
             {
@@ -791,7 +812,7 @@ internal static class EguiMarshal
     /// <summary>
     /// Allows for reading <c>egui</c> result data from unmanaged memory.
     /// </summary>
-    private unsafe sealed class EguiResultStream : UnmanagedMemoryStream
+    private sealed class EguiResultStream : UnmanagedMemoryStream
     {
         /// <summary>
         /// Returns true if the stream can be read; otherwise returns false.
@@ -815,10 +836,13 @@ internal static class EguiMarshal
         public void Initialize(ReadOnlySpan<byte> data)
         {
             Dispose(true);
-            // Taking the reference (rather than `fixed (... = data)`) keeps the pointer non-null for empty results.
-            fixed (byte* ptr = &MemoryMarshal.GetReference(data))
+            unsafe
             {
-                Initialize(ptr, data.Length, data.Length, FileAccess.Read);
+                // Safety: the caller keeps `data` valid while the stream is read; taking the reference keeps the pointer non-null.
+                fixed (byte* ptr = &MemoryMarshal.GetReference(data))
+                {
+                    Initialize(ptr, data.Length, data.Length, FileAccess.Read);
+                }
             }
 
             Position = 0;

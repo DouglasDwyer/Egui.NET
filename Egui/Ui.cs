@@ -196,21 +196,25 @@ public ref partial struct Ui
     ///
     /// See also <see cref="AddEnabledUi"/>  and <see cref="IsEnabled"/> .
     /// </summary>
-    public unsafe Response AddEnabled<T>(bool enabled, T widget) where T : IWidget, allows ref struct
+    public Response AddEnabled<T>(bool enabled, T widget) where T : IWidget, allows ref struct
     {
 #pragma warning disable CS8500
-        if (IsEnabled && !enabled)
+        unsafe
         {
-            var tp = &widget;
-            return Scope(ui =>
+            // Safety: the widget outlives the callbacks below, which run synchronously before this method returns.
+            if (IsEnabled && !enabled)
             {
-                ui.Disable();
-                return ui.Add(*tp);
-            }).Inner;
-        }
-        else
-        {
-            return Add(widget);
+                var tp = &widget;
+                return Scope(ui =>
+                {
+                    ui.Disable();
+                    return ui.Add(*tp);
+                }).Inner;
+            }
+            else
+            {
+                return Add(widget);
+            }
         }
 #pragma warning restore CS8500
     }
@@ -223,12 +227,16 @@ public ref partial struct Ui
     ///
     /// See also <see cref="AddSized"/>  and <see cref="Put"/> .
     /// </summary>
-    public unsafe Response AddSized<T>(EVec2 maxSize, T widget) where T : IWidget, allows ref struct
+    public Response AddSized<T>(EVec2 maxSize, T widget) where T : IWidget, allows ref struct
     {
 #pragma warning disable CS8500
-        var tp = &widget;
-        var layout = Layout.CenteredAndJustified(Layout.MainDir);
-        return AllocateUiWithLayout(maxSize, layout, ui => ui.Add(*tp)).Inner;
+        unsafe
+        {
+            // Safety: the widget outlives the callbacks below, which run synchronously before this method returns.
+            var tp = &widget;
+            var layout = Layout.CenteredAndJustified(Layout.MainDir);
+            return AllocateUiWithLayout(maxSize, layout, ui => ui.Add(*tp)).Inner;
+        }
 #pragma warning restore CS8500
     }
 
@@ -238,14 +246,18 @@ public ref partial struct Ui
     ///
     /// See also <see cref="Add"/>  and <see cref="AddSized"/>  and <see cref="Put"/> .
     /// </summary>
-    public unsafe readonly Response Place<T>(Rect maxRect, T widget) where T : IWidget, allows ref struct
+    public readonly Response Place<T>(Rect maxRect, T widget) where T : IWidget, allows ref struct
     {
 #pragma warning disable CS8500
-        AssertInitialized();
-        var tp = &widget;
-        var ctx = Ctx;
-        using var callback = new EguiCallback.Pin(ui => (*tp).Ui(new Ui(ctx, ui)));
-        return EguiMarshal.Call<nuint, Rect, EguiCallback, Response>(EguiFn.egui_ui_Ui_place, Ptr, maxRect, callback.AsNative());
+        unsafe
+        {
+            // Safety: the widget outlives the callbacks below, which run synchronously before this method returns.
+            AssertInitialized();
+            var tp = &widget;
+            var ctx = Ctx;
+            using var callback = new EguiCallback.Pin(ui => (*tp).Ui(new Ui(ctx, ui)));
+            return EguiMarshal.Call<nuint, Rect, EguiCallback, Response>(EguiFn.egui_ui_Ui_place, Ptr, maxRect, callback.AsNative());
+        }
 #pragma warning restore CS8500
     }
 
@@ -253,16 +265,20 @@ public ref partial struct Ui
     /// Add a Widget to this <see cref="Ui"/> at a specific location (manual layout).<br/>
     /// See also <see cref="Add"/>  and <see cref="AddSized"/>.
     /// </summary>
-    public unsafe readonly Response Put<T>(Rect maxRect, T widget) where T : IWidget, allows ref struct
+    public readonly Response Put<T>(Rect maxRect, T widget) where T : IWidget, allows ref struct
     {
 #pragma warning disable CS8500
-        var tp = &widget;
-        return ScopeBuilder(
-            new UiBuilder()
-                .WithMaxRect(maxRect)
-                .WithLayout(Layout.CenteredAndJustified(Direction.TopDown)),
-            ui => ui.Add(*tp)
-        ).Inner;
+        unsafe
+        {
+            // Safety: the widget outlives the callbacks below, which run synchronously before this method returns.
+            var tp = &widget;
+            return ScopeBuilder(
+                new UiBuilder()
+                    .WithMaxRect(maxRect)
+                    .WithLayout(Layout.CenteredAndJustified(Direction.TopDown)),
+                ui => ui.Add(*tp)
+            ).Inner;
+        }
 #pragma warning restore CS8500
     }
 
@@ -276,21 +292,25 @@ public ref partial struct Ui
     ///
     /// See also <see cref="AddVisibleUi"/> , <see cref="SetVisible"/> and <see cref="IsVisible"/>.
     /// </summary>
-    public unsafe Response AddVisible<T>(bool visible, T widget) where T : IWidget, allows ref struct
+    public Response AddVisible<T>(bool visible, T widget) where T : IWidget, allows ref struct
     {
 #pragma warning disable CS8500
-        if (IsVisible && !visible)
+        unsafe
         {
-            var tp = &widget;
-            return Scope(ui =>
+            // Safety: the widget outlives the callbacks below, which run synchronously before this method returns.
+            if (IsVisible && !visible)
             {
-                ui.SetInvisible();
-                return ui.Add(*tp);
-            }).Inner;
-        }
-        else
-        {
-            return Add(widget);
+                var tp = &widget;
+                return Scope(ui =>
+                {
+                    ui.SetInvisible();
+                    return ui.Add(*tp);
+                }).Inner;
+            }
+            else
+            {
+                return Add(widget);
+            }
         }
 #pragma warning restore CS8500
     }
@@ -348,7 +368,7 @@ public ref partial struct Ui
     /// <summary>
     /// Temporarily split a <see cref="Ui"/>  into several columns.
     /// </summary>
-    public unsafe readonly void Columns(nuint numColumns, Action<UiArray> addContents)
+    public readonly void Columns(nuint numColumns, Action<UiArray> addContents)
     {
         AssertInitialized();
         var ctx = Ctx;
@@ -357,7 +377,7 @@ public ref partial struct Ui
     }
 
     /// <inheritdoc cref="Columns"/>
-    public unsafe readonly R Columns<R>(nuint numColumns, Func<UiArray, R> addContents)
+    public readonly R Columns<R>(nuint numColumns, Func<UiArray, R> addContents)
     {
         AssertInitialized();
         R result = default!;

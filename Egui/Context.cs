@@ -163,7 +163,7 @@ public sealed partial class Context : EguiObject
     /// This may be used to pass data directly to a Rust-native integration
     /// library (like <c>egui-winit</c>) without a round-trip through C# data types.
     /// </summary>
-    public unsafe void RunFfi(EguiFfi ffi, Action<Ui> runUi)
+    public void RunFfi(EguiFfi ffi, Action<Ui> runUi)
     {
         using var callback = new EguiCallback.Pin(ui => runUi(new Ui(this, ui)));
         EguiMarshal.Call(EguiFn.egui_context_Context_run_ffi, Ptr, ffi.Pointer, callback.AsNative());

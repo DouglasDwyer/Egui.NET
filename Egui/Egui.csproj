@@ -11,6 +11,8 @@
         <GenerateDocumentationFile>true</GenerateDocumentationFile>
 
         <AllowUnsafeBlocks>true</AllowUnsafeBlocks>
+        <LangVersion>preview</LangVersion>
+        <Features>$(Features);updated-memory-safety-rules</Features>
         <TargetFramework>net11.0</TargetFramework>
         <ImplicitUsings>enable</ImplicitUsings>
         <NoWarn>1591</NoWarn>
