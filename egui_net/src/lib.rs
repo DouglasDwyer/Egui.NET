@@ -1302,6 +1302,9 @@ struct SerializablePopup {
     pub frame: Option<Frame>,
     pub style: Option<Style>,
     pub menu_style: bool,
+    pub sizing_pass: bool,
+    pub anchor_widget: Option<Id>,
+    pub accessibility_label: Option<String>,
 }
 
 impl SerializablePopup {
@@ -1318,9 +1321,9 @@ impl SerializablePopup {
                 _ => panic!("Invalid open kind value"),
             },
             ctx: ctx.clone(),
-            sizing_pass: false,
-            anchor_widget: None,
-            accessibility_label: None,
+            sizing_pass: self.sizing_pass,
+            anchor_widget: self.anchor_widget,
+            accessibility_label: self.accessibility_label.clone(),
             anchor: self.anchor,
             rect_align: self.rect_align,
             alternative_aligns: self.alternative_aligns.as_deref(),

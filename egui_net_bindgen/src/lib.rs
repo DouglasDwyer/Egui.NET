@@ -86,8 +86,9 @@ const BINDING_EXCLUDE_FNS: &[&str] = &[
     "egui_text_selection_accesskit_text_update_accesskit_for_text_widget",
     "epaint_text_font_data_FontData_from_static",
     "emath_align_Align2_new",
-    "egui_id_Id_with",
     "egui_id_salt_IdSalt_new",
+    // Id::with: bound manually as `With(IdSalt)` over `with_salt`; the generated call would hash the salt twice
+    "egui_id_Id_with",
     // Rect: bound manually
     "emath_rect_Rect_center",
     "emath_rect_Rect_set_center",
@@ -842,6 +843,7 @@ const IGNORE_FNS: &[&str] = &[
     "egui_extras_table_Table_body",
     "egui_extras_table_Table_ui_mut",
     // Tooltip: bound manually
+    "egui_containers_tooltip_Tooltip_accessible_name",
     "egui_containers_tooltip_Tooltip_always_open",
     "egui_containers_tooltip_Tooltip_at_pointer",
     "egui_containers_tooltip_Tooltip_for_disabled",
@@ -911,6 +913,9 @@ const IGNORE_FNS: &[&str] = &[
     "egui_containers_popup_Popup_style",
     "egui_containers_popup_Popup_width",
     "egui_containers_popup_Popup_open_memory",
+    "egui_containers_popup_Popup_anchor_widget",
+    "egui_containers_popup_Popup_accessible_name",
+    "egui_containers_popup_Popup_sizing_pass",
     "egui_containers_popup_Popup_new",
     "egui_containers_popup_Popup_menu",
     "egui_containers_popup_Popup_layout",

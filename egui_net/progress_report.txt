@@ -1,4 +1,4 @@
-2377 / 2661 (89%) bound
+2377 / 2657 (89%) bound
 egui_atomics_atom_Atom_paint
 egui_atomics_atom_ext_AtomExt_atom_max_height_font_size
 egui_atomics_atom_kind_AtomKind_paint
@@ -14,10 +14,6 @@ egui_class_has_classes_HasClasses_has_class
 egui_class_has_classes_HasClasses_set_class
 egui_containers_combo_box_ComboBox_classes_mut
 egui_containers_menu_MenuState_from_id
-egui_containers_popup_Popup_accessible_name
-egui_containers_popup_Popup_anchor_widget
-egui_containers_popup_Popup_sizing_pass
-egui_containers_tooltip_Tooltip_accessible_name
 egui_context_Context_accesskit_node_builder
 egui_context_Context_add_font_provider
 egui_context_Context_add_glyph_rasterizer

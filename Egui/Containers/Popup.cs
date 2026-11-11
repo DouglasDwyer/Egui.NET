@@ -107,6 +107,9 @@ public ref partial struct Popup
     private Frame? _frame;
     private Style? _style;
     private StyleMode _styleMode;
+    private bool _sizingPass;
+    private Id? _anchorWidget;
+    private string? _accessibleName;
 
 
     /// <summary>
@@ -140,8 +143,8 @@ public ref partial struct Popup
     /// </summary>
     public static Popup FromResponse(Response response)
     {
-        var result = new Popup(DefaultResponseId(response), response.Ctx, response, response.LayerId);
-        return result;
+        return new Popup(DefaultResponseId(response), response.Ctx, response, response.LayerId)
+            .AnchorWidget(response.Id);
     }
 
     /// <summary>
@@ -434,6 +437,38 @@ public ref partial struct Popup
     }
 
     /// <summary>
+    /// The widget this popup belongs to, under which it is nested in the accessibility tree.
+    /// Set automatically by <see cref="FromResponse"/> and everything built on it.
+    /// </summary>
+    public readonly Popup AnchorWidget(Id widgetId)
+    {
+        var result = this;
+        result._anchorWidget = widgetId;
+        return result;
+    }
+
+    /// <summary>
+    /// Name the popup in the accessibility tree.
+    /// </summary>
+    public readonly Popup AccessibleName(string name)
+    {
+        var result = this;
+        result._accessibleName = name;
+        return result;
+    }
+
+    /// <summary>
+    /// Run a sizing pass this frame, hiding the popup while its size is re-measured.
+    /// Set this for one frame when the contents of an open popup change; popups already do it when they open.
+    /// </summary>
+    public readonly Popup SizingPass(bool sizingPass)
+    {
+        var result = this;
+        result._sizingPass = sizingPass;
+        return result;
+    }
+
+    /// <summary>
     /// Set the id of the Area.
     /// </summary>
     public readonly Popup Id(Id id)
@@ -578,6 +613,9 @@ public ref partial struct Popup
         public Frame? Frame;
         public Egui.Style? Style;
         public bool MenuStyle;
+        public bool SizingPass;
+        public Egui.Id? AnchorWidget;
+        public string? AccessibleName;
 
         public SerializablePopup(Popup popup)
         {
@@ -599,6 +637,9 @@ public ref partial struct Popup
             Frame = popup._frame;
             Style = popup._style;
             MenuStyle = popup._styleMode == StyleMode.MenuStyle;
+            SizingPass = popup._sizingPass;
+            AnchorWidget = popup._anchorWidget;
+            AccessibleName = popup._accessibleName;
         }
 
         internal static void Serialize(BincodeSerializer serializer, SerializablePopup value) => value.Serialize(serializer);
@@ -624,6 +665,9 @@ public ref partial struct Popup
             Egui.TraitHelpers.serialize_option_Frame(Frame, serializer);
             Egui.TraitHelpers.serialize_option_Style(Style, serializer);
             serializer.serialize_bool(MenuStyle);
+            serializer.serialize_bool(SizingPass);
+            Egui.TraitHelpers.serialize_option_Id(AnchorWidget, serializer);
+            Egui.TraitHelpers.serialize_option_str(AccessibleName, serializer);
             serializer.decrease_container_depth();
         }
 
