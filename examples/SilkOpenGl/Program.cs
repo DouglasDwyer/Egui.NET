@@ -10,16 +10,15 @@ using Egui.Extras;
 using Egui.Extras.SyntaxHighlighting;
 using Egui.Plot;
 using Egui.Silk.NET;
-using Egui.Viewport;
 using Egui.Widgets;
-using Button = Egui.Widgets.Button;
-using Image = Egui.Widgets.Image;
+using Button = Egui.Button;
+using Image = Egui.Image;
 
 using Silk.NET.Input;
 using Silk.NET.Maths;
 using Silk.NET.OpenGL;
 using Silk.NET.Windowing;
-using Window = Egui.Containers.Window;
+using Window = Egui.Window;
 using System.Numerics;
 using System.Drawing;
 
@@ -466,7 +465,7 @@ public class Program
             // Attach some meta-data to the response which can be used by screen readers:
             var isEnabled = ui.IsEnabled;
             var isOn = _on;
-            response.WidgetInfo(() => WidgetInfo.WithSelected(WidgetType.Checkbox, isEnabled, isOn, ""));
+            response.WidgetInfo(() => WidgetInfo.WithSelected(Role.CheckBox, isEnabled, isOn, ""));
 
             // 4. Paint!
             // Make sure we need to paint:

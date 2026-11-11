@@ -1,7 +1,7 @@
 using System.ComponentModel;
 using System.Numerics;
 
-namespace Egui.Widgets;
+namespace Egui;
 
 /// <summary>
 /// A numeric value that you can change by dragging the number. More compact than a <see cref="Slider"/>.

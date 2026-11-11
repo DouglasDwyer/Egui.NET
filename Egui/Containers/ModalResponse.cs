@@ -1,4 +1,4 @@
-namespace Egui.Containers;
+namespace Egui;
 
 /// <inheritdoc cref="ModalResponse{T}"/>
 public struct ModalResponse

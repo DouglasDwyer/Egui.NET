@@ -1,4 +1,4 @@
-namespace Egui.Widgets;
+namespace Egui;
 
 /// <summary>
 /// A text region that the user can edit the contents of.<br/>
@@ -288,7 +288,7 @@ public ref partial struct TextEdit : IWidget
     public readonly TextEdit HorizontalAlign(Align align)
     {
         var result = this;
-        result._inner.Align = new Align2(align, result._inner.Align.Y);
+        result._inner.Align = new Align2(align, (result._inner.Align ?? Align2.LeftTop).Y);
         return result;
     }
 
@@ -298,7 +298,7 @@ public ref partial struct TextEdit : IWidget
     public readonly TextEdit VerticalAlign(Align align)
     {
         var result = this;
-        result._inner.Align = new Align2(result._inner.Align.X, align);
+        result._inner.Align = new Align2((result._inner.Align ?? Align2.LeftTop).X, align);
         return result;
     }
 
@@ -360,7 +360,7 @@ public ref partial struct TextEdit : IWidget
         result._inner.TextColor = null;
         result._inner.Password = false;
         result._inner.Frame = null;
-        result._inner.Margin = Egui.Margin.Symmetric(4, 2);
+        result._inner.Margin = null;
         result._inner.Multiline = true;
         result._inner.Interactive = true;
         result._inner.DesiredWidth = null;
@@ -373,11 +373,12 @@ public ref partial struct TextEdit : IWidget
         };
         result._inner.CursorAtEnd = true;
         result._inner.MinSize = new EVec2(0, 0);
-        result._inner.Align = Align2.LeftTop;
+        result._inner.Align = null;
         result._inner.ClipText = false;
         result._inner.CharLimit = nuint.MaxValue;
         result._inner.ReturnKey = new KeyboardShortcut(new Modifiers(), Key.Enter);
         result._inner.BackgroundColor = null;
+        result._inner.Classes = new Classes();
         return result;
     }
 
@@ -436,8 +437,8 @@ public ref partial struct TextEdit : IWidget
         public Egui.FontSelection FontSelection;
         public Egui.Color32? TextColor;
         public bool Password;
-        public Egui.Containers.Frame? Frame;
-        public Egui.Margin Margin;
+        public Egui.Frame? Frame;
+        public Egui.Margin? Margin;
         public bool Multiline;
         public bool Interactive;
         public float? DesiredWidth;
@@ -445,11 +446,12 @@ public ref partial struct TextEdit : IWidget
         public Egui.EventFilter EventFilter;
         public bool CursorAtEnd;
         public Egui.EVec2 MinSize;
-        public Egui.Align2 Align;
+        public Egui.Align2? Align;
         public bool ClipText;
         public ulong CharLimit;
         public Egui.KeyboardShortcut? ReturnKey;
         public Egui.Color32? BackgroundColor;
+        public Egui.Classes Classes;
 
         internal static void Serialize(Bincode.BincodeSerializer serializer, TextEditInner value) => value.Serialize(serializer);
 
@@ -465,7 +467,7 @@ public ref partial struct TextEdit : IWidget
             Egui.TraitHelpers.serialize_option_Color32(TextColor, serializer);
             serializer.serialize_bool(Password);
             Egui.TraitHelpers.serialize_option_Frame(Frame, serializer);
-            Margin.Serialize(serializer);
+            Egui.TraitHelpers.serialize_option_Margin(Margin, serializer);
             serializer.serialize_bool(Multiline);
             serializer.serialize_bool(Interactive);
             Egui.TraitHelpers.serialize_option_f32(DesiredWidth, serializer);
@@ -473,11 +475,12 @@ public ref partial struct TextEdit : IWidget
             EventFilter.Serialize(serializer);
             serializer.serialize_bool(CursorAtEnd);
             MinSize.Serialize(serializer);
-            Align.Serialize(serializer);
+            Egui.TraitHelpers.serialize_option_Align2(Align, serializer);
             serializer.serialize_bool(ClipText);
             serializer.serialize_u64(CharLimit);
             serialize_option_KeyboardShortcut(ReturnKey, serializer);
             Egui.TraitHelpers.serialize_option_Color32(BackgroundColor, serializer);
+            Classes.Serialize(serializer);
             serializer.decrease_container_depth();
         }
 
@@ -494,7 +497,7 @@ public ref partial struct TextEdit : IWidget
             obj.TextColor = Egui.TraitHelpers.deserialize_option_Color32(deserializer);
             obj.Password = deserializer.deserialize_bool();
             obj.Frame = Egui.TraitHelpers.deserialize_option_Frame(deserializer);
-            obj.Margin = Egui.Margin.Deserialize(deserializer);
+            obj.Margin = Egui.TraitHelpers.deserialize_option_Margin(deserializer);
             obj.Multiline = deserializer.deserialize_bool();
             obj.Interactive = deserializer.deserialize_bool();
             obj.DesiredWidth = Egui.TraitHelpers.deserialize_option_f32(deserializer);
@@ -502,11 +505,12 @@ public ref partial struct TextEdit : IWidget
             obj.EventFilter = Egui.EventFilter.Deserialize(deserializer);
             obj.CursorAtEnd = deserializer.deserialize_bool();
             obj.MinSize = Egui.EVec2.Deserialize(deserializer);
-            obj.Align = Egui.Align2.Deserialize(deserializer);
+            obj.Align = Egui.TraitHelpers.deserialize_option_Align2(deserializer);
             obj.ClipText = deserializer.deserialize_bool();
             obj.CharLimit = deserializer.deserialize_u64();
             obj.ReturnKey = deserialize_option_KeyboardShortcut(deserializer);
             obj.BackgroundColor = Egui.TraitHelpers.deserialize_option_Color32(deserializer);
+            obj.Classes = Egui.Classes.Deserialize(deserializer);
             deserializer.decrease_container_depth();
             return obj;
         }

@@ -1,6 +1,6 @@
 using System.Collections.Immutable;
 
-namespace Egui.Widgets;
+namespace Egui;
 
 public partial record struct FrameDurations
 {

@@ -906,7 +906,7 @@ public ref partial struct Ui
     /// <summary>
     /// Shortcut for <c>Default()</c><br/>
     /// 
-    /// See also <see cref="Widgets.Separator"/> .
+    /// See also <see cref="Separator"/> .
     /// </summary>
     public readonly Response Separator()
     {
@@ -917,7 +917,7 @@ public ref partial struct Ui
     /// <summary>
     /// Shortcut for <c>Default()</c><br/>
     /// 
-    /// See also <see cref="Widgets.Spinner"/>.
+    /// See also <see cref="Spinner"/>.
     /// </summary>
     public readonly Response Spinner()
     {
@@ -1064,8 +1064,8 @@ public ref partial struct Ui
     public InnerResponse<R?> MenuImageButton<R>(Atoms atoms, Image image, Func<Ui, R> addContents)
     {
         var (response, inner) = MenuHelpers.IsInMenu(this) ?
-            SubMenuButton.FromButton(Widgets.Button.Image(image).RightText(SubMenuButton.RightArrow)).Ui(this, addContents) :
-            Containers.Menu.MenuButton.FromButton(Widgets.Button.Image(image)).Ui(this, addContents);
+            SubMenuButton.FromButton(Egui.Button.Image(image).RightText(SubMenuButton.RightArrow)).Ui(this, addContents) :
+            Containers.Menu.MenuButton.FromButton(Egui.Button.Image(image)).Ui(this, addContents);
 
         return new InnerResponse<R?>
         {
@@ -1097,8 +1097,8 @@ public ref partial struct Ui
     public InnerResponse<R?> MenuImageTextButton<R>(Atoms atoms, Image image, WidgetText title, Func<Ui, R> addContents)
     {
         var (response, inner) = MenuHelpers.IsInMenu(this) ?
-            SubMenuButton.FromButton(Widgets.Button.ImageAndText(image, title).RightText(SubMenuButton.RightArrow)).Ui(this, addContents) :
-            Containers.Menu.MenuButton.FromButton(Widgets.Button.ImageAndText(image, title)).Ui(this, addContents);
+            SubMenuButton.FromButton(Egui.Button.ImageAndText(image, title).RightText(SubMenuButton.RightArrow)).Ui(this, addContents) :
+            Containers.Menu.MenuButton.FromButton(Egui.Button.ImageAndText(image, title)).Ui(this, addContents);
 
         return new InnerResponse<R?>
         {

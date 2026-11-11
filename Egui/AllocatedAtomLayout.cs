@@ -2,18 +2,18 @@ namespace Egui;
 
 public partial record struct AllocatedAtomLayout
 {
-    /// <inheritdoc cref="SizedAtomLayout.Images"/>
-    public readonly IEnumerable<Image> Images => Sized.Images;
+    /// <inheritdoc cref="SizedContainerAtom.Images"/>
+    public readonly IEnumerable<Image> Images => Container.Images;
 
-    /// <inheritdoc cref="SizedAtomLayout.Texts"/>
-    public readonly IEnumerable<Galley> Texts => Sized.Texts;
+    /// <inheritdoc cref="SizedContainerAtom.Texts"/>
+    public readonly IEnumerable<Galley> Texts => Container.Texts;
 
-    /// <inheritdoc cref="SizedAtomLayout.Kinds"/>
-    public readonly IEnumerable<SizedAtomKind> Kinds => Sized.Kinds;
+    /// <inheritdoc cref="SizedContainerAtom.Kinds"/>
+    public readonly IEnumerable<SizedAtomKind> Kinds => Container.Kinds;
 
-    /// <inheritdoc cref="SizedAtomLayout.MapKind"/>
-    public void MapKind(Func<SizedAtomKind, SizedAtomKind> f) => Sized.MapKind(f);
+    /// <inheritdoc cref="SizedContainerAtom.MapKind"/>
+    public void MapKind(Func<SizedAtomKind, SizedAtomKind> f) => Container.MapKind(f);
 
-    /// <inheritdoc cref="SizedAtomLayout.MapImages"/>
-    public void MapImages(Func<Image, Image> f) => Sized.MapImages(f);
+    /// <inheritdoc cref="SizedContainerAtom.MapImages"/>
+    public void MapImages(Func<Image, Image> f) => Container.MapImages(f);
 }

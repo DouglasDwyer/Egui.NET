@@ -1,6 +1,6 @@
-use crate::{Atom, AtomKind, Image, WidgetText};
+use crate::{Atom, AtomKind, IdSalt, Image, TextureId, WidgetText};
+use alloc::borrow::Cow;
 use core::ops::{Deref, DerefMut};
-use std::borrow::Cow;
 
 /// A list of [`Atom`]s.
 ///
@@ -72,6 +72,64 @@ impl Atoms {
         }
 
         string
+    }
+
+    /// An [`IdSalt`] based on the contents of the atoms.
+    ///
+    /// Useful for widgets that derive their id from their label, like [`crate::ComboBox::from_label`].
+    ///
+    /// This hashes the text of text atoms, the source of image atoms,
+    /// and the [`Atom::id`] of any atom that has one.
+    /// Other atom contents (e.g. closures) are ignored.
+    pub fn salt(&self) -> IdSalt {
+        #[derive(Debug, Hash)]
+        enum SaltPart<'s> {
+            Text(&'s str),
+            ImageUri(Option<&'s str>),
+            ImageTexture(TextureId),
+            Other,
+        }
+
+        fn salt_part<'s>(atom: &'s Atom) -> (SaltPart<'s>, Option<IdSalt>) {
+            let part = match &atom.kind {
+                AtomKind::Text(text) => SaltPart::Text(text.text()),
+                AtomKind::Image(image) => {
+                    if let Some(texture_id) = image.texture_id() {
+                        SaltPart::ImageTexture(texture_id)
+                    } else {
+                        SaltPart::ImageUri(image.uri())
+                    }
+                }
+                AtomKind::Empty
+                | AtomKind::Closure(_)
+                | AtomKind::Paint(_)
+                | AtomKind::Widget(_)
+                | AtomKind::Container(_) => SaltPart::Other,
+            };
+            (part, atom.id)
+        }
+
+        /// Hashes the atoms without collecting them into a temporary `Vec`.
+        struct AtomsSalt<'s>(&'s [Atom]);
+
+        impl core::hash::Hash for AtomsSalt<'_> {
+            fn hash<H: core::hash::Hasher>(&self, state: &mut H) {
+                state.write_usize(self.0.len());
+                for atom in self.0 {
+                    salt_part(atom).hash(state);
+                }
+            }
+        }
+
+        impl core::fmt::Debug for AtomsSalt<'_> {
+            fn fmt(&self, f: &mut core::fmt::Formatter<'_>) -> core::fmt::Result {
+                f.debug_list()
+                    .entries(self.0.iter().map(salt_part))
+                    .finish()
+            }
+        }
+
+        IdSalt::new(AtomsSalt(&self.0))
     }
 
     /// Do any of the atoms have shrink set to `true`?
@@ -170,7 +228,7 @@ impl Atoms {
 
 impl IntoIterator for Atoms {
     type Item = Atom;
-    type IntoIter = std::vec::IntoIter<Atom>;
+    type IntoIter = alloc::vec::IntoIter<Atom>;
 
     fn into_iter(self) -> Self::IntoIter {
         self.0.into_iter()
@@ -228,7 +286,7 @@ impl IntoAtoms for Atoms {
 
 macro_rules! all_the_atoms {
     ($($T:ident),*) => {
-        impl<$($T),*> IntoAtoms for ($($T),*)
+        impl<$($T), *> IntoAtoms for ($($T),*)
         where
             $($T: IntoAtoms),*
         {

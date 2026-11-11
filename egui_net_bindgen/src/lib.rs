@@ -2,9 +2,11 @@
 
 use convert_case::*;
 use egui::Id;
+use egui::class::*;
 use egui::collapsing_header::*;
 use egui::color_picker::*;
 use egui::containers::menu::*;
+use egui::containers::*;
 use egui::ecolor::*;
 use egui::emath::*;
 use egui::epaint::Primitive;
@@ -23,6 +25,7 @@ use egui::text_selection::visuals::*;
 use egui::text_selection::*;
 use egui::util::undoer::*;
 use egui::widget_style::*;
+use egui::widgets::*;
 use egui::*;
 use egui::{Rect, Vec2};
 use egui_extras::syntax_highlighting::*;
@@ -79,6 +82,10 @@ const BINDING_EXCLUDE_FNS: &[&str] = &[
     "egui_plot_plot_Plot_allow_axis_zoom_drag",
     // Popup: bound manually
     "egui_containers_popup_Popup_open_id",
+    // Moved or new in egui 0.37: cannot be bound
+    "egui_text_selection_accesskit_text_update_accesskit_for_text_widget",
+    "epaint_text_font_data_FontData_from_static",
+    "emath_align_Align2_new",
     // Rect: bound manually
     "emath_rect_Rect_center",
     "emath_rect_Rect_set_center",
@@ -151,6 +158,7 @@ const NAMESPACE_RENAMES: &[(&str, &str)] = &[
     ("Egui.Containers.ScrollArea", "Egui.Containers"),
     ("Egui.Containers.CollapsingHeader", "Egui.Containers"),
     ("Egui.Containers.Panel", "Egui.Containers"),
+    ("Egui.Class", "Egui"),
     ("Egui.EguiExtras", "Egui.Extras"),
     (
         "Egui.EguiExtras.SyntaxHighlighting",
@@ -174,6 +182,10 @@ const TYPE_RENAMES: &[(&str, &str)] = &[
     ("Vec2b", "EVec2b"),
     ("Widgets", "WidgetsStyle"),
     ("RangeInclusive", "RangeInclusiveF64"),
+    ("WidgetAtom", "AtomLayout"),
+    ("SizedWidgetAtom", "SizedAtomLayout"),
+    ("AllocatedWidgetAtom", "AllocatedAtomLayout"),
+    ("WidgetAtomResponse", "AtomLayoutResponse"),
 ];
 
 /// Customizes the assigned namespace of types.
@@ -2643,6 +2655,7 @@ impl BindingsGenerator {
         } else {
             match rs_name {
                 "checked" => "isChecked".to_string(),
+                "class" => "classArg".to_string(),
                 "event" => "eventArg".to_string(),
                 "new" => "newArg".to_string(),
                 "this" => "thisArg".to_string(),
@@ -3018,7 +3031,7 @@ impl BindingsGenerator {
                         if Self::field_is_private(
                             &self.name_to_id,
                             &self.public_fields,
-                            &ty_name,
+                            Self::original_name(ty_name),
                             &field.name,
                         ) {
                             field.name = format!("_{}", field.name.to_case(Case::Camel));
@@ -3164,6 +3177,9 @@ impl BindingsGenerator {
         tracer
             .trace_simple_type::<egui::accesskit::ActionData>()
             .expect("Failed to trace ActionData");
+        tracer
+            .trace_simple_type::<egui::accesskit::Role>()
+            .expect("Failed to trace Role");
         tracer
             .trace_simple_type::<egui::accesskit::ActionRequest>()
             .expect("Failed to trace ActionRequest");
@@ -3358,9 +3374,7 @@ impl BindingsGenerator {
                                 path.insert(i, segment.to_string());
                             }
 
-                            if !result.contains_key(&name) {
-                                result.insert(name, path);
-                            }
+                            Self::insert_shortest_path(&mut result, name, path);
                         }
                     }
                 }
@@ -3368,6 +3382,20 @@ impl BindingsGenerator {
         }
 
         result
+    }
+
+    /// Records the path of an item, unless a shorter path to it is already known.
+    fn insert_shortest_path(
+        paths: &mut HashMap<String, Vec<String>>,
+        name: String,
+        path: Vec<String>,
+    ) {
+        if paths
+            .get(&name)
+            .is_none_or(|existing| path.len() < existing.len())
+        {
+            paths.insert(name, path);
+        }
     }
 
     /// Gathers the public paths of all types that are exported from the given module.
@@ -3385,9 +3413,7 @@ impl BindingsGenerator {
                 ItemEnum::Module(_) => {
                     for (name, mut path) in Self::find_public_paths_for_module(krate, *item_id) {
                         path.insert(0, item_name.to_string());
-                        if !result.contains_key(&name) {
-                            result.insert(name, path);
-                        }
+                        Self::insert_shortest_path(&mut result, name, path);
                     }
                 }
                 ItemEnum::Function(_) => {
@@ -3400,9 +3426,7 @@ impl BindingsGenerator {
                     if use_decl.is_glob {
                         if let Some(glob_id) = use_decl.id {
                             for (name, path) in Self::find_public_paths_for_module(krate, glob_id) {
-                                if !result.contains_key(&name) {
-                                    result.insert(name, path);
-                                }
+                                Self::insert_shortest_path(&mut result, name, path);
                             }
                         }
                     } else {
@@ -3550,6 +3574,15 @@ impl BindingsGenerator {
         }
 
         result
+    }
+
+    /// Gets the Rust name of a type that may have been renamed via [`TYPE_RENAMES`].
+    fn original_name(name: &str) -> &str {
+        TYPE_RENAMES
+            .iter()
+            .find(|(_, new)| *new == name)
+            .map(|(old, _)| *old)
+            .unwrap_or(name)
     }
 
     /// Gets the new name of a type, if it is in the [`TYPE_RENAMES`] list.

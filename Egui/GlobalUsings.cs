@@ -9,7 +9,6 @@ global using global::Egui.Layers;
 global using global::Egui.Load;
 global using global::Egui.Text;
 global using global::Egui.TextSelection;
-global using global::Egui.Viewport;
 global using global::Egui.Widgets;
 global using global::Egui.Emath;
 global using global::Egui.Epaint;

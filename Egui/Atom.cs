@@ -40,5 +40,5 @@ public partial record struct Atom
     /// <summary>
     /// Converts to this type from the input type.
     /// </summary>
-    public static implicit operator Atom(Egui.Widgets.Image value) => new Atom { Kind = value };
+    public static implicit operator Atom(Egui.Image value) => new Atom { Kind = value };
 }

@@ -183,11 +183,14 @@ pub struct Popup<'a> {
 
     /// Default width passed to the Area
     pub width: Option<f32>,
+    pub sizing_pass: bool,
     pub sense: Sense,
     pub interactable: bool,
     pub layout: Layout,
     pub frame: Option<Frame>,
     pub style: StyleModifier,
+    pub anchor_widget: Option<Id>,
+    pub accessibility_label: Option<String>,
 }
 
 impl<'a> Popup<'a> {
@@ -206,11 +209,14 @@ impl<'a> Popup<'a> {
             alternative_aligns: None,
             gap: 0.0,
             width: None,
-            sense: Sense::click(),
+            sizing_pass: false,
+            sense: Sense::CLICK,
             interactable: true,
             layout: Layout::default(),
             frame: None,
             style: StyleModifier::default(),
+            anchor_widget: None,
+            accessibility_label: None,
         }
     }
 
@@ -225,6 +231,7 @@ impl<'a> Popup<'a> {
             response,
             response.layer_id,
         )
+        .anchor_widget(response.id)
     }
 
     /// Show a popup relative to some widget,
@@ -361,6 +368,25 @@ impl<'a> Popup<'a> {
         self
     }
 
+    /// The widget this popup belongs to.
+    ///
+    /// The popup is nested under it in the accessibility tree.
+    /// Set automatically by [`Self::from_response`] and everything built on it.
+    #[inline]
+    pub fn anchor_widget(mut self, widget_id: Id) -> Self {
+        self.anchor_widget = Some(widget_id);
+        self
+    }
+
+    /// Name the popup in the accessibility tree.
+    ///
+    /// See [`Area::accessible_name`].
+    #[inline]
+    pub fn accessible_name(mut self, name: impl Into<String>) -> Self {
+        self.accessibility_label = Some(name.into());
+        self
+    }
+
     /// Set the gap between the anchor and the popup.
     #[inline]
     pub fn gap(mut self, gap: f32) -> Self {
@@ -402,6 +428,19 @@ impl<'a> Popup<'a> {
     #[inline]
     pub fn width(mut self, width: f32) -> Self {
         self.width = Some(width);
+        self
+    }
+
+    /// Force the popup's underlying [`Area`] to run an invisible sizing pass.
+    ///
+    /// Popups automatically run a sizing pass when they open or reopen. Set this to `true` for
+    /// one frame when the contents of an already open popup change and its cached size may no
+    /// longer fit. Do not leave it enabled continuously, because the popup would remain invisible.
+    ///
+    /// Default: `false`.
+    #[inline]
+    pub fn sizing_pass(mut self, sizing_pass: bool) -> Self {
+        self.sizing_pass = sizing_pass;
         self
     }
 
@@ -560,11 +599,14 @@ impl<'a> Popup<'a> {
             alternative_aligns: _,
             gap,
             width,
+            sizing_pass,
             sense,
             interactable,
             layout,
             frame,
             style,
+            anchor_widget,
+            accessibility_label,
         } = self;
 
         if kind != PopupKind::Tooltip {
@@ -588,7 +630,7 @@ impl<'a> Popup<'a> {
             .sense(sense)
             .interactable(interactable)
             .layout(layout)
-            .sizing_pass(!was_open_last_frame)
+            .sizing_pass(sizing_pass || !was_open_last_frame)
             .info(info.unwrap_or_else(|| {
                 UiStackInfo::new(kind.into()).with_tag_value(
                     MenuConfig::MENU_CONFIG_TAG,
@@ -601,15 +643,41 @@ impl<'a> Popup<'a> {
         if let Some(width) = width {
             area = area.default_width(width);
         }
+        if let Some(anchor_widget) = anchor_widget {
+            area = area.accessibility_parent(anchor_widget);
+        }
+        if let Some(label) = accessibility_label {
+            area = area.accessible_name(label);
+        }
 
         let mut response = area.show(&ctx, |ui| {
             style.apply(ui.style_mut());
             let frame = frame.unwrap_or_else(|| Frame::popup(ui.style()));
-            frame.show(ui, content).inner
+            let inner = frame.show(ui, content).inner;
+            if kind == PopupKind::Menu {
+                MenuState::handle_keyboard(ui, anchor_widget);
+            }
+            inner
         });
 
-        // If the popup was just opened with a click, we don't want to immediately close it again.
-        let close_click = was_open_last_frame && ctx.input(|i| i.pointer.any_click());
+        // Only a click whose press started while the popup was already open may close it.
+        // Otherwise a popup opened on a pointer *press* (e.g. a right-press context menu)
+        // would immediately close again on the following *release*.
+        // This also covers the case where the popup was just opened with a click.
+        let press_started_while_open_id = id.with("press_started_while_open");
+        let (any_pressed, any_click) =
+            ctx.input(|i| (i.pointer.any_pressed(), i.pointer.any_click()));
+        let press_started_while_open = if !was_open_last_frame {
+            ctx.data_mut(|d| d.remove::<bool>(press_started_while_open_id));
+            false
+        } else if any_pressed {
+            ctx.data_mut(|d| d.insert_temp(press_started_while_open_id, true));
+            true
+        } else {
+            ctx.data(|d| d.get_temp(press_started_while_open_id))
+                .unwrap_or(false)
+        };
+        let close_click = press_started_while_open && any_click;
 
         let closed_by_click = match close_behavior {
             PopupCloseBehavior::CloseOnClick => close_click,
@@ -631,6 +699,7 @@ impl<'a> Popup<'a> {
 
         if should_close {
             response.response.set_close();
+            ctx.data_mut(|d| d.remove::<bool>(press_started_while_open_id));
         }
 
         match open_kind {

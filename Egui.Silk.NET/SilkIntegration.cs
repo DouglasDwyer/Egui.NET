@@ -1,5 +1,4 @@
-﻿using Egui.Viewport;
-using System.Diagnostics;
+﻿using System.Diagnostics;
 using Silk.NET.Input;
 using Silk.NET.Windowing;
 using System.Collections.Immutable;
