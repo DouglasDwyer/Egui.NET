@@ -420,8 +420,9 @@ const IGNORE_FNS: &[&str] = &[
     "emath_align_Align2_new",
     // Id::with: bound manually as `With(IdSalt)` over `with_salt`; the generated call would hash the salt twice
     "egui_id_Id_with",
-    // FontData::from_blob and from_static: bound manually by setting the font field client-side
+    // FontData::from_blob, from_owned and from_static: bound manually by setting the font field client-side
     "epaint_text_font_data_FontData_from_blob",
+    "epaint_text_font_data_FontData_from_owned",
     "epaint_text_font_data_FontData_from_static",
     // AtomKind::closure: takes an `impl FnOnce(&Ui, IntoSizedArgs) -> IntoSizedResult`. Rust
     // closures cannot cross the C# FFI boundary as a stored/later-invoked value (unlike the

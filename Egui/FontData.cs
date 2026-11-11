@@ -20,6 +20,11 @@ public partial record struct FontData
     }
 
     /// <summary>
+    /// Wraps the content of a <c>.ttf</c> or <c>.otf</c> file, and uses its first font face.
+    /// </summary>
+    public static FontData FromOwned(ImmutableArray<byte> font) => FromBlob(font, 0);
+
+    /// <summary>
     /// Copies the content of a <c>.ttf</c> or <c>.otf</c> file, and uses its first font face.
     /// </summary>
     public static FontData FromStatic(ReadOnlySpan<byte> font) => FromBlob(ImmutableArray.Create(font), 0);
