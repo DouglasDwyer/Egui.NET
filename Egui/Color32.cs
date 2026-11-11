@@ -27,7 +27,7 @@ namespace Egui;
 ///
 /// An <c>alpha=0</c> means the color is to be treated as an additive color.
 /// </summary>
-public unsafe partial record struct Color32
+public partial record struct Color32
 {
     public static readonly Color32 Transparent = FromRgbaPremultiplied(0, 0, 0, 0);
     public static readonly Color32 Black = FromRgb(0, 0, 0);

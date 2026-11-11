@@ -52,6 +52,7 @@ fn main() {
         .csharp_namespace("Egui")
         .csharp_class_name("EguiBindings")
         .csharp_class_accessibility("internal")
+        .csharp_updated_memory_safety_rules(true)
         .csharp_dll_name("egui_net")
         .always_included_types([
             "EguiAnimatedUi",

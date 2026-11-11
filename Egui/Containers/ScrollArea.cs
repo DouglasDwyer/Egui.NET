@@ -42,7 +42,7 @@ public partial record struct ScrollArea
     /// <summary>
     /// Efficiently show only the visible part of a large number of rows.
     /// </summary>
-    public unsafe readonly ScrollAreaOutput ShowRows(Ui ui, float rowHeightSansSpacing, nuint totalRows, Action<Ui, nuint, nuint> addContents)
+    public readonly ScrollAreaOutput ShowRows(Ui ui, float rowHeightSansSpacing, nuint totalRows, Action<Ui, nuint, nuint> addContents)
     {
         return ShowRows(ui, rowHeightSansSpacing, totalRows, (ui, start, end) =>
         {
@@ -52,14 +52,20 @@ public partial record struct ScrollArea
     }
 
     /// <inheritdoc cref="ShowRows"/>
-    public unsafe readonly ScrollAreaOutput<R> ShowRows<R>(Ui ui, float rowHeightSansSpacing, nuint totalRows, Func<Ui, nuint, nuint, R> addContents)
+    public readonly ScrollAreaOutput<R> ShowRows<R>(Ui ui, float rowHeightSansSpacing, nuint totalRows, Func<Ui, nuint, nuint, R> addContents)
     {
         ui.AssertInitialized();
         var ctx = ui.Ctx;
         R result = default!;
         using var callback = new EguiCallback.Pin(data =>
         {
-            var unpackedData = *(EguiScrollAreaShowRowsParams*)data;
+            EguiScrollAreaShowRowsParams unpackedData;
+            unsafe
+            {
+                // Safety: egui passes a valid pointer to the parameters for the duration of the callback.
+                unpackedData = *(EguiScrollAreaShowRowsParams*)data;
+            }
+
             result = addContents(new Ui(ctx, unpackedData.ui), unpackedData.start, unpackedData.end);
         });
         var (id, state, contentSize, innerRect) = EguiMarshal.Call<nuint, ScrollArea, float, nuint, EguiCallback, (Id, State, EVec2, Rect)>(EguiFn.egui_containers_scroll_area_ScrollArea_show_rows, ui.Ptr, this, rowHeightSansSpacing, totalRows, callback.AsNative());
@@ -77,7 +83,7 @@ public partial record struct ScrollArea
     /// This can be used to only paint the visible part of the contents.
     /// <paramref name="addContents"/> is given the viewport rectangle, which is the relative view of the content. So if the passed rect has min = zero, then show the top left content (the user has not scrolled).
     /// </summary>
-    public unsafe readonly ScrollAreaOutput ShowViewport(Ui ui, Action<Ui, Rect> addContents)
+    public readonly ScrollAreaOutput ShowViewport(Ui ui, Action<Ui, Rect> addContents)
     {
         return ShowViewport(ui, (ui, rect) =>
         {
@@ -87,14 +93,20 @@ public partial record struct ScrollArea
     }
 
     /// <inheritdoc cref="ShowViewport"/>
-    public unsafe readonly ScrollAreaOutput<R> ShowViewport<R>(Ui ui, Func<Ui, Rect, R> addContents)
+    public readonly ScrollAreaOutput<R> ShowViewport<R>(Ui ui, Func<Ui, Rect, R> addContents)
     {
         ui.AssertInitialized();
         var ctx = ui.Ctx;
         R result = default!;
         using var callback = new EguiCallback.Pin(data =>
         {
-            var unpackedData = *(EguiScrollAreaShowViewportParams*)data;
+            EguiScrollAreaShowViewportParams unpackedData;
+            unsafe
+            {
+                // Safety: egui passes a valid pointer to the parameters for the duration of the callback.
+                unpackedData = *(EguiScrollAreaShowViewportParams*)data;
+            }
+
             result = addContents(new Ui(ctx, unpackedData.ui), Rect.FromMinMax(new EPos2(unpackedData.min_x, unpackedData.min_y), new EPos2(unpackedData.max_x, unpackedData.max_y)));
         });
         var (id, state, contentSize, innerRect) = EguiMarshal.Call<nuint, ScrollArea, EguiCallback, (Id, State, EVec2, Rect)>(EguiFn.egui_containers_scroll_area_ScrollArea_show_viewport, ui.Ptr, this, callback.AsNative());

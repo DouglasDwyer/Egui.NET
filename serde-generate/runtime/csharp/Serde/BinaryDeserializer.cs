@@ -99,24 +99,29 @@ namespace Serde
             return content.ToImmutableArray();
         }
 
-        public unsafe ImmutableArray<T> deserialize_seq_unmanaged<T>() where T : unmanaged
+        public ImmutableArray<T> deserialize_seq_unmanaged<T>() where T : unmanaged
         {
             long len = deserialize_len();
             if (len < 0 || len > int.MaxValue)
             {
                 throw new DeserializationException("Incorrect length value for C# array");
             }
-            var data = GC.AllocateUninitializedArray<T>((int)len, false);
-            fixed (T* items = data)
+            unsafe
             {
-                var byteLength = sizeof(T) * (int)len;
-                byte[] content = reader.ReadBytes(byteLength);
-                if (content.Length < byteLength)
-                    throw new DeserializationException($"Need {byteLength - content.Length} more bytes for byte array");
-                content.CopyTo(new Span<byte>((byte*)items, byteLength));
-            }
+                // Safety: every byte of the array is overwritten below, or an exception is thrown.
+                var data = GC.AllocateUninitializedArray<T>((int)len, false);
+                fixed (T* items = data)
+                {
+                    var byteLength = sizeof(T) * (int)len;
+                    byte[] content = reader.ReadBytes(byteLength);
+                    if (content.Length < byteLength)
+                        throw new DeserializationException($"Need {byteLength - content.Length} more bytes for byte array");
+                    content.CopyTo(new Span<byte>((byte*)items, byteLength));
+                }
 
-            return Unsafe.As<T[], ImmutableArray<T>>(ref data);
+                // Safety: `ImmutableArray<T>` is a struct whose only field is the `T[]`, so it has the same layout.
+                return Unsafe.As<T[], ImmutableArray<T>>(ref data);
+            }
         }
 
         public bool deserialize_bool()

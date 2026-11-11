@@ -163,6 +163,9 @@ public sealed partial class Context : EguiObject
     /// This may be used to pass data directly to a Rust-native integration
     /// library (like <c>egui-winit</c>) without a round-trip through C# data types.
     /// </summary>
+    /// <remarks>
+    /// This is unsafe because <see cref="EguiFfi"/> is not thread safe. The caller must have exclusive access to <paramref name="ffi"/>.
+    /// </remarks>
     public unsafe void RunFfi(EguiFfi ffi, Action<Ui> runUi)
     {
         using var callback = new EguiCallback.Pin(ui => runUi(new Ui(this, ui)));

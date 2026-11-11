@@ -470,6 +470,6 @@ public abstract class SilkIntegration : IDisposable
     /// <param name="hWnd">The raw window handle.</param>
     /// <returns>The associated DPI.</returns>
     [DllImport("User32.dll")]
-    private static extern uint GetDpiForWindow(nint hWnd);
+    private static safe extern uint GetDpiForWindow(nint hWnd);
 }
 

@@ -32,7 +32,14 @@ public class EguiObject
     internal EguiObject(EguiHandle handle)
     {
         _handle = handle;
-        ObjectFreeEvent.Register(this, () => EguiBindings.egui_drop(handle));
+        ObjectFreeEvent.Register(this, () =>
+        {
+            unsafe
+            {
+                // Safety: the handle is owned by this object and is dropped once, after the object is collected.
+                EguiBindings.egui_drop(handle);
+            }
+        });
     }
 
     /// <summary>
@@ -83,7 +90,11 @@ public class EguiObject
                 if (Interlocked.Exchange(ref _action, null) is Action action)
                 {
                     _keepAliveHandle.Dispose();
-                    _target.Free();
+                    unsafe
+                    {
+                        // Safety: the action runs once (guarded by the exchange above), so the handle is freed once.
+                        _target.Free();
+                    }
                     action();
                 }
             }

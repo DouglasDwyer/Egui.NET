@@ -5,7 +5,7 @@ namespace Egui;
 /// <summary>
 /// A list of <see cref="Ui"/> objects. 
 /// </summary>
-public unsafe readonly ref struct UiArray
+public readonly ref struct UiArray
 {
     /// <summary>
     /// The context associated with the <see cref="Ui"/>s. 
@@ -61,7 +61,11 @@ public unsafe readonly ref struct UiArray
         {
             if (index < _length)
             {
-                return new Ui(_ctx, _ptr[index]);
+                unsafe
+                {
+                    // Safety: `_ptr` holds `_length` UI handles, and `index` was checked against `_length`.
+                    return new Ui(_ctx, _ptr[index]);
+                }
             }
             else
             {

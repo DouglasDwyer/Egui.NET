@@ -382,7 +382,7 @@ public ref partial struct TextEdit : IWidget
     }
 
     /// <inheritdoc/>
-    unsafe Response IWidget.Ui(Ui ui)
+    Response IWidget.Ui(Ui ui)
     {
         ui.AssertInitialized();
         var mutable = _textImmutable is null;
@@ -393,8 +393,15 @@ public ref partial struct TextEdit : IWidget
         EguiCallback.Pin? layouterCallback = layouter is not null
             ? new EguiCallback.Pin(paramsPtr =>
             {
-                var p = *(EguiTextEditLayouterParams*)paramsPtr;
-                var text = System.Text.Encoding.UTF8.GetString((byte*)p.text_ptr, (int)p.text_len);
+                EguiTextEditLayouterParams p;
+                string text;
+                unsafe
+                {
+                    // Safety: egui passes a valid layouter params struct and text buffer for the duration of the callback.
+                    p = *(EguiTextEditLayouterParams*)paramsPtr;
+                    text = System.Text.Encoding.UTF8.GetString((byte*)p.text_ptr, (int)p.text_len);
+                }
+
                 var galley = layouter(new Ui(ctx, p.ui), text, p.wrap_width);
                 EguiMarshal.Call(EguiFn.egui_widgets_text_edit_builder_TextEdit_set_galley, p.out_galley, galley.Ptr);
             })

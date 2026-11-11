@@ -7,7 +7,7 @@ namespace Egui;
 /// A buffer may only be used by one in-flight call at a time. Every call that writes to it
 /// invalidates previously-obtained spans.
 /// </remarks>
-internal sealed unsafe class ManagedEguiBuffer : IDisposable
+internal sealed class ManagedEguiBuffer : IDisposable
 {
     /// <summary>
     /// The underlying Rust buffer, or null once disposed.
@@ -19,7 +19,11 @@ internal sealed unsafe class ManagedEguiBuffer : IDisposable
     /// </summary>
     public ManagedEguiBuffer()
     {
-        _handle = EguiBindings.egui_buffer_new();
+        unsafe
+        {
+            // Safety: the new buffer is owned by this object and freed in `Free`.
+            _handle = EguiBindings.egui_buffer_new();
+        }
     }
 
     /// <summary>
@@ -41,8 +45,12 @@ internal sealed unsafe class ManagedEguiBuffer : IDisposable
     /// </summary>
     public ReadOnlySpan<byte> AsReadOnlySpan()
     {
-        var slice = EguiBindings.egui_buffer_data(Handle);
-        return new ReadOnlySpan<byte>(slice.ptr, checked((int)slice.len));
+        unsafe
+        {
+            // Safety: `Handle` is a live buffer, and the span is documented as valid only until the next write.
+            var slice = EguiBindings.egui_buffer_data(Handle);
+            return new ReadOnlySpan<byte>(slice.ptr, checked((int)slice.len));
+        }
     }
 
     /// <summary>
@@ -61,7 +69,12 @@ internal sealed unsafe class ManagedEguiBuffer : IDisposable
     {
         if (_handle != null)
         {
-            EguiBindings.egui_buffer_drop(_handle);
+            unsafe
+            {
+                // Safety: `_handle` is non-null and owned by this object, and it is cleared right after.
+                EguiBindings.egui_buffer_drop(_handle);
+            }
+
             _handle = null;
         }
     }

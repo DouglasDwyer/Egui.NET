@@ -91,12 +91,16 @@ namespace Serde
             output.Write(value.AsSpan());
         }
 
-        public unsafe void serialize_seq_unmanaged<T>(ReadOnlySpan<T> value) where T : unmanaged
+        public void serialize_seq_unmanaged<T>(ReadOnlySpan<T> value) where T : unmanaged
         {
             serialize_len(value.Length);
-            fixed (T* ptr = value)
+            unsafe
             {
-                output.Write(new ReadOnlySpan<byte>((byte*)ptr, sizeof(T) * value.Length));
+                // Safety: `ptr` addresses `value.Length` elements, and `T` is unmanaged, so its bytes can be written as-is.
+                fixed (T* ptr = value)
+                {
+                    output.Write(new ReadOnlySpan<byte>((byte*)ptr, sizeof(T) * value.Length));
+                }
             }
         }
 

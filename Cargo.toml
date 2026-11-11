@@ -63,6 +63,9 @@ image = "i18nsite/x86_64-apple-darwin-cross@sha256:8604955bd3fd7bd5e18f8ad008531
 image = "aloismisery/aarch64-apple-darwin-cross@sha256:c82fb79111206da2a18cfd917fbd89f1c3e996e7aaf22fc78553cc57b3e12c68"
 
 [patch.crates-io]
+# Support for new memory-safety rules
+# https://github.com/Cysharp/csbindgen/pull/143
+csbindgen = { git = "https://github.com/DouglasDwyer/csbindgen", rev = "2e1b694defd032f6f2ba1ebd5cac7a6fb12ad886" }
 ecolor = { path = "egui-rs/crates/ecolor" }
 egui = { path = "egui-rs/crates/egui" }
 egui_extras = { path = "egui-rs/crates/egui_extras" }
