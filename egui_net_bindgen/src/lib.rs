@@ -3034,7 +3034,8 @@ impl BindingsGenerator {
                 } else {
                     self.krate.paths.contains_key(id)
                 }
-                && matches!(item.inner, ItemEnum::Function(_))
+                // Trait method declarations have no body to call. They only reach `paths` when a doc link names them.
+                && matches!(&item.inner, ItemEnum::Function(f) if f.has_body)
                 && {
                     let variant_name = self.fn_enum_variant_name(*id);
                     variant_name.starts_with("e")
