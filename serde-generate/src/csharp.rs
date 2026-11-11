@@ -937,6 +937,11 @@ return obj.ToImmutableArray();
         variants: &BTreeMap<u32, Named<VariantFormat>>,
     ) -> Result<()> {
         let has_default = self.generator.config.enums_with_default.contains(name);
+        let default_field = if variants.values().any(|v| v.name == "Default") {
+            "DefaultValue"
+        } else {
+            "Default"
+        };
         let uninit = |default_stmt: &str| -> String {
             if has_default {
                 format!("if (!_variantId.HasValue) {default_stmt}")
@@ -975,7 +980,7 @@ return obj.ToImmutableArray();
         if has_default {
             writeln!(
                 self.out,
-                "\nprivate static class DefaultHolder {{\n    internal static readonly {name} Value = new {name}();\n}}"
+                "\nprivate static readonly {name} {default_field} = new {name}();"
             )?;
         } else {
             writeln!(
@@ -987,7 +992,11 @@ return obj.ToImmutableArray();
         writeln!(self.out, "\n/// <summary>Gets the contents of this union, boxed. Prefer pattern matching or TryGetValue.</summary>")?;
         writeln!(self.out, "public readonly object? Value {{ get {{")?;
         self.out.indent();
-        writeln!(self.out, "{}", uninit("return DefaultHolder.Value.Value;"))?;
+        writeln!(
+            self.out,
+            "{}",
+            uninit(&format!("return {default_field}.Value;"))
+        )?;
         writeln!(self.out, "switch (_variantId.Value) {{")?;
         for (id, _) in variants {
             writeln!(self.out, "case {id}: return _variant{id};")?;
@@ -1027,19 +1036,13 @@ return obj.ToImmutableArray();
             writeln!(
                 self.out,
                 "{}",
-                uninit("return DefaultHolder.Value.TryGetValue(out value);")
+                uninit(&format!("return {default_field}.TryGetValue(out value);"))
             )?;
             writeln!(self.out, "value = _variant{id};")?;
             writeln!(self.out, "return _variantId == {id};")?;
             self.out.unindent();
             writeln!(self.out, "}}")?;
         }
-
-        writeln!(
-            self.out,
-            "\n[Obsolete(\"Use pattern matching or TryGetValue on the union instead.\")]"
-        )?;
-        writeln!(self.out, "public readonly object Inner => Value!;")?;
 
         // Serialize/Deserialize
         if self.generator.config.serialization {
@@ -1053,7 +1056,9 @@ return obj.ToImmutableArray();
             writeln!(
                 self.out,
                 "\n{}",
-                uninit("{ DefaultHolder.Value.Serialize(serializer); return; }")
+                uninit(&format!(
+                    "{{ {default_field}.Serialize(serializer); return; }}"
+                ))
             )?;
             writeln!(self.out, "switch (_variantId.Value) {{")?;
             self.out.indent();
@@ -1115,7 +1120,7 @@ switch (index) {{"#,
         if has_default {
             writeln!(
                 self.out,
-                "if (!_variantId.HasValue) return DefaultHolder.Value.GetHashCode();"
+                "if (!_variantId.HasValue) return {default_field}.GetHashCode();"
             )?;
         } else {
             writeln!(self.out, "if (!_variantId.HasValue) return 0;")?;
@@ -1138,11 +1143,11 @@ switch (index) {{"#,
         if has_default {
             writeln!(
                 self.out,
-                "if (!_variantId.HasValue) return DefaultHolder.Value.Equals(other);"
+                "if (!_variantId.HasValue) return {default_field}.Equals(other);"
             )?;
             writeln!(
                 self.out,
-                "if (!other._variantId.HasValue) return Equals(DefaultHolder.Value);"
+                "if (!other._variantId.HasValue) return Equals({default_field});"
             )?;
         } else {
             writeln!(
@@ -1180,7 +1185,7 @@ switch (index) {{"#,
         if has_default {
             writeln!(
                 self.out,
-                "if (!_variantId.HasValue) return DefaultHolder.Value.PrintMembers(builder);"
+                "if (!_variantId.HasValue) return {default_field}.PrintMembers(builder);"
             )?;
         } else {
             writeln!(
