@@ -35,5 +35,5 @@ public partial record struct AtomKind
     /// <summary>
     /// Converts to this type from the input type.
     /// </summary>
-    public static implicit operator AtomKind(Egui.Widgets.Image value) => new AtomKind.Image(value);
+    public static implicit operator AtomKind(Egui.Image value) => new AtomKind.Image(value);
 }

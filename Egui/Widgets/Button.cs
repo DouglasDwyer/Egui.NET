@@ -1,4 +1,4 @@
-namespace Egui.Widgets;
+namespace Egui;
 
 public partial record struct Button
 {

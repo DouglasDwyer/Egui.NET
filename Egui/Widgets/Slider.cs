@@ -1,7 +1,7 @@
 using System.ComponentModel;
 using System.Numerics;
 
-namespace Egui.Widgets;
+namespace Egui;
 
 /// <summary>
 /// Control a number with a slider.<br/>

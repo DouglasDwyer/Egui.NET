@@ -1,4 +1,4 @@
-namespace Egui.Containers;
+namespace Egui;
 
 public ref partial struct Tooltip
 {

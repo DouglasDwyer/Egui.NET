@@ -1,6 +1,6 @@
 using System.ComponentModel;
 
-namespace Egui.Widgets;
+namespace Egui;
 
 /// <summary>
 /// Boolean on/off control with text label.<br/>

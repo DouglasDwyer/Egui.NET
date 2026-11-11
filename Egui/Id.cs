@@ -48,7 +48,7 @@ public partial record struct Id
     /// Generate a new <see cref="Id"/>  by hashing some source.
     public Id(string source)
     {
-        this = EguiMarshal.Call<string, Id>(EguiFn.egui_id_Id_new, source);
+        this = EguiMarshal.Call<string, Id>(EguiFn.egui_id_Id_unique, source);
     }
 
     /// <summary>

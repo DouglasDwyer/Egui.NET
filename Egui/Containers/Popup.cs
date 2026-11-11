@@ -1,6 +1,6 @@
 using System.Collections.Immutable;
 
-namespace Egui.Containers;
+namespace Egui;
 
 /// <summary>
 /// A popup container.
@@ -561,21 +561,21 @@ public ref partial struct Popup
     private struct SerializablePopup
     {
         public Egui.Id Id;
-        public Egui.Containers.PopupAnchor Anchor;
+        public Egui.PopupAnchor Anchor;
         public Egui.RectAlign RectAlign;
         public ImmutableArray<Egui.RectAlign>? AlternativeAligns;
         public Egui.LayerId LayerId;
         public byte OpenKind;
         public SetOpenCommand? OpenCommand;
-        public Egui.Containers.PopupCloseBehavior CloseBehavior;
+        public Egui.PopupCloseBehavior CloseBehavior;
         public Egui.UiStackInfo? Info;
-        public Egui.Containers.PopupKind Kind;
+        public Egui.PopupKind Kind;
         public float Gap;
         public float? Width;
         public Egui.Sense Sense;
         public bool Interactable;
         public Egui.Layout Layout;
-        public Egui.Containers.Frame? Frame;
+        public Egui.Frame? Frame;
         public Egui.Style? Style;
         public bool MenuStyle;
 

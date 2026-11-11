@@ -1,4 +1,4 @@
-namespace Egui.Viewport;
+namespace Egui;
 
 public partial record struct ViewportId
 {

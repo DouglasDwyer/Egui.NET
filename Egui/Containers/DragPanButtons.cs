@@ -1,6 +1,6 @@
 using System.Diagnostics.CodeAnalysis;
 
-namespace Egui.Containers;
+namespace Egui;
 
 /// <summary>
 /// Specifies which pointer buttons can be used to pan the scene by dragging.
