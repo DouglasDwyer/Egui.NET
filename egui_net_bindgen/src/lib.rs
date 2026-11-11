@@ -621,6 +621,20 @@ const IGNORE_FNS: &[&str] = &[
     "epaint_text_fonts_Fonts_max_texture_side",
     "epaint_text_fonts_Fonts_num_galleys_in_cache",
     "epaint_text_fonts_Fonts_with_pixels_per_point",
+    // Fonts: newly added in egui 0.37, and likewise never reachable from a bound function
+    "epaint_text_fonts_Fonts_add_glyph_rasterizer",
+    "epaint_text_fonts_Fonts_discovered_fonts",
+    "epaint_text_fonts_Fonts_layout_uncached",
+    "epaint_text_fonts_Fonts_layout_uncached_for_viewport",
+    "epaint_text_fonts_Fonts_missing_glyph_policy",
+    "epaint_text_fonts_Fonts_retain_galley_caches",
+    "epaint_text_fonts_Fonts_set_glyph_rasterizers",
+    "epaint_text_fonts_Fonts_set_missing_glyph_policy",
+    "epaint_text_fonts_Fonts_used_since_begin_pass",
+    "epaint_text_fonts_Fonts_with_font_providers",
+    "epaint_text_fonts_Fonts_with_glyph_rasterizer",
+    "epaint_text_fonts_Fonts_with_missing_glyph_policy",
+    "epaint_text_fonts_Fonts_with_pixels_per_point_for_viewport",
     // `Fonts::options` forwards to the same `TextureAtlas::options` call already reachable
     // through `FontsView` (see `epaint_texture_atlas_TextureAtlas_options` below) - `Fonts`
     // itself is never reachable from any bound function (`Context::fonts`/`fonts_mut` only ever
@@ -955,6 +969,7 @@ const IGNORE_FNS: &[&str] = &[
     "epaint_tessellator_Tessellator_tessellate_line",
     "epaint_tessellator_Tessellator_tessellate_line_segment",
     "epaint_tessellator_Tessellator_tessellate_mesh",
+    "epaint_tessellator_Tessellator_tessellate_band",
     "epaint_tessellator_Tessellator_tessellate_path",
     "epaint_tessellator_Tessellator_tessellate_quadratic_bezier",
     "epaint_tessellator_Tessellator_tessellate_rect",
