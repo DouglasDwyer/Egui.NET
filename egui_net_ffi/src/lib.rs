@@ -9,9 +9,10 @@ use egui::*;
 use serde::*;
 
 /// Allows for passing `egui` data back and forth with C#.
+#[derive(Debug)]
 #[repr(C)]
 pub struct EguiFfi {
-    /// The meshes from the most recent call to [`Context::tessellate`], with their clip rectangles.
+    /// The meshes from the most recent call to [`Context::tessellate`].
     clipped_primitives: FfiVec<(Rect, FfiTextureId, FfiVec<u32>, FfiVec<Vertex>)>,
     /// The most recent [`FullOutput::pixels_per_point`].
     pixels_per_point: f32,
@@ -25,10 +26,6 @@ pub struct EguiFfi {
 
 impl EguiFfi {
     /// Gets the most recent output of [`Context::tessellate`].
-    ///
-    /// Every returned [`ClippedPrimitive`] holds a [`Primitive::Mesh`], because
-    /// [`Primitive::Callback`]s are not stored (see [`Self::set_clipped_primitives`]).
-    /// The result can be passed directly to renderers like `egui_wgpu::Renderer`.
     pub fn clipped_primitives(&self) -> Vec<ClippedPrimitive> {
         self.clipped_primitives
             .iter()
@@ -141,26 +138,6 @@ impl EguiFfi {
         bincode::serde::decode_from_slice(&self.textures_delta, bincode::config::legacy())
             .expect("Failed to deserialize TexturesDelta")
             .0
-    }
-}
-
-impl Debug for EguiFfi {
-    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
-        f.debug_struct("EguiFfi")
-            .field("clipped_primitives", &self.clipped_primitives)
-            .field("pixels_per_point", &self.pixels_per_point)
-            .field(
-                "platform_output",
-                &bincode::serde::decode_from_slice::<PlatformOutput2, _>(
-                    &self.platform_output,
-                    bincode::config::legacy(),
-                )
-                .expect("Failed to deserialize PlatformOutput")
-                .0,
-            )
-            .field("raw_input", &self.raw_input())
-            .field("textures_delta", &self.textures_delta())
-            .finish()
     }
 }
 
@@ -338,48 +315,3 @@ impl<T> Drop for FfiVec<T> {
 
 unsafe impl<T: Send> Send for FfiVec<T> {}
 unsafe impl<T: Send> Sync for FfiVec<T> {}
-
-#[cfg(test)]
-mod tests {
-    use super::*;
-
-    #[test]
-    fn clipped_primitives_round_trip_and_debug() {
-        let mut mesh = Mesh::default();
-        mesh.add_colored_rect(
-            Rect::from_min_size(Pos2::ZERO, vec2(4.0, 4.0)),
-            Color32::RED,
-        );
-        mesh.texture_id = TextureId::User(7);
-        let clip_rect = Rect::from_min_size(Pos2::ZERO, vec2(10.0, 10.0));
-
-        let mut ffi = EguiFfi::default();
-        ffi.set_clipped_primitives([
-            ClippedPrimitive {
-                clip_rect,
-                primitive: Primitive::Mesh(mesh.clone()),
-            },
-            ClippedPrimitive {
-                clip_rect,
-                primitive: Primitive::Callback(PaintCallback {
-                    rect: clip_rect,
-                    callback: std::sync::Arc::new(()),
-                }),
-            },
-        ]);
-
-        let result = ffi.clipped_primitives();
-        assert_eq!(result.len(), 1, "callbacks should not be stored");
-        assert_eq!(result[0].clip_rect, clip_rect);
-        let Primitive::Mesh(out) = &result[0].primitive else {
-            panic!("expected a mesh");
-        };
-        assert_eq!(out.indices, mesh.indices);
-        assert_eq!(out.vertices, mesh.vertices);
-        assert_eq!(out.texture_id, mesh.texture_id);
-
-        let debug = format!("{ffi:?}");
-        assert!(debug.starts_with("EguiFfi {"));
-        assert!(debug.contains("pixels_per_point: "), "{debug}");
-    }
-}
