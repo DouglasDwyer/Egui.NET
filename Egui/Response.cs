@@ -63,6 +63,32 @@ public partial record struct Response
     }
 
     /// <summary>
+    /// Response to secondary clicks (right-clicks) anywhere on the container this response is for,
+    /// by showing the given menu at the pointer.<br/>
+    /// A click on the container closes the menu.
+    /// </summary>
+    public readonly InnerResponse? ContainerContextMenu(Action<Ui> addContents)
+    {
+        var response = this;
+        SetOpenCommand? command = null;
+        if (response.ContainerSecondaryClicked)
+        {
+            command = new SetOpenCommand.Bool { Value = true };
+        }
+        else if (response.ContainerClicked)
+        {
+            // Explicitly close the menu if the container was clicked,
+            // otherwise the context menu would stay open when clicking elsewhere in the container.
+            command = new SetOpenCommand.Bool { Value = false };
+        }
+
+        return Popup.Menu(response)
+            .OpenMemory(command)
+            .AtPointerFixed()
+            .Show(addContents);
+    }
+
+    /// <summary>
     /// Always show this tooltip, even if disabled and the user isn't hovering it.<br/>
     /// 
     /// This can be used to give attention to a widget during a tutorial.

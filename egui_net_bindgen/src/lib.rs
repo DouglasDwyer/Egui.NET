@@ -434,6 +434,14 @@ const IGNORE_FNS: &[&str] = &[
     "egui_class_classes_Classes_iter",
     "egui_class_has_classes_HasClasses_has_class",
     "egui_class_has_classes_HasClasses_set_class",
+    // TextEdit: bound manually as client-side builders and properties
+    "egui_widgets_text_edit_builder_TextEdit_align",
+    "egui_widgets_text_edit_builder_TextEdit_classes",
+    "egui_widgets_text_edit_builder_TextEdit_classes_mut",
+    "egui_widgets_text_edit_builder_TextEdit_event_filter",
+    "egui_widgets_text_edit_builder_TextEdit_get_event_filter",
+    // Response::container_context_menu: rewritten in C# over `Popup`
+    "egui_response_Response_container_context_menu",
     // AtomKind::closure: takes an `impl FnOnce(&Ui, IntoSizedArgs) -> IntoSizedResult`. Rust
     // closures cannot cross the C# FFI boundary as a stored/later-invoked value (unlike the
     // synchronous, scope-bound `EguiCallback` pattern used elsewhere), so this will never be
