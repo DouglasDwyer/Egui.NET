@@ -3,11 +3,19 @@ use alloc::sync::Arc;
 use crate::text::CCursorRange;
 
 /// The output from a [`TextEdit`](crate::TextEdit).
+#[cfg_attr(feature = "serde", derive(serde::Deserialize, serde::Serialize))]
 pub struct TextEditOutput {
     /// The interaction response.
     pub response: crate::WidgetAtomResponse,
 
     /// How the text was displayed.
+    #[cfg_attr(
+        feature = "serde",
+        serde(
+            serialize_with = "crate::Galley::ffi_serialize_arc_handle",
+            deserialize_with = "crate::Galley::ffi_deserialize_arc_handle"
+        )
+    )]
     pub galley: Arc<crate::Galley>,
 
     /// Where the text in [`Self::galley`] ended up on the screen.

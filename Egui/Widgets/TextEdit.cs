@@ -293,14 +293,35 @@ public ref partial struct TextEdit : IWidget
     }
 
     /// <summary>
-    /// Sets the classes for this text edit, which a styling engine can use to choose its style.
+    /// The classes of this text edit, which a styling engine can use to choose its style.
     /// </summary>
-    public readonly TextEdit Classes(Classes classes)
+    public Classes Classes
+    {
+        readonly get => _inner.Classes;
+        set => _inner.Classes = value;
+    }
+
+    /// <summary>
+    /// Controls which events the text edit captures, instead of using them for keyboard navigation
+    /// (tab and arrows move focus, escape surrenders focus).<br/>
+    ///
+    /// The default captures the arrow keys, but not tab or escape.
+    /// This is useful e.g. to implement a code completion popup,
+    /// where tab and escape should act on the popup instead of moving focus away.<br/>
+    ///
+    /// See also <see cref="LockFocus"/>.
+    /// </summary>
+    public readonly TextEdit EventFilter(EventFilter eventFilter)
     {
         var result = this;
-        result._inner.Classes = classes;
+        result._inner.EventFilter = eventFilter;
         return result;
     }
+
+    /// <summary>
+    /// The event filter set with <see cref="EventFilter"/> or <see cref="LockFocus"/>.
+    /// </summary>
+    public readonly EventFilter GetEventFilter => _inner.EventFilter;
 
     /// <summary>
     /// Set the horizontal align of the inner text.
@@ -408,10 +429,68 @@ public ref partial struct TextEdit : IWidget
         ui.AssertInitialized();
         var mutable = _textImmutable is null;
         var textToSend = mutable ? _textMutable : _textImmutable;
+        var layouterCallback = CreateLayouterCallback(ui);
+
+        try
+        {
+            var (response, newText) = EguiMarshal.Call<nuint, TextEditInner, string, bool, EguiCallback?, (Response, string)>(
+                EguiFn.egui_widgets_text_edit_builder_TextEdit_ui, ui.Ptr, _inner, textToSend!, mutable, layouterCallback?.AsNative());
+            if (mutable)
+            {
+                _textMutable = newText;
+            }
+            return response;
+        }
+        finally
+        {
+            if (layouterCallback is EguiCallback.Pin lc)
+            {
+                ((IDisposable)lc).Dispose();
+            }
+        }
+    }
+
+    /// <summary>
+    /// Like <c>Show</c>, but returns a rich <see cref="TextEditOutput"/> and also gives back the text,
+    /// so the caller can keep editing it after the text edit has been shown.<br/>
+    ///
+    /// This is what a completion popup uses to wrap a text edit.
+    /// Use it to build your own widgets that edit the text after showing it.
+    /// </summary>
+    public TextEditResult ShowReturningText(Ui ui)
+    {
+        ui.AssertInitialized();
+        var mutable = _textImmutable is null;
+        var textToSend = mutable ? _textMutable : _textImmutable;
+        var layouterCallback = CreateLayouterCallback(ui);
+
+        try
+        {
+            var (output, newText) = EguiMarshal.Call<nuint, TextEditInner, string, bool, EguiCallback?, (TextEditOutput, string)>(
+                EguiFn.egui_widgets_text_edit_builder_TextEdit_show_returning_text, ui.Ptr, _inner, textToSend!, mutable, layouterCallback?.AsNative());
+            if (mutable)
+            {
+                _textMutable = newText;
+                return new TextEditResult(output, ref _textMutable);
+            }
+
+            return new TextEditResult(output, _textImmutable!);
+        }
+        finally
+        {
+            if (layouterCallback is EguiCallback.Pin lc)
+            {
+                ((IDisposable)lc).Dispose();
+            }
+        }
+    }
+
+    private readonly EguiCallback.Pin? CreateLayouterCallback(Ui ui)
+    {
         var ctx = ui.Ctx;
         var layouter = _layouter;
 
-        EguiCallback.Pin? layouterCallback = layouter is not null
+        return layouter is not null
             ? new EguiCallback.Pin(paramsPtr =>
             {
                 EguiTextEditLayouterParams p;
@@ -427,24 +506,6 @@ public ref partial struct TextEdit : IWidget
                 EguiMarshal.Call(EguiFn.egui_widgets_text_edit_builder_TextEdit_set_galley, p.out_galley, galley.Ptr);
             })
             : null;
-
-        try
-        {
-            var (response, newText) = EguiMarshal.Call<nuint, TextEditInner, string, bool, EguiCallback?, (Response, string)>(
-                EguiFn.egui_widgets_text_edit_builder_TextEdit_ui, ui.Ptr, _inner, textToSend!, _textImmutable is null, layouterCallback?.AsNative());
-            if (mutable)
-            {
-                _textMutable = newText;
-            }
-            return response;
-        }
-        finally
-        {
-            if (layouterCallback is EguiCallback.Pin lc)
-            {
-                ((IDisposable)lc).Dispose();
-            }
-        }
     }
 
     private struct TextEditInner
